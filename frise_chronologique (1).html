@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ma Frise Chronologique</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1510;--ink2:#6b6155;--ink3:#a8998a;
+  --paper:#faf7f2;--paper2:#f2ede4;--paper3:#e8e0d2;
+  --gold:#c8a96e;--gold2:#e8c98a;--gold-light:#f5edda;
+  --accent:#8b3a2a;
+  --font-head:'Playfair Display',Georgia,serif;
+  --font-body:'DM Sans','Helvetica Neue',sans-serif;
+  --radius:10px;--radius-lg:16px;--radius-xl:24px;
+  --shadow:0 2px 20px rgba(26,21,16,0.08);
+  --shadow-lg:0 8px 40px rgba(26,21,16,0.14);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --ink:#f0ebe0;--ink2:#b0a090;--ink3:#6b5e50;
+    --paper:#1a1610;--paper2:#221e16;--paper3:#2e281e;
+    --gold:#c8a96e;--gold2:#a88848;--gold-light:#2a2218;
+    --shadow:0 2px 20px rgba(0,0,0,0.3);
+    --shadow-lg:0 8px 40px rgba(0,0,0,0.4);
+  }
+}
+
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);min-height:100vh;line-height:1.6}
+
+/* ── HEADER ── */
+.site-header{
+  padding:3rem 2rem 2rem;
+  text-align:center;
+  border-bottom:1px solid var(--paper3);
+  position:relative;
+  overflow:hidden;
+}
+.site-header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 100%,var(--gold-light),transparent);
+  pointer-events:none;
+}
+.header-ornament{
+  font-size:11px;letter-spacing:.35em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:.75rem;font-family:var(--font-body);font-weight:500;
+}
+.site-title{
+  font-family:var(--font-head);font-size:clamp(2rem,5vw,3.5rem);
+  font-weight:700;color:var(--ink);line-height:1.1;margin-bottom:.5rem;
+}
+.site-subtitle{font-size:14px;color:var(--ink2);max-width:400px;margin:0 auto;}
+
+/* ── LAYOUT ── */
+.page{max-width:1200px;margin:0 auto;padding:0 1.5rem 4rem}
+
+/* ── TOOLBAR ── */
+.toolbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:1.25rem 0;
+  border-bottom:1px solid var(--paper3);
+  margin-bottom:2rem;
+}
+.btn{
+  font-family:var(--font-body);font-size:13px;font-weight:500;
+  padding:8px 18px;border-radius:100px;
+  border:1px solid var(--paper3);
+  background:var(--paper2);color:var(--ink2);
+  cursor:pointer;transition:all .2s;letter-spacing:.01em;
+}
+.btn:hover{background:var(--paper3);color:var(--ink);border-color:var(--paper3)}
+.btn.gold{background:var(--gold);color:var(--paper);border-color:var(--gold);font-weight:500}
+.btn.gold:hover{background:var(--gold2);border-color:var(--gold2)}
+.zoom-label{font-size:12px;color:var(--ink3);min-width:42px;text-align:center;font-family:var(--font-body)}
+.sep{width:1px;height:20px;background:var(--paper3);flex-shrink:0}
+
+/* ── LEGEND ── */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:1.5rem}
+.legend-item{
+  display:flex;align-items:center;gap:7px;
+  font-size:12px;color:var(--ink2);cursor:pointer;
+  transition:opacity .2s;padding:5px 12px;
+  border-radius:100px;border:1px solid var(--paper3);
+  background:var(--paper2);font-family:var(--font-body);font-weight:500;
+}
+.legend-item:hover{border-color:var(--paper3);background:var(--paper3)}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── TIMELINE CANVAS ── */
+#tl-wrap{
+  border-radius:var(--radius-xl);
+  border:1px solid var(--paper3);
+  background:var(--paper2);
+  overflow:hidden;cursor:grab;user-select:none;
+  position:relative;
+  box-shadow:var(--shadow);
+}
+#tl-wrap.dragging{cursor:grabbing}
+#tl-svg{display:block;width:100%}
+
+/* ── TOOLTIP ── */
+#tooltip{
+  position:fixed;pointer-events:none;
+  background:var(--ink);color:var(--paper);
+  border-radius:var(--radius);padding:10px 14px;
+  font-size:12px;z-index:200;max-width:240px;
+  line-height:1.5;display:none;
+  box-shadow:var(--shadow-lg);
+  font-family:var(--font-body);
+}
+#tooltip strong{display:block;font-size:13px;margin-bottom:2px;font-family:var(--font-head);font-weight:500}
+#tooltip .t-year{color:var(--gold);font-size:11px;letter-spacing:.05em}
+#tooltip .t-desc{color:rgba(240,235,224,.7);margin-top:4px;font-size:11px}
+
+/* ── MODAL OVERLAY ── */
+#modal-bg{
+  display:none;position:fixed;inset:0;
+  background:rgba(26,21,16,0.55);backdrop-filter:blur(4px);
+  z-index:300;align-items:center;justify-content:center;
+  animation:fadeIn .2s ease;
+}
+#modal-bg.open{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+#modal{
+  background:var(--paper);border:1px solid var(--paper3);
+  border-radius:var(--radius-xl);padding:2rem;
+  width:min(520px,94vw);max-height:92vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem}
+.modal-header h2{font-family:var(--font-head);font-size:22px;font-weight:500;color:var(--ink)}
+.modal-close{background:none;border:none;font-size:20px;color:var(--ink3);cursor:pointer;padding:0 4px;line-height:1}
+.modal-close:hover{color:var(--ink)}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .span2{grid-column:span 2}
+.form-row label{
+  display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:6px;font-weight:500;
+}
+.form-row input,.form-row textarea,.form-row select{
+  width:100%;font-size:14px;font-family:var(--font-body);
+  border:1.5px solid var(--paper3);border-radius:var(--radius);
+  background:var(--paper2);color:var(--ink);padding:10px 13px;
+  outline:none;transition:border-color .15s,background .15s;
+}
+.form-row input:focus,.form-row textarea:focus,.form-row select:focus{
+  border-color:var(--gold);background:var(--paper);
+}
+.form-row textarea{height:90px;resize:vertical}
+
+/* Image upload zone */
+.img-zone{
+  border:2px dashed var(--paper3);border-radius:var(--radius-lg);
+  padding:1.5rem;text-align:center;cursor:pointer;
+  transition:border-color .2s,background .2s;
+  position:relative;overflow:hidden;
+}
+.img-zone:hover{border-color:var(--gold);background:var(--gold-light)}
+.img-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.img-zone-icon{font-size:28px;margin-bottom:.5rem;display:block}
+.img-zone p{font-size:13px;color:var(--ink2)}
+.img-zone small{font-size:11px;color:var(--ink3)}
+#img-preview{display:none;margin-top:12px;text-align:center}
+#img-preview img{max-height:140px;max-width:100%;border-radius:var(--radius);object-fit:cover;box-shadow:var(--shadow)}
+#img-preview .remove-img{
+  display:inline-block;margin-top:8px;font-size:12px;color:var(--accent);
+  cursor:pointer;text-decoration:underline;background:none;border:none;font-family:var(--font-body);
+}
+
+/* Modal buttons */
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;flex-wrap:wrap}
+.btn-primary{
+  background:var(--ink);color:var(--paper);border:none;
+  border-radius:100px;padding:10px 24px;font-size:13px;
+  font-family:var(--font-body);cursor:pointer;font-weight:500;transition:opacity .15s;
+}
+.btn-primary:hover{opacity:.85}
+.btn-cancel{
+  background:transparent;color:var(--ink2);border:1px solid var(--paper3);
+  border-radius:100px;padding:10px 18px;font-size:13px;
+  font-family:var(--font-body);cursor:pointer;transition:background .15s;
+}
+.btn-cancel:hover{background:var(--paper2)}
+.btn-del{
+  background:transparent;color:var(--accent);border:1px solid var(--paper3);
+  border-radius:100px;padding:10px 14px;font-size:13px;
+  font-family:var(--font-body);cursor:pointer;margin-right:auto;transition:background .15s;
+}
+.btn-del:hover{background:#fff0ed}
+
+/* EVENT CARD POPUP */
+#card-popup{
+  display:none;position:fixed;z-index:250;
+  width:min(300px,88vw);
+  background:var(--paper);border:1px solid var(--paper3);
+  border-radius:var(--radius-xl);overflow:hidden;
+  box-shadow:var(--shadow-lg);
+  animation:slideUp .2s ease;
+}
+.card-img{width:100%;height:160px;object-fit:cover;display:block}
+.card-img-placeholder{
+  width:100%;height:10px;
+  background:linear-gradient(135deg,var(--paper3) 0%,var(--paper2) 100%);
+}
+.card-body{padding:1rem 1.25rem 1.25rem}
+.card-cat{
+  display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:600;padding:3px 10px;border-radius:100px;margin-bottom:.5rem;
+}
+.card-year{font-size:12px;color:var(--ink3);font-family:var(--font-body);float:right;margin-top:.2rem}
+.card-title{font-family:var(--font-head);font-size:17px;font-weight:500;line-height:1.25;margin-bottom:.5rem;clear:both}
+.card-desc{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:.75rem}
+.card-actions{display:flex;gap:8px}
+.card-btn-edit{
+  flex:1;font-family:var(--font-body);font-size:12px;font-weight:500;
+  padding:7px 12px;border-radius:100px;cursor:pointer;
+  background:var(--ink);color:var(--paper);border:none;transition:opacity .15s;
+}
+.card-btn-edit:hover{opacity:.8}
+.card-btn-close{
+  font-family:var(--font-body);font-size:12px;
+  padding:7px 14px;border-radius:100px;cursor:pointer;
+  background:transparent;color:var(--ink2);border:1px solid var(--paper3);
+}
+.card-btn-close:hover{background:var(--paper2)}
+
+footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-ornament">✦ Chronologie Personnelle ✦</div>
+  <h1 class="site-title">Ma Frise Chronologique</h1>
+  <p class="site-subtitle">Naviguez dans le temps, ajoutez vos événements, illustrez l'histoire.</p>
+</header>
+
+<div class="page">
+  <div class="toolbar">
+    <button class="btn" onclick="zoom(-1)">− Zoom</button>
+    <span class="zoom-label" id="zoom-lbl">100%</span>
+    <button class="btn" onclick="zoom(1)">+ Zoom</button>
+    <div class="sep"></div>
+    <button class="btn" onclick="resetView()">Vue d'ensemble</button>
+    <div class="sep"></div>
+    <button class="btn gold" onclick="openAddModal()">+ Ajouter un événement</button>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div id="tl-wrap">
+    <svg id="tl-svg" height="320"></svg>
+  </div>
+
+  <footer>Données sauvegardées dans votre navigateur · Cliquez sur un événement pour le détailler</footer>
+</div>
+
+<!-- TOOLTIP -->
+<div id="tooltip"></div>
+
+<!-- EVENT CARD POPUP -->
+<div id="card-popup">
+  <div id="card-img-wrap"></div>
+  <div class="card-body">
+    <span class="card-cat" id="card-cat"></span>
+    <span class="card-year" id="card-year"></span>
+    <div class="card-title" id="card-title"></div>
+    <div class="card-desc" id="card-desc"></div>
+    <div class="card-actions">
+      <button class="card-btn-edit" id="card-btn-edit">Modifier</button>
+      <button class="card-btn-close" onclick="closeCard()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD/EDIT -->
+<div id="modal-bg">
+  <div id="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Nouvel événement</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-row span2"><label>Titre *</label><input id="f-title" type="text" placeholder="Ex : Révolution française"/></div>
+      <div class="form-row"><label>Année *</label><input id="f-year" type="number" placeholder="Ex : 1789 ou −44"/></div>
+      <div class="form-row"><label>Catégorie</label>
+        <select id="f-cat">
+          <option value="politique">Politique</option>
+          <option value="science">Science &amp; Tech</option>
+          <option value="art">Art &amp; Culture</option>
+          <option value="guerre">Guerre &amp; Conflit</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="form-row span2"><label>Description</label><textarea id="f-desc" placeholder="Quelques mots sur cet événement…"></textarea></div>
+      <div class="form-row span2">
+        <label>Image (optionnelle)</label>
+        <div class="img-zone" id="img-zone">
+          <input type="file" accept="image/*" id="f-img" onchange="handleImgUpload(this)"/>
+          <span class="img-zone-icon">🖼</span>
+          <p>Cliquez ou glissez une image ici</p>
+          <small>JPG, PNG, GIF, WebP — max ~3 Mo</small>
+        </div>
+        <div id="img-preview">
+          <img id="img-preview-el" src="" alt="Aperçu"/>
+          <button class="remove-img" onclick="removeImg()">Supprimer l'image</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="btn-del" onclick="deleteEvent()" style="display:none">Supprimer</button>
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary" onclick="saveEvent()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATS={
+  politique:{color:'#5A6FC7',bg:'rgba(90,111,199,0.12)',label:'Politique'},
+  science:  {color:'#2EA87E',bg:'rgba(46,168,126,0.12)',label:'Science & Tech'},
+  art:      {color:'#C8892A',bg:'rgba(200,137,42,0.12)',label:'Art & Culture'},
+  guerre:   {color:'#C9524A',bg:'rgba(201,82,74,0.12)',label:'Guerre'},
+  autre:    {color:'#8B7355',bg:'rgba(139,115,85,0.12)',label:'Autre'}
+};
+
+const STORAGE_KEY='frise_v2';
+const DEFAULT=[
+  {id:1,year:-3000,title:"Invention de l'écriture",desc:"Les Sumériens inventent l'écriture cunéiforme en Mésopotamie.",cat:'science',img:''},
+  {id:2,year:-44,title:"Assassinat de Jules César",desc:"Aux Ides de Mars, César est poignardé au Sénat de Rome.",cat:'politique',img:''},
+  {id:3,year:1095,title:"Première Croisade",desc:"Le pape Urbain II prêche la Première Croisade vers Jérusalem.",cat:'guerre',img:''},
+  {id:4,year:1440,title:"Gutenberg invente l'imprimerie",desc:"La presse à caractères mobiles révolutionne la diffusion du savoir.",cat:'science',img:''},
+  {id:5,year:1492,title:"Christophe Colomb",desc:"Découverte de l'Amérique pour les Européens.",cat:'politique',img:''},
+  {id:6,year:1687,title:"Principia de Newton",desc:"Publication des lois de la gravitation universelle.",cat:'science',img:''},
+  {id:7,year:1789,title:"Révolution française",desc:"Prise de la Bastille, fin de l'Ancien Régime.",cat:'politique',img:''},
+  {id:8,year:1869,title:"Ouverture du canal de Suez",desc:"Inauguration du canal reliant Méditerranée et mer Rouge.",cat:'autre',img:''},
+  {id:9,year:1905,title:"Théorie de la relativité",desc:"Einstein publie ses travaux fondamentaux.",cat:'science',img:''},
+  {id:10,year:1945,title:"Fin de la Seconde Guerre mondiale",desc:"Capitulation de l'Allemagne puis du Japon.",cat:'guerre',img:''},
+  {id:11,year:1969,title:"Premiers pas sur la Lune",desc:"Neil Armstrong marche sur la Lune lors d'Apollo 11.",cat:'science',img:''},
+  {id:12,year:1989,title:"Chute du mur de Berlin",desc:"Réunification symbolique de l'Allemagne et fin de la Guerre froide.",cat:'politique',img:''},
+];
+
+function loadEv(){try{const s=localStorage.getItem(STORAGE_KEY);return s?JSON.parse(s):DEFAULT}catch{return DEFAULT}}
+function saveEv(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(events))}catch{}}
+
+let events=loadEv();
+let nextId=Math.max(...events.map(e=>e.id),0)+1;
+let scale=1,offsetX=0,svgW=900;
+const H=320,AXIS_Y=170;
+let editingId=null,activeCardId=null;
+let dragging=false,dragSX=0,dragSOX=0;
+let hiddenCats=new Set();
+let pendingImg='';// base64
+
+const svgEl=document.getElementById('tl-svg');
+const wrap=document.getElementById('tl-wrap');
+const tip=document.getElementById('tooltip');
+const cardPopup=document.getElementById('card-popup');
+
+/* ─ utils ─ */
+function getRange(){
+  if(!events.length)return{minY:0,maxY:2024};
+  return{minY:Math.min(...events.map(e=>e.year)),maxY:Math.max(...events.map(e=>e.year))};
+}
+function yearToX(y){const{minY}=getRange();return 80+(y-minY)*scale+offsetX}
+function defScale(){const{minY,maxY}=getRange();return Math.max(.001,(svgW-160)/(maxY-minY||1))}
+function resetView(){scale=defScale();offsetX=0;render();updZoom()}
+function zoom(d){scale*=d>0?1.5:1/1.5;render();updZoom()}
+function updZoom(){document.getElementById('zoom-lbl').textContent=Math.round(scale/defScale()*100)+'%'}
+function tickIv(){const yv=svgW/scale;for(const iv of[1,2,5,10,25,50,100,200,500,1000,2000,5000,10000])if(svgW/(yv/iv)>75)return iv;return 10000}
+
+/* ─ render ─ */
+function render(){
+  svgW=wrap.clientWidth||900;
+  svgEl.setAttribute('width',svgW);
+  svgEl.setAttribute('height',H);
+  const{minY,maxY}=getRange();
+  const iv=tickIv();
+  let h='';
+
+  /* subtle grid lines */
+  const st2=Math.ceil((minY-iv*2)/iv)*iv, en2=Math.floor((maxY+iv*2)/iv)*iv;
+  for(let y=st2;y<=en2;y+=iv){
+    const x=yearToX(y);
+    if(x<-5||x>svgW+5)continue;
+    h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="var(--paper3)" stroke-width="0.5" opacity="0.6"/>`;
+  }
+
+  /* axis */
+  h+=`<line x1="0" y1="${AXIS_Y}" x2="${svgW}" y2="${AXIS_Y}" stroke="var(--gold)" stroke-width="1.5" opacity="0.5"/>`;
+
+  /* ticks + labels */
+  for(let y=st2;y<=en2;y+=iv){
+    const x=yearToX(y);
+    if(x<-5||x>svgW+5)continue;
+    h+=`<line x1="${x}" y1="${AXIS_Y-6}" x2="${x}" y2="${AXIS_Y+6}" stroke="var(--gold)" stroke-width="1" opacity="0.6"/>`;
+    const lbl=y<0?Math.abs(y)+' av.':y===0?'0':y;
+    h+=`<text x="${x}" y="${AXIS_Y+24}" text-anchor="middle" font-size="10.5" fill="var(--ink3)" font-family="'DM Sans',sans-serif" letter-spacing=".02em">${lbl}</text>`;
+  }
+
+  /* place events */
+  const visible=events.filter(e=>!hiddenCats.has(e.cat)).sort((a,b)=>a.year-b.year);
+  const placed=[];
+  const rLast={};
+  visible.forEach((ev,i)=>{
+    const x=yearToX(ev.year);
+    let row=i%2===0?-1:1;
+    for(let t=0;t<10;t++){
+      if(!rLast[row]||x-rLast[row]>90){rLast[row]=x;break}
+      row=row<0?row-1:row+1;
+    }
+    placed.push({...ev,row,x});
+  });
+
+  placed.forEach(ev=>{
+    const x=ev.x;
+    if(x<-60||x>svgW+60)return;
+    const cat=CATS[ev.cat]||CATS.autre;
+    const c=cat.color;
+    const above=ev.row<0;
+    const depth=Math.abs(ev.row);
+    const stemLen=Math.min(52+depth*32,120);
+    const labelY=above?AXIS_Y-stemLen:AXIS_Y+stemLen;
+    const label=ev.title.length>22?ev.title.slice(0,21)+'…':ev.title;
+    const bw=Math.min(label.length*7.2+28,180);
+    const bh=ev.img?54:38;
+    const bx=Math.max(4,Math.min(x-bw/2,svgW-bw-4));
+    const by=above?labelY-bh:labelY;
+    const yr=ev.year<0?Math.abs(ev.year)+' av.':ev.year;
+    const isActive=ev.id===activeCardId;
+    const opacity=isActive?1:.88;
+    const strokeW=isActive?1.5:.75;
+
+    /* stem with gradient feel */
+    h+=`<line x1="${x}" y1="${AXIS_Y+(above?-6:6)}" x2="${x}" y2="${labelY+(above?bh:0)}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity="0.45"/>`;
+
+    /* dot */
+    h+=`<circle cx="${x}" cy="${AXIS_Y}" r="7" fill="${c}" opacity="0.15" data-id="${ev.id}"/>`;
+    h+=`<circle cx="${x}" cy="${AXIS_Y}" r="4.5" fill="${c}" stroke="var(--paper2)" stroke-width="2" style="cursor:pointer" data-id="${ev.id}"/>`;
+    if(isActive)h+=`<circle cx="${x}" cy="${AXIS_Y}" r="9" fill="none" stroke="${c}" stroke-width="1" opacity="0.5"/>`;
+
+    /* card box */
+    h+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="8" fill="var(--paper)" stroke="${c}" stroke-width="${strokeW}" opacity="${opacity}" style="cursor:pointer" data-id="${ev.id}"/>`;
+
+    if(ev.img){
+      /* tiny image strip at top of card */
+      h+=`<image href="${ev.img}" x="${bx}" y="${by}" width="${bw}" height="18" preserveAspectRatio="xMidYMid slice" style="cursor:pointer" data-id="${ev.id}" clip-path="inset(0 0 0 0 round 8px 8px 0 0)"/>`;
+      h+=`<rect x="${bx}" y="${by}" width="${bw}" height="18" rx="8" fill="none" stroke="${c}" stroke-width="${strokeW}" opacity="${opacity}" style="pointer-events:none"/>`;
+      /* colored strip at bottom of image */
+      h+=`<rect x="${bx}" y="${by+15}" width="${bw}" height="3" fill="${c}" opacity="0.3" style="pointer-events:none"/>`;
+    }
+
+    const txtY=ev.img?by+28:by+16;
+    h+=`<text x="${x}" y="${txtY}" text-anchor="middle" font-size="11.5" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
+    h+=`<text x="${x}" y="${txtY+14}" text-anchor="middle" font-size="9.5" fill="${c}" opacity="0.65" font-family="'DM Sans',sans-serif" letter-spacing=".03em" data-id="${ev.id}" style="cursor:pointer">${yr}</text>`;
+  });
+
+  svgEl.innerHTML=h;
+
+  svgEl.querySelectorAll('[data-id]').forEach(el=>{
+    const id=parseInt(el.dataset.id);
+    el.addEventListener('click',e=>{e.stopPropagation();openCard(id,e)});
+    el.addEventListener('mousemove',e=>showTip(e,id));
+    el.addEventListener('mouseleave',()=>{tip.style.display='none'});
+  });
+
+  renderLegend();
+}
+
+/* ─ tooltip ─ */
+function showTip(e,id){
+  const ev=events.find(x=>x.id===id);if(!ev)return;
+  const cat=CATS[ev.cat]||CATS.autre;
+  const yr=ev.year<0?Math.abs(ev.year)+' av. J.-C.':ev.year;
+  tip.style.display='block';
+  tip.style.left=(e.clientX+16)+'px';
+  tip.style.top=(e.clientY-20)+'px';
+  tip.innerHTML=`<strong>${ev.title}</strong><span class="t-year">${yr} · ${cat.label}</span>${ev.desc?`<div class="t-desc">${ev.desc.slice(0,80)}${ev.desc.length>80?'…':''}</div>`:''}`;
+}
+
+/* ─ event card popup ─ */
+function openCard(id,e){
+  const ev=events.find(x=>x.id===id);if(!ev)return;
+  const cat=CATS[ev.cat]||CATS.autre;
+  const yr=ev.year<0?Math.abs(ev.year)+' av. J.-C.':ev.year;
+
+  document.getElementById('card-img-wrap').innerHTML=ev.img
+    ?`<img class="card-img" src="${ev.img}" alt="${ev.title}"/>`
+    :`<div class="card-img-placeholder" style="background:linear-gradient(135deg,${cat.color}22,${cat.color}08)"></div>`;
+
+  const catEl=document.getElementById('card-cat');
+  catEl.textContent=cat.label;
+  catEl.style.background=cat.bg;
+  catEl.style.color=cat.color;
+  document.getElementById('card-year').textContent=yr;
+  document.getElementById('card-title').textContent=ev.title;
+  document.getElementById('card-desc').textContent=ev.desc||'Aucune description.';
+  document.getElementById('card-btn-edit').onclick=()=>{closeCard();openEditModal(id)};
+
+  /* position near click */
+  cardPopup.style.display='block';
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const cx=e.clientX,cy=e.clientY;
+  const pw=320,ph=380;
+  cardPopup.style.left=Math.min(cx+20,vw-pw-12)+'px';
+  cardPopup.style.top=Math.min(cy-40,vh-ph-12)+'px';
+  activeCardId=id;
+  render();
+}
+function closeCard(){
+  cardPopup.style.display='none';
+  activeCardId=null;
+  render();
+}
+document.addEventListener('click',e=>{
+  if(!cardPopup.contains(e.target)&&!e.target.dataset.id)closeCard();
+});
+
+/* ─ legend ─ */
+function renderLegend(){
+  document.getElementById('legend').innerHTML=Object.entries(CATS).map(([k,v])=>{
+    const op=hiddenCats.has(k)?'opacity:.35':'';
+    return `<div class="legend-item" style="${op}" onclick="toggleCat('${k}')"><div class="legend-dot" style="background:${v.color}"></div>${v.label}</div>`;
+  }).join('');
+}
+function toggleCat(k){hiddenCats.has(k)?hiddenCats.delete(k):hiddenCats.add(k);render()}
+
+/* ─ drag ─ */
+wrap.addEventListener('mousedown',e=>{
+  if(e.target.dataset.id)return;
+  dragging=true;dragSX=e.clientX;dragSOX=offsetX;
+  wrap.classList.add('dragging');
+});
+window.addEventListener('mousemove',e=>{if(!dragging)return;offsetX=dragSOX+(e.clientX-dragSX);render()});
+window.addEventListener('mouseup',()=>{dragging=false;wrap.classList.remove('dragging')});
+
+/* ─ wheel zoom ─ */
+wrap.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY<0?1.18:1/1.18;
+  const mx=e.clientX-wrap.getBoundingClientRect().left;
+  const{minY}=getRange();
+  const yam=(mx-80-offsetX)/scale+minY;
+  scale*=f;offsetX=mx-80-(yam-minY)*scale;
+  render();updZoom();
+},{passive:false});
+
+/* ─ touch ─ */
+let ltx=null,ltd=null;
+wrap.addEventListener('touchstart',e=>{ltx=e.touches[0].clientX;if(e.touches.length===2)ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)},{passive:true});
+wrap.addEventListener('touchmove',e=>{
+  if(e.touches.length===2&&ltd){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);scale*=d/ltd;ltd=d;render();updZoom()}
+  else if(ltx){offsetX+=e.touches[0].clientX-ltx;ltx=e.touches[0].clientX;render()}
+},{passive:true});
+wrap.addEventListener('touchend',()=>{ltx=null;ltd=null});
+
+/* ─ image handling ─ */
+function handleImgUpload(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>4*1024*1024){alert('Image trop lourde (max ~3 Mo)');return}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    pendingImg=ev.target.result;
+    document.getElementById('img-preview').style.display='block';
+    document.getElementById('img-preview-el').src=pendingImg;
+    document.getElementById('img-zone').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function removeImg(){
+  pendingImg='';
+  document.getElementById('img-preview').style.display='none';
+  document.getElementById('img-preview-el').src='';
+  document.getElementById('img-zone').style.display='block';
+  document.getElementById('f-img').value='';
+}
+
+/* ─ modal ─ */
+function openAddModal(){
+  editingId=null;pendingImg='';
+  document.getElementById('modal-title').textContent='Nouvel événement';
+  document.getElementById('f-title').value='';
+  document.getElementById('f-year').value=new Date().getFullYear();
+  document.getElementById('f-desc').value='';
+  document.getElementById('f-cat').value='autre';
+  removeImg();
+  document.getElementById('btn-del').style.display='none';
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(()=>document.getElementById('f-title').focus(),60);
+}
+function openEditModal(id){
+  const ev=events.find(e=>e.id===id);if(!ev)return;
+  editingId=id;pendingImg=ev.img||'';
+  document.getElementById('modal-title').textContent='Modifier l\'événement';
+  document.getElementById('f-title').value=ev.title;
+  document.getElementById('f-year').value=ev.year;
+  document.getElementById('f-desc').value=ev.desc||'';
+  document.getElementById('f-cat').value=ev.cat;
+  if(ev.img){
+    document.getElementById('img-preview').style.display='block';
+    document.getElementById('img-preview-el').src=ev.img;
+    document.getElementById('img-zone').style.display='none';
+  }else{removeImg()}
+  document.getElementById('btn-del').style.display='inline-block';
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open')}
+
+function saveEvent(){
+  const title=document.getElementById('f-title').value.trim();
+  const year=parseInt(document.getElementById('f-year').value);
+  const fi=document.getElementById('f-title');
+  if(!title||isNaN(year)){fi.style.borderColor='#c9524a';fi.focus();return}
+  fi.style.borderColor='';
+  const desc=document.getElementById('f-desc').value.trim();
+  const cat=document.getElementById('f-cat').value;
+  if(editingId){
+    Object.assign(events.find(e=>e.id===editingId),{title,year,desc,cat,img:pendingImg});
+  }else{
+    events.push({id:nextId++,title,year,desc,cat,img:pendingImg});
+  }
+  saveEv();closeModal();render();updZoom();
+}
+function deleteEvent(){
+  if(!editingId||!confirm('Supprimer cet événement ?'))return;
+  events=events.filter(e=>e.id!==editingId);
+  saveEv();closeModal();render();updZoom();
+}
+
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCard()}});
+window.addEventListener('resize',render);
+window.addEventListener('load',()=>{setTimeout(resetView,80)});
+</script>
+</body>
+</html>
