@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
+<meta name="theme-color" content="#f6f0e6"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Ma Frise Chronologique</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
@@ -12,41 +14,41 @@
 <header class="hdr">
   <div class="hdr-orn">✦ Chronologie Personnelle ✦</div>
   <h1 class="hdr-title">Ma Frise Chronologique</h1>
-  <p class="hdr-sub">Choisissez une époque · Zoomez pour explorer · Cliquez pour en savoir plus</p>
+  <p class="hdr-sub">Choisissez une époque · Zoomez · Cliquez pour explorer</p>
 </header>
 
 <div class="page">
 
   <div class="toolbar">
-    <button class="btn" onclick="zoom(-1)">− Zoom</button>
+    <button class="btn" onclick="zoom(-1)" aria-label="Dézoomer">− Zoom</button>
     <span class="zoom-lbl" id="zlbl">100%</span>
-    <button class="btn" onclick="zoom(1)">+ Zoom</button>
+    <button class="btn" onclick="zoom(1)" aria-label="Zoomer">+ Zoom</button>
     <div class="sep"></div>
-    <button class="btn" onclick="resetView()">Vue d'ensemble</button>
+    <button class="btn" onclick="resetView()">🔭 Vue d'ensemble</button>
     <div class="sep"></div>
-    <button class="btn primary" onclick="openAdd()">＋ Ajouter un événement</button>
+    <button class="btn primary" onclick="openAdd()">＋ Ajouter</button>
   </div>
 
-  <div class="searchbox">
-    <span class="si-icon">🔍</span>
-    <input type="text" id="si"
-      placeholder="Rechercher titre, description, date, catégorie… (Ctrl+K)"
-      oninput="onSearch(this.value)" autocomplete="off"/>
-    <button class="sclear" id="scl" onclick="clearSearch()">✕</button>
+  <div class="searchbox" role="search">
+    <span class="si-icon" aria-hidden="true">🔍</span>
+    <input type="search" id="si"
+      placeholder="Titre, description, date, catégorie… (Ctrl+K)"
+      oninput="onSearch(this.value)" autocomplete="off" autocorrect="off"/>
+    <button class="sclear" id="scl" onclick="clearSearch()" aria-label="Effacer">✕</button>
   </div>
-  <div id="sres"></div>
+  <div id="sres" role="listbox"></div>
 
-  <div class="legend" id="legend"></div>
+  <div class="legend" id="legend" role="list" aria-label="Catégories"></div>
 
   <div class="era-strip-wrap">
-    <div class="era-strip-label">Cliquez sur une époque pour afficher sa frise</div>
-    <div class="era-strip" id="era-strip"></div>
+    <div class="era-strip-label">Choisissez une époque</div>
+    <div class="era-strip" id="era-strip" role="list"></div>
   </div>
 
   <div class="era-hint" id="era-hint">
     <strong>👆 Sélectionnez une époque ci-dessus</strong>
-    Les événements trop proches sont regroupés en bulles — cliquez la bulle pour les voir, puis zoomez pour les séparer.
-    Chaque événement a un lien vers Wikipedia pour en savoir plus.
+    Les événements proches se regroupent en bulles — cliquez pour les voir, zoomez pour les séparer.<br>
+    Chaque fiche contient un lien Wikipedia pour aller plus loin.
   </div>
 
   <div id="tl-outer">
@@ -56,22 +58,22 @@
         <span id="tl-era-name"></span>
       </div>
       <div class="tl-controls">
-        <button class="btn" onclick="zoom(-1)" style="padding:5px 12px">−</button>
+        <button class="btn" onclick="zoom(-1)" style="padding:5px 10px">−</button>
         <span class="zoom-lbl" id="zlbl2">100%</span>
-        <button class="btn" onclick="zoom(1)" style="padding:5px 12px">+</button>
+        <button class="btn" onclick="zoom(1)" style="padding:5px 10px">+</button>
         <button class="tl-close" onclick="closeEra()">✕ Fermer</button>
       </div>
     </div>
     <div id="tl-wrap"><svg id="tl-svg" height="340"></svg></div>
   </div>
 
-  <footer>Données sauvegardées dans votre navigateur · 100+ événements · Liens Wikipedia inclus</footer>
+  <footer>154 événements · Données locales · Liens Wikipedia · De la préhistoire à aujourd'hui</footer>
 </div>
 
-<div id="tip"></div>
+<div id="tip" role="tooltip"></div>
 
-<!-- CARD POPUP -->
-<div id="cpop">
+<!-- FICHE ÉVÉNEMENT -->
+<div id="cpop" role="dialog" aria-modal="true">
   <div id="cp-img-w"></div>
   <div class="cp-stripe" id="cp-stripe"></div>
   <div class="cp-body">
@@ -87,8 +89,8 @@
     <div class="cp-desc" id="cp-desc"></div>
     <div class="cp-acts">
       <button class="cp-edit" id="cp-edit">✏️ Modifier</button>
-      <a class="cp-wiki" id="cp-wiki" href="#" target="_blank" rel="noopener">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20M2 12h20"/></svg>
+      <a class="cp-wiki" id="cp-wiki" href="#" target="_blank" rel="noopener noreferrer">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20M2 12h20"/></svg>
         Wikipedia
       </a>
       <button class="cp-cls" onclick="closeCard()">✕</button>
@@ -96,77 +98,87 @@
   </div>
 </div>
 
-<!-- CLUSTER LIST POPUP -->
-<div id="cluster-list">
+<!-- LISTE CLUSTER -->
+<div id="cluster-list" role="dialog">
   <div class="cl-header">
     <span class="cl-title" id="cl-title-span"></span>
-    <button class="cl-close" onclick="closeClusterList()">✕</button>
+    <button class="cl-close" onclick="closeClusterList()" aria-label="Fermer">✕</button>
   </div>
   <div id="cl-items"></div>
 </div>
 
-<!-- MODAL -->
-<div id="mbg">
+<!-- MODAL AJOUT / ÉDITION -->
+<div id="mbg" role="dialog" aria-modal="true">
   <div id="modal">
     <div class="mhdr">
       <h2 id="mtitle">Nouvel événement</h2>
-      <button class="mcls" onclick="closeMod()">✕</button>
+      <button class="mcls" onclick="closeMod()" aria-label="Fermer">✕</button>
     </div>
+
     <div class="fgrid">
       <div class="fr s2">
-        <label>Titre *</label>
-        <input id="ft" type="text" placeholder="Ex : Révolution française"/>
+        <label for="ft">Titre *</label>
+        <input id="ft" type="text" placeholder="Ex : Révolution française" autocomplete="off"/>
       </div>
+
       <div class="fr s2">
         <label>Date(s) — ponctuel ou période</label>
         <div class="date-row">
-          <div><input id="fy" type="number" placeholder="Année de début (ex : 1789, ou −44)"/></div>
+          <div><input id="fy" type="number" placeholder="Début (ex : 1789 ou −44)"/></div>
           <div class="date-sep">→</div>
-          <div><input id="fye" type="number" placeholder="Année de fin (vide = ponctuel)"/></div>
+          <div><input id="fye" type="number" placeholder="Fin (vide = ponctuel)"/></div>
         </div>
-        <div class="fr-hint">Valeurs négatives pour avant J.-C.</div>
+        <div class="fr-hint">Valeurs négatives pour avant J.-C. Laissez « Fin » vide pour un événement ponctuel.</div>
       </div>
+
       <div class="fr s2">
         <label>Catégorie</label>
         <div class="cat-pick" id="cpick"></div>
         <input type="hidden" id="fc" value="autre"/>
       </div>
+
       <div class="fr s2">
-        <label>Description</label>
-        <textarea id="fd" placeholder="Décrivez cet événement…"></textarea>
+        <label for="fd">Description</label>
+        <textarea id="fd" placeholder="Décrivez cet événement en quelques phrases…"></textarea>
       </div>
+
       <div class="fr s2">
-        <label>Lien Wikipedia (optionnel)</label>
-        <input id="fwiki" type="text" placeholder="Ex : Révolution_française (titre de la page Wikipedia)"/>
-        <div class="fr-hint">Laissez vide pour utiliser le titre automatiquement</div>
+        <label for="fwiki">Page Wikipedia (optionnel)</label>
+        <input id="fwiki" type="text" placeholder="Ex : Révolution_française"/>
+        <div class="fr-hint">Titre de la page fr.wikipedia.org — laissez vide pour utiliser le titre automatiquement.</div>
       </div>
+
       <div class="fr s2">
         <label>Image (optionnelle)</label>
         <div class="img-tabs">
-          <button class="img-tab active" data-mode="upload" onclick="switchImgTab('upload')">📁 Depuis mon appareil</button>
-          <button class="img-tab" data-mode="url" onclick="switchImgTab('url')">🔗 Via une URL</button>
+          <button class="img-tab active" data-mode="upload" onclick="switchImgTab('upload')">📁 Mon appareil</button>
+          <button class="img-tab" data-mode="url" onclick="switchImgTab('url')">🔗 URL</button>
         </div>
+
         <div class="img-panel active" data-panel="upload">
           <div class="imgzone" id="imgz">
             <input type="file" accept="image/*" id="fi" onchange="handleImg(this)"/>
-            <span style="font-size:26px;display:block;margin-bottom:.4rem">🖼️</span>
-            <p>Cliquez ou glissez une image ici</p>
+            <span style="font-size:24px;display:block;margin-bottom:.35rem">🖼️</span>
+            <p>Cliquer ou glisser une image ici</p>
             <small>JPG, PNG, WebP — max 5 Mo</small>
           </div>
         </div>
+
         <div class="img-panel" data-panel="url">
-          <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:7px;align-items:center">
             <input id="f-img-url" type="url" placeholder="https://upload.wikimedia.org/…" style="flex:1"/>
-            <button class="btn" onclick="applyImgUrl()" style="white-space:nowrap">Utiliser</button>
+            <button class="btn" onclick="applyImgUrl()" style="white-space:nowrap;flex-shrink:0">Utiliser</button>
           </div>
           <div class="fr-hint">URL directe d'une image (Wikimedia Commons, etc.)</div>
         </div>
+
         <div id="ipr">
           <img id="iprel" src="" alt="Aperçu"/>
           <button class="rmi" onclick="removeImg()">✕ Supprimer</button>
         </div>
       </div>
     </div>
+
     <div class="mbtns">
       <button class="bdel" id="bdel" onclick="deleteEv()" style="display:none">🗑 Supprimer</button>
       <button class="bcanc" onclick="closeMod()">Annuler</button>
