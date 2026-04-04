@@ -5,236 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Ma Frise Chronologique</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --ink:#0e0c0a;--ink2:#4a4540;--ink3:#8a8078;
-  --paper:#fdfaf4;--paper2:#f6f0e6;--paper3:#ece2d0;--paper4:#ddd0b8;
-  --font-h:'Playfair Display',Georgia,serif;
-  --font-b:'DM Sans','Helvetica Neue',sans-serif;
-  --r:10px;--rlg:18px;--rxl:26px;
-  --sh:0 2px 28px rgba(14,12,10,.07);--shlg:0 12px 56px rgba(14,12,10,.15);
-}
-@media(prefers-color-scheme:dark){
-  :root{
-    --ink:#f0ebe0;--ink2:#9a9080;--ink3:#625850;
-    --paper:#100e0c;--paper2:#181410;--paper3:#241e16;--paper4:#30281e;
-    --sh:0 2px 28px rgba(0,0,0,.35);--shlg:0 12px 56px rgba(0,0,0,.45);
-  }
-}
-:root{
-  --cp:#4f6ef7;--cpb:rgba(79,110,247,.14);
-  --cs:#16c47a;--csb:rgba(22,196,122,.14);
-  --ca:#f0742a;--cab:rgba(240,116,42,.14);
-  --cg:#f03060;--cgb:rgba(240,48,96,.14);
-  --cu:#a855f7;--cub:rgba(168,85,247,.14);
-  --gold:#c8a050;
-}
-
-html{scroll-behavior:smooth}
-body{font-family:var(--font-b);background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden}
-
-/* ═══ HEADER ═══ */
-.hdr{
-  padding:2.5rem 2rem 2.2rem;text-align:center;
-  background:var(--paper2);border-bottom:1px solid var(--paper3);
-  position:relative;overflow:hidden;
-}
-.hdr::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:
-    radial-gradient(ellipse 55% 90% at 10% 50%,var(--cpb),transparent),
-    radial-gradient(ellipse 45% 80% at 90% 50%,var(--cub),transparent),
-    radial-gradient(ellipse 35% 60% at 50% 110%,rgba(200,160,80,.08),transparent);
-}
-.hdr-orn{font-size:10px;letter-spacing:.45em;color:var(--gold);text-transform:uppercase;margin-bottom:.55rem;font-weight:500;position:relative}
-.hdr-title{
-  font-family:var(--font-h);font-size:clamp(2rem,5vw,3.4rem);font-weight:700;line-height:1.05;margin-bottom:.45rem;position:relative;
-  background:linear-gradient(135deg,var(--cp) 0%,var(--ca) 50%,var(--cu) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hdr-sub{font-size:13px;color:var(--ink2);max-width:460px;margin:0 auto;position:relative;line-height:1.6}
-
-/* ═══ PAGE ═══ */
-.page{max-width:1260px;margin:0 auto;padding:0 1.25rem 5rem}
-
-/* ═══ TOOLBAR ═══ */
-.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:1.1rem 0;border-bottom:1px solid var(--paper3);margin-bottom:1.25rem}
-.btn{font-family:var(--font-b);font-size:12.5px;font-weight:500;padding:7px 15px;border-radius:100px;border:1px solid var(--paper4);background:var(--paper2);color:var(--ink2);cursor:pointer;transition:all .18s;white-space:nowrap}
-.btn:hover{background:var(--paper3);color:var(--ink)}
-.btn.primary{background:linear-gradient(135deg,var(--cp),var(--cu));color:#fff;border:none}
-.btn.primary:hover{opacity:.88;transform:translateY(-1px)}
-.zoom-lbl{font-size:11.5px;color:var(--ink3);min-width:38px;text-align:center}
-.sep{width:1px;height:18px;background:var(--paper3);flex-shrink:0}
-
-/* ═══ SEARCH ═══ */
-.searchbox{
-  display:flex;align-items:center;gap:10px;
-  padding:.85rem 1.1rem;margin-bottom:1.1rem;
-  background:var(--paper2);border:1.5px solid var(--paper3);border-radius:var(--rlg);
-  box-shadow:var(--sh);transition:border-color .2s,box-shadow .2s;
-}
-.searchbox:focus-within{border-color:var(--cp);box-shadow:0 0 0 3px rgba(79,110,247,.1),var(--sh)}
-.si{font-size:15px;opacity:.45;flex-shrink:0}
-.searchbox input{flex:1;background:none;border:none;outline:none;font-family:var(--font-b);font-size:14px;color:var(--ink)}
-.searchbox input::placeholder{color:var(--ink3)}
-.sclear{background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink3);padding:3px 7px;border-radius:50%;transition:background .15s;display:none}
-.sclear.on{display:block}.sclear:hover{background:var(--paper3)}
-#sres{
-  position:relative;margin-top:-4px;margin-bottom:1rem;
-  background:var(--paper);border:1px solid var(--paper3);border-radius:var(--r);
-  box-shadow:var(--shlg);display:none;max-height:280px;overflow-y:auto;
-}
-#sres.open{display:block}
-.sri{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--paper3);transition:background .12s}
-.sri:last-child{border-bottom:none}.sri:hover{background:var(--paper2)}
-.sri-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.sri-title{font-size:13.5px;font-weight:500;font-family:var(--font-h)}
-.sri-meta{font-size:11px;color:var(--ink3);margin-top:1px}
-.sr-empty{padding:16px;text-align:center;font-size:13px;color:var(--ink3)}
-mark{background:linear-gradient(135deg,rgba(79,110,247,.28),rgba(168,85,247,.2));color:inherit;border-radius:3px;padding:0 1px}
-
-/* ═══ LEGEND ═══ */
-.legend{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.1rem}
-.leg-item{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;cursor:pointer;padding:5px 12px;border-radius:100px;border:1.5px solid transparent;transition:all .18s}
-
-/* ═══ ERA STRIP — the main clickable interface ═══ */
-.era-strip-wrap{margin-bottom:1.5rem}
-.era-strip-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:.6rem;font-weight:500}
-.era-strip{
-  display:grid;gap:6px;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-}
-.era-card{
-  border-radius:var(--rlg);border:2px solid transparent;
-  padding:1rem 1.1rem;cursor:pointer;transition:all .22s;
-  position:relative;overflow:hidden;
-  background:var(--paper2);
-}
-.era-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .22s;background:var(--era-color);pointer-events:none}
-.era-card:hover::before{opacity:.06}
-.era-card.active{border-color:var(--era-color)!important;background:var(--paper);}
-.era-card.active::before{opacity:.08}
-.era-card.active .ec-name{color:var(--era-color)}
-.ec-dot{width:10px;height:10px;border-radius:50%;margin-bottom:.6rem;background:var(--era-color)}
-.ec-name{font-family:var(--font-h);font-size:15px;font-weight:500;margin-bottom:.2rem;transition:color .2s}
-.ec-range{font-size:11px;color:var(--ink3);margin-bottom:.35rem}
-.ec-count{font-size:10.5px;color:var(--ink2);background:var(--paper3);border-radius:100px;padding:2px 8px;display:inline-block}
-.ec-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:18px;opacity:0;transition:opacity .2s,transform .2s;color:var(--era-color)}
-.era-card:hover .ec-arrow,.era-card.active .ec-arrow{opacity:1;transform:translateY(-50%) translateX(2px)}
-
-/* hint when nothing selected */
-.era-hint{
-  text-align:center;padding:3.5rem 2rem;
-  border:2px dashed var(--paper3);border-radius:var(--rxl);
-  color:var(--ink3);font-size:14px;line-height:1.8;
-  background:var(--paper2);margin-bottom:1rem;
-}
-.era-hint strong{display:block;font-family:var(--font-h);font-size:22px;color:var(--ink2);margin-bottom:.5rem}
-
-/* ═══ TIMELINE CANVAS ═══ */
-#tl-outer{display:none}
-#tl-outer.show{display:block}
-.tl-header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:.9rem;flex-wrap:wrap;gap:8px;
-}
-.tl-era-badge{
-  display:flex;align-items:center;gap:8px;
-  font-family:var(--font-h);font-size:18px;font-weight:500;
-}
-.tl-era-dot{width:12px;height:12px;border-radius:50%}
-.tl-close{background:none;border:1px solid var(--paper3);color:var(--ink3);border-radius:100px;padding:5px 14px;font-size:12px;cursor:pointer;font-family:var(--font-b);transition:background .15s}
-.tl-close:hover{background:var(--paper2)}
-#tl-wrap{
-  border-radius:var(--rxl);border:1px solid var(--paper3);
-  background:var(--paper2);overflow:hidden;cursor:grab;user-select:none;
-  box-shadow:var(--sh);
-}
-#tl-wrap.dragging{cursor:grabbing}
-#tl-svg{display:block;width:100%}
-
-/* ═══ TOOLTIP ═══ */
-#tip{
-  position:fixed;pointer-events:none;
-  background:var(--ink);color:var(--paper);
-  border-radius:var(--r);padding:10px 14px;
-  font-size:12px;z-index:200;max-width:250px;line-height:1.5;
-  display:none;box-shadow:var(--shlg);font-family:var(--font-b);
-}
-#tip strong{display:block;font-size:13.5px;margin-bottom:2px;font-family:var(--font-h)}
-#tip .ty{font-size:10.5px;letter-spacing:.04em;margin-bottom:3px}
-#tip .td{color:rgba(240,235,224,.6);font-size:11px;margin-top:3px}
-
-/* ═══ CARD POPUP ═══ */
-#cpop{
-  display:none;position:fixed;z-index:250;width:min(310px,90vw);
-  background:var(--paper);border:1px solid var(--paper3);border-radius:var(--rxl);
-  overflow:hidden;box-shadow:var(--shlg);
-  animation:popIn .22s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes popIn{from{opacity:0;transform:scale(.9) translateY(10px)}to{opacity:1;transform:none}}
-.cp-img{width:100%;height:148px;object-fit:cover;display:block}
-.cp-stripe{height:5px;width:100%}
-.cp-body{padding:1rem 1.2rem 1.2rem}
-.cp-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.45rem}
-.cp-cat{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:3px 10px;border-radius:100px}
-.cp-year{font-size:11.5px;color:var(--ink3);margin-top:2px}
-.cp-title{font-family:var(--font-h);font-size:16px;font-weight:500;line-height:1.25;margin-bottom:.5rem}
-.cp-desc{font-size:12.5px;color:var(--ink2);line-height:1.6;margin-bottom:.85rem}
-.cp-acts{display:flex;gap:8px}
-.cp-edit{flex:1;font-family:var(--font-b);font-size:12px;font-weight:500;padding:8px;border-radius:100px;cursor:pointer;border:none;transition:opacity .15s}
-.cp-edit:hover{opacity:.82}
-.cp-cls{font-family:var(--font-b);font-size:12px;padding:8px 14px;border-radius:100px;cursor:pointer;background:transparent;color:var(--ink2);border:1px solid var(--paper3)}
-.cp-cls:hover{background:var(--paper2)}
-
-/* ═══ MODAL ═══ */
-#mbg{display:none;position:fixed;inset:0;background:rgba(14,12,10,.55);backdrop-filter:blur(5px);z-index:300;align-items:center;justify-content:center}
-#mbg.open{display:flex}
-#modal{
-  background:var(--paper);border:1px solid var(--paper3);border-radius:var(--rxl);
-  padding:2rem;width:min(540px,95vw);max-height:92vh;overflow-y:auto;
-  box-shadow:var(--shlg);animation:slideUp .25s cubic-bezier(.34,1.2,.64,1);
-}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-.mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--paper3)}
-.mhdr h2{font-family:var(--font-h);font-size:21px;font-weight:500}
-.mcls{background:none;border:none;font-size:18px;color:var(--ink3);cursor:pointer;padding:4px 8px;border-radius:var(--r)}
-.mcls:hover{background:var(--paper2)}
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.fgrid .s2{grid-column:span 2}
-.fr label{display:block;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;font-weight:500}
-.fr input,.fr textarea,.fr select{width:100%;font-size:14px;font-family:var(--font-b);border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--paper2);color:var(--ink);padding:10px 13px;outline:none;transition:border-color .15s}
-.fr input:focus,.fr textarea:focus,.fr select:focus{border-color:var(--cp)}
-.fr textarea{height:88px;resize:vertical}
-.cat-pick{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
-.csw{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;cursor:pointer;padding:6px 13px;border-radius:100px;border:2px solid transparent;transition:all .15s}
-.csw.sel{border-color:var(--ink)!important}
-.imgzone{border:2px dashed var(--paper4);border-radius:var(--rlg);padding:1.25rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;overflow:hidden}
-.imgzone:hover{border-color:var(--cp);background:rgba(79,110,247,.04)}
-.imgzone input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.imgzone p{font-size:13px;color:var(--ink2)}.imgzone small{font-size:11px;color:var(--ink3)}
-#ipr{display:none;margin-top:12px;text-align:center}
-#ipr img{max-height:130px;max-width:100%;border-radius:var(--r);object-fit:cover;box-shadow:var(--sh)}
-.rmi{display:inline-block;margin-top:8px;font-size:12px;color:var(--cg);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:var(--font-b)}
-.mbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;flex-wrap:wrap}
-.bsave{background:linear-gradient(135deg,var(--cp),var(--cu));color:#fff;border:none;border-radius:100px;padding:10px 26px;font-size:13px;font-family:var(--font-b);cursor:pointer;font-weight:500;transition:opacity .15s,transform .15s}
-.bsave:hover{opacity:.88;transform:translateY(-1px)}
-.bcanc{background:transparent;color:var(--ink2);border:1px solid var(--paper3);border-radius:100px;padding:10px 18px;font-size:13px;font-family:var(--font-b);cursor:pointer}
-.bcanc:hover{background:var(--paper2)}
-.bdel{background:transparent;color:var(--cg);border:1px solid var(--paper3);border-radius:100px;padding:10px 14px;font-size:13px;font-family:var(--font-b);cursor:pointer;margin-right:auto}
-.bdel:hover{background:rgba(240,48,96,.07)}
-footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;letter-spacing:.04em}
-</style>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+
 <header class="hdr">
   <div class="hdr-orn">✦ Chronologie Personnelle ✦</div>
   <h1 class="hdr-title">Ma Frise Chronologique</h1>
-  <p class="hdr-sub">Choisissez une époque pour explorer ses événements · Ajoutez les vôtres</p>
+  <p class="hdr-sub">Choisissez une époque pour explorer ses événements · Ajoutez les vôtres · Illustrez l'histoire</p>
 </header>
 
 <div class="page">
+
+  <!-- TOOLBAR -->
   <div class="toolbar">
     <button class="btn" onclick="zoom(-1)">− Zoom</button>
     <span class="zoom-lbl" id="zlbl">100%</span>
@@ -247,8 +30,11 @@ footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;lette
 
   <!-- SEARCH -->
   <div class="searchbox">
-    <span class="si">🔍</span>
-    <input type="text" id="si" placeholder="Rechercher un événement, une date, une catégorie… (Ctrl+K)" oninput="onSearch(this.value)" autocomplete="off"/>
+    <span class="si-icon">🔍</span>
+    <input type="text" id="si"
+      placeholder="Rechercher un titre, une description, une date… (Ctrl+K)"
+      oninput="onSearch(this.value)"
+      autocomplete="off"/>
     <button class="sclear" id="scl" onclick="clearSearch()">✕</button>
   </div>
   <div id="sres"></div>
@@ -266,7 +52,7 @@ footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;lette
   <div class="era-hint" id="era-hint">
     <strong>👆 Sélectionnez une époque ci-dessus</strong>
     Cliquez sur une période pour afficher sa frise chronologique détaillée.<br>
-    Vous pouvez aussi rechercher directement un événement ou une date.
+    Vous pouvez aussi rechercher directement un événement, une date ou un mot-clé dans la description.
   </div>
 
   <!-- TIMELINE -->
@@ -276,7 +62,7 @@ footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;lette
         <div class="tl-era-dot" id="tl-dot"></div>
         <span id="tl-era-name"></span>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div class="tl-controls">
         <button class="btn" onclick="zoom(-1)" style="padding:5px 12px">−</button>
         <span class="zoom-lbl" id="zlbl2">100%</span>
         <button class="btn" onclick="zoom(1)" style="padding:5px 12px">+</button>
@@ -289,14 +75,23 @@ footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;lette
   <footer>Données sauvegardées dans votre navigateur · Cliquez sur un événement pour le détailler</footer>
 </div>
 
+<!-- TOOLTIP -->
 <div id="tip"></div>
 
+<!-- CARD POPUP -->
 <div id="cpop">
   <div id="cp-img-w"></div>
   <div class="cp-stripe" id="cp-stripe"></div>
   <div class="cp-body">
-    <div class="cp-top"><span class="cp-cat" id="cp-cat"></span><span class="cp-year" id="cp-year"></span></div>
+    <div class="cp-top">
+      <span class="cp-cat" id="cp-cat"></span>
+      <span class="cp-dates" id="cp-dates"></span>
+    </div>
     <div class="cp-title" id="cp-title"></div>
+    <div class="cp-period-bar-wrap" id="cp-period-bar-wrap" style="display:none">
+      <div class="cp-period-label" id="cp-period-label"></div>
+      <div class="cp-period-bar"><div class="cp-period-fill" id="cp-period-fill"></div></div>
+    </div>
     <div class="cp-desc" id="cp-desc"></div>
     <div class="cp-acts">
       <button class="cp-edit" id="cp-edit">✏️ Modifier</button>
@@ -305,23 +100,86 @@ footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;lette
   </div>
 </div>
 
+<!-- MODAL ADD / EDIT -->
 <div id="mbg">
   <div id="modal">
-    <div class="mhdr"><h2 id="mtitle">Nouvel événement</h2><button class="mcls" onclick="closeMod()">✕</button></div>
+    <div class="mhdr">
+      <h2 id="mtitle">Nouvel événement</h2>
+      <button class="mcls" onclick="closeMod()">✕</button>
+    </div>
+
     <div class="fgrid">
-      <div class="fr s2"><label>Titre *</label><input id="ft" type="text" placeholder="Ex : Révolution française"/></div>
-      <div class="fr"><label>Année * (négatif = av. J.-C.)</label><input id="fy" type="number" placeholder="Ex : 1789"/></div>
-      <div class="fr"><label>Catégorie</label><div class="cat-pick" id="cpick"></div><input type="hidden" id="fc" value="autre"/></div>
-      <div class="fr s2"><label>Description</label><textarea id="fd" placeholder="Quelques mots sur cet événement…"></textarea></div>
+
+      <!-- Titre -->
+      <div class="fr s2">
+        <label>Titre *</label>
+        <input id="ft" type="text" placeholder="Ex : Révolution française"/>
+      </div>
+
+      <!-- Dates -->
+      <div class="fr s2">
+        <label>Date(s) * — un événement ponctuel ou une période</label>
+        <div class="date-row">
+          <div>
+            <input id="fy" type="number" placeholder="Année de début (ex : 1789, ou −44)"/>
+          </div>
+          <div class="date-sep">→</div>
+          <div>
+            <input id="fye" type="number" placeholder="Année de fin (laisser vide si ponctuel)"/>
+          </div>
+        </div>
+        <div class="fr-hint">Utilisez des valeurs négatives pour avant J.-C. Laissez « Année de fin » vide pour un événement ponctuel.</div>
+      </div>
+
+      <!-- Catégorie -->
+      <div class="fr s2">
+        <label>Catégorie</label>
+        <div class="cat-pick" id="cpick"></div>
+        <input type="hidden" id="fc" value="autre"/>
+      </div>
+
+      <!-- Description -->
+      <div class="fr s2">
+        <label>Description</label>
+        <textarea id="fd" placeholder="Décrivez cet événement en quelques phrases…"></textarea>
+      </div>
+
+      <!-- Image -->
       <div class="fr s2">
         <label>Image (optionnelle)</label>
-        <div class="imgzone" id="imgz"><input type="file" accept="image/*" id="fi" onchange="handleImg(this)"/>
-          <span style="font-size:26px;display:block;margin-bottom:.4rem">🖼️</span>
-          <p>Cliquez ou glissez une image ici</p><small>JPG, PNG, WebP</small>
+        <div class="img-tabs">
+          <button class="img-tab active" data-mode="upload" onclick="switchImgTab('upload')">📁 Depuis mon appareil</button>
+          <button class="img-tab" data-mode="url" onclick="switchImgTab('url')">🔗 Via une URL</button>
         </div>
-        <div id="ipr"><img id="iprel" src="" alt=""/><button class="rmi" onclick="removeImg()">Supprimer l'image</button></div>
+
+        <!-- Upload panel -->
+        <div class="img-panel active" data-panel="upload">
+          <div class="imgzone" id="imgz">
+            <input type="file" accept="image/*" id="fi" onchange="handleImg(this)"/>
+            <span style="font-size:26px;display:block;margin-bottom:.4rem">🖼️</span>
+            <p>Cliquez ou glissez une image ici</p>
+            <small>JPG, PNG, WebP, GIF — max 5 Mo</small>
+          </div>
+        </div>
+
+        <!-- URL panel -->
+        <div class="img-panel" data-panel="url">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="f-img-url" type="url" placeholder="https://exemple.com/image.jpg" style="flex:1"/>
+            <button class="btn" onclick="applyImgUrl()" style="white-space:nowrap">Utiliser</button>
+          </div>
+          <div class="fr-hint">Collez l'URL directe d'une image (Wikipedia, Wikimedia Commons…)</div>
+        </div>
+
+        <!-- Preview -->
+        <div id="ipr">
+          <img id="iprel" src="" alt="Aperçu"/>
+          <button class="rmi" onclick="removeImg()">✕ Supprimer l'image</button>
+        </div>
       </div>
-    </div>
+
+    </div><!-- /fgrid -->
+
     <div class="mbtns">
       <button class="bdel" id="bdel" onclick="deleteEv()" style="display:none">🗑 Supprimer</button>
       <button class="bcanc" onclick="closeMod()">Annuler</button>
@@ -330,538 +188,6 @@ footer{text-align:center;font-size:11px;color:var(--ink3);padding:2rem 0 0;lette
   </div>
 </div>
 
-<script>
-/* ══ CATEGORIES ══ */
-const CATS={
-  politique:{c:'#4f6ef7',bg:'rgba(79,110,247,.13)',l:'Politique',e:'🏛'},
-  science:  {c:'#16c47a',bg:'rgba(22,196,122,.13)',l:'Science & Tech',e:'🔬'},
-  art:      {c:'#f0742a',bg:'rgba(240,116,42,.13)',l:'Art & Culture',e:'🎨'},
-  guerre:   {c:'#f03060',bg:'rgba(240,48,96,.13)', l:'Guerre',e:'⚔️'},
-  autre:    {c:'#a855f7',bg:'rgba(168,85,247,.13)',l:'Autre',e:'✦'},
-};
-
-/* ══ ERAS ══ */
-const ERAS=[
-  {key:'prehist',name:'Préhistoire',from:-300000,to:-3200,color:'#e07820',
-   desc:'Des origines à l\'écriture'},
-  {key:'antiq',name:'Antiquité',from:-3200,to:476,color:'#d4a020',
-   desc:'Des premières cités à Rome'},
-  {key:'moyen',name:'Moyen Âge',from:476,to:1492,color:'#4f6ef7',
-   desc:'De la chute de Rome aux Grandes Découvertes'},
-  {key:'mod',name:'Époque Moderne',from:1492,to:1789,color:'#16c47a',
-   desc:'Découvertes, Renaissance, Lumières'},
-  {key:'contemp',name:'XIXᵉ siècle',from:1789,to:1900,color:'#f03060',
-   desc:'Révolutions, industrialisation, nations'},
-  {key:'xx',name:'XXᵉ siècle',from:1900,to:2000,color:'#a855f7',
-   desc:'Guerres mondiales, décolonisation, progrès'},
-  {key:'xxi',name:'XXIᵉ siècle',from:2000,to:2030,color:'#06b6d4',
-   desc:'Numérique, mondialisation, défis actuels'},
-];
-
-/* ══ EVENTS ══ */
-const SK='frise_v4';
-const DEF=[
-  /* PRÉHISTOIRE */
-  {id:1,  year:-300000,title:"Maîtrise du feu",          desc:"L'Homo erectus apprend à contrôler et produire le feu, révolutionnant la vie quotidienne.",cat:'science',img:''},
-  {id:2,  year:-40000, title:"Art pariétal",              desc:"Les grottes de Lascaux et Chauvet témoignent des premières représentations artistiques.",cat:'art',img:''},
-  {id:3,  year:-10000, title:"Révolution néolithique",    desc:"Naissance de l'agriculture et de l'élevage, sédentarisation des populations.",cat:'science',img:''},
-  {id:4,  year:-5000,  title:"Megalithes & dolmens",      desc:"Construction de Stonehenge et des grandes structures mégalithiques en Europe.",cat:'autre',img:''},
-  /* ANTIQUITÉ */
-  {id:5,  year:-3200,  title:"Invention de l'écriture",   desc:"Les Sumériens inventent l'écriture cunéiforme en Mésopotamie.",cat:'science',img:''},
-  {id:6,  year:-2700,  title:"Pyramides de Gizeh",        desc:"Construction des pyramides de Khéops, Khéphren et Mykérinos en Égypte.",cat:'art',img:''},
-  {id:7,  year:-776,   title:"Premiers Jeux Olympiques",  desc:"Jeux panhelléniques organisés à Olympie en l'honneur de Zeus.",cat:'autre',img:''},
-  {id:8,  year:-753,   title:"Fondation de Rome",         desc:"Selon la légende, Romulus fonde la ville de Rome.",cat:'politique',img:''},
-  {id:9,  year:-490,   title:"Bataille de Marathon",      desc:"Les Grecs repoussent l'invasion perse à Marathon.",cat:'guerre',img:''},
-  {id:10, year:-469,   title:"Naissance de Socrate",      desc:"Le père de la philosophie occidentale naît à Athènes.",cat:'art',img:''},
-  {id:11, year:-356,   title:"Naissance d'Alexandre",     desc:"Alexandre le Grand, futur conquérant d'un empire immense, voit le jour.",cat:'politique',img:''},
-  {id:12, year:-264,   title:"Guerres Puniques",          desc:"Rome entre en conflit avec Carthage pour la domination de la Méditerranée.",cat:'guerre',img:''},
-  {id:13, year:-44,    title:"Assassinat de César",        desc:"Jules César est poignardé aux Ides de Mars au Sénat de Rome.",cat:'politique',img:''},
-  {id:14, year:-27,    title:"Naissance de l'Empire romain",desc:"Octave Auguste devient le premier empereur romain.",cat:'politique',img:''},
-  {id:15, year:0,      title:"Naissance de Jésus-Christ", desc:"Naissance supposée de Jésus de Nazareth, fondateur du christianisme.",cat:'autre',img:''},
-  {id:16, year:79,     title:"Éruption du Vésuve",        desc:"Pompéi et Herculanum sont ensevelies sous les cendres du Vésuve.",cat:'autre',img:''},
-  {id:17, year:313,    title:"Édit de Milan",             desc:"Constantin lègue la liberté religieuse et reconnaît le christianisme.",cat:'politique',img:''},
-  {id:18, year:476,    title:"Chute de l'Empire romain",  desc:"Romulus Augustule abdique, fin de l'Empire romain d'Occident.",cat:'guerre',img:''},
-  /* MOYEN ÂGE */
-  {id:19, year:622,    title:"Hégire de Mahomet",         desc:"Mahomet fuit La Mecque pour Médine — début du calendrier islamique.",cat:'autre',img:''},
-  {id:20, year:732,    title:"Bataille de Poitiers",      desc:"Charles Martel arrête l'avancée arabe en Europe occidentale.",cat:'guerre',img:''},
-  {id:21, year:800,    title:"Couronnement de Charlemagne",desc:"Charlemagne est couronné empereur d'Occident par le pape Léon III.",cat:'politique',img:''},
-  {id:22, year:1066,   title:"Conquête de l'Angleterre",  desc:"Guillaume le Conquérant bat Harold à Hastings et prend le trône.",cat:'guerre',img:''},
-  {id:23, year:1095,   title:"Première Croisade",         desc:"Le pape Urbain II prêche la croisade vers Jérusalem.",cat:'guerre',img:''},
-  {id:24, year:1215,   title:"Magna Carta",               desc:"Les barons anglais forcent Jean sans Terre à signer la Grande Charte.",cat:'politique',img:''},
-  {id:25, year:1270,   title:"Septième Croisade",         desc:"Saint Louis meurt de la peste à Tunis, fin des croisades royales.",cat:'guerre',img:''},
-  {id:26, year:1347,   title:"La Peste Noire",            desc:"La grande épidémie de peste bubonique tue un tiers de l'Europe.",cat:'autre',img:''},
-  {id:27, year:1431,   title:"Jeanne d'Arc brûlée",       desc:"Jeanne d'Arc est brûlée vive à Rouen après un procès inique.",cat:'guerre',img:''},
-  {id:28, year:1453,   title:"Chute de Constantinople",   desc:"Mehmed II prend la ville — fin de l'Empire romain d'Orient.",cat:'guerre',img:''},
-  /* MODERNE */
-  {id:29, year:1492,   title:"Christophe Colomb",         desc:"Christophe Colomb atteint les Bahamas et ouvre la route des Amériques.",cat:'politique',img:''},
-  {id:30, year:1440,   title:"Gutenberg & l'imprimerie",  desc:"La presse à caractères mobiles révolutionne la diffusion du savoir.",cat:'science',img:''},
-  {id:31, year:1503,   title:"La Joconde de Léonard",     desc:"Léonard de Vinci peint la Mona Lisa, icône de la Renaissance.",cat:'art',img:''},
-  {id:32, year:1517,   title:"Réforme protestante",       desc:"Luther affiche ses 95 thèses à Wittenberg, rompant avec Rome.",cat:'politique',img:''},
-  {id:33, year:1543,   title:"Copernic héliocentriste",   desc:"Copernic publie sa théorie selon laquelle la Terre tourne autour du Soleil.",cat:'science',img:''},
-  {id:34, year:1572,   title:"Nuit de la Saint-Barthélemy",desc:"Massacre de milliers de protestants à Paris sur ordre de Charles IX.",cat:'guerre',img:''},
-  {id:35, year:1610,   title:"Galilée et le télescope",   desc:"Galilée observe les lunes de Jupiter, confirmant Copernic.",cat:'science',img:''},
-  {id:36, year:1687,   title:"Principia de Newton",       desc:"Newton publie ses lois de la gravitation universelle.",cat:'science',img:''},
-  {id:37, year:1759,   title:"Candide de Voltaire",       desc:"Voltaire publie son conte satirique, chef-d'œuvre des Lumières.",cat:'art',img:''},
-  {id:38, year:1776,   title:"Indépendance américaine",   desc:"Les États-Unis déclarent leur indépendance du Royaume-Uni.",cat:'politique',img:''},
-  /* XIXe */
-  {id:39, year:1789,   title:"Révolution française",      desc:"Prise de la Bastille, Déclaration des droits de l'homme.",cat:'politique',img:''},
-  {id:40, year:1804,   title:"Napoléon Ier, Empereur",    desc:"Bonaparte se couronne lui-même Empereur des Français.",cat:'politique',img:''},
-  {id:41, year:1804,   title:"3ᵉ Symphonie de Beethoven", desc:"L'Héroïque marque le basculement vers le Romantisme musical.",cat:'art',img:''},
-  {id:42, year:1815,   title:"Bataille de Waterloo",      desc:"Napoléon est vaincu par la coalition européenne, exil à Sainte-Hélène.",cat:'guerre',img:''},
-  {id:43, year:1829,   title:"Chemin de fer à vapeur",    desc:"La locomotive Rocket de Stephenson atteint 48 km/h.",cat:'science',img:''},
-  {id:44, year:1848,   title:"Printemps des Peuples",     desc:"Vague de révolutions démocratiques en Europe.",cat:'politique',img:''},
-  {id:45, year:1859,   title:"Darwin — L'Origine des espèces",desc:"Darwin publie sa théorie de l'évolution par sélection naturelle.",cat:'science',img:''},
-  {id:46, year:1863,   title:"Proclamation d'émancipation",desc:"Lincoln abolit l'esclavage aux États-Unis pendant la guerre de Sécession.",cat:'politique',img:''},
-  {id:47, year:1871,   title:"Commune de Paris",          desc:"La Commune ouvrière révolutionnaire règne 72 jours avant d'être écrasée.",cat:'politique',img:''},
-  {id:48, year:1879,   title:"Edison invente l'ampoule",  desc:"Thomas Edison met au point la première ampoule à incandescence pratique.",cat:'science',img:''},
-  {id:49, year:1889,   title:"Tour Eiffel inaugurée",     desc:"La Tour Eiffel est construite pour l'Exposition universelle de Paris.",cat:'art',img:''},
-  {id:50, year:1895,   title:"Cinéma des frères Lumière", desc:"Première projection publique du cinématographe à Paris.",cat:'art',img:''},
-  /* XXe */
-  {id:51, year:1903,   title:"Premier vol motorisé",      desc:"Les frères Wright réussissent le premier vol en avion à Kitty Hawk.",cat:'science',img:''},
-  {id:52, year:1905,   title:"Théorie de la relativité",  desc:"Einstein publie ses travaux fondamentaux sur l'espace-temps.",cat:'science',img:''},
-  {id:53, year:1914,   title:"Début de la Première Guerre mondiale",desc:"L'assassinat de François-Ferdinand à Sarajevo déclenche le conflit.",cat:'guerre',img:''},
-  {id:54, year:1917,   title:"Révolution russe",          desc:"Les bolchéviques de Lénine prennent le pouvoir en Russie.",cat:'politique',img:''},
-  {id:55, year:1918,   title:"Armistice — 11 novembre",   desc:"Fin de la Première Guerre mondiale, 18 millions de morts.",cat:'guerre',img:''},
-  {id:56, year:1929,   title:"Krach de Wall Street",      desc:"L'effondrement boursier plonge le monde dans la Grande Dépression.",cat:'autre',img:''},
-  {id:57, year:1939,   title:"Début de la Seconde Guerre mondiale",desc:"L'invasion de la Pologne par l'Allemagne nazie déclenche le conflit.",cat:'guerre',img:''},
-  {id:58, year:1944,   title:"Débarquement en Normandie", desc:"Les Alliés débarquent en Normandie le 6 juin, D-Day.",cat:'guerre',img:''},
-  {id:59, year:1945,   title:"Fin de la Seconde Guerre mondiale",desc:"Victoire alliée, découverte de l'horreur des camps.",cat:'guerre',img:''},
-  {id:60, year:1947,   title:"Indépendance de l'Inde",    desc:"Gandhi et Nehru obtiennent l'indépendance après des décennies de lutte.",cat:'politique',img:''},
-  {id:61, year:1953,   title:"ADN — double hélice",       desc:"Watson et Crick décrivent la structure de l'ADN.",cat:'science',img:''},
-  {id:62, year:1957,   title:"Spoutnik dans l'espace",    desc:"L'URSS lance le premier satellite artificiel de l'histoire.",cat:'science',img:''},
-  {id:63, year:1963,   title:"Assassinat de JFK",         desc:"Le président Kennedy est assassiné à Dallas, Texas.",cat:'politique',img:''},
-  {id:64, year:1969,   title:"Premiers pas sur la Lune",  desc:"Neil Armstrong : « Un petit pas pour l'homme, un bond de géant… »",cat:'science',img:''},
-  {id:65, year:1979,   title:"Révolution iranienne",      desc:"Khomeini instaure la République islamique en Iran.",cat:'politique',img:''},
-  {id:66, year:1989,   title:"Chute du mur de Berlin",    desc:"La réunification allemande symbolise la fin de la Guerre froide.",cat:'politique',img:''},
-  {id:67, year:1991,   title:"Dissolution de l'URSS",     desc:"Gorbatchev démissionne, fin de l'Union soviétique.",cat:'politique',img:''},
-  /* XXIe */
-  {id:68, year:2001,   title:"Attentats du 11 septembre", desc:"Les tours du World Trade Center s'effondrent, 2977 morts.",cat:'guerre',img:''},
-  {id:69, year:2004,   title:"Naissance de Facebook",     desc:"Zuckerberg lance son réseau social depuis Harvard.",cat:'science',img:''},
-  {id:70, year:2007,   title:"Premier iPhone",            desc:"Steve Jobs présente l'iPhone, révolutionnant nos usages numériques.",cat:'science',img:''},
-  {id:71, year:2008,   title:"Crise financière mondiale",  desc:"Faillite de Lehman Brothers, déclenchement de la crise de 2008.",cat:'autre',img:''},
-  {id:72, year:2010,   title:"Printemps arabe",           desc:"Vague de soulèvements populaires dans le monde arabe.",cat:'politique',img:''},
-  {id:73, year:2015,   title:"Accord de Paris sur le climat",desc:"195 pays s'engagent à limiter le réchauffement climatique.",cat:'autre',img:''},
-  {id:74, year:2020,   title:"Pandémie de Covid-19",      desc:"Le coronavirus paralyse le monde entier, plus de 7 millions de morts.",cat:'autre',img:''},
-  {id:75, year:2022,   title:"Invasion de l'Ukraine",     desc:"La Russie envahit l'Ukraine, plus grand conflit en Europe depuis 1945.",cat:'guerre',img:''},
-];
-
-function loadEv(){try{const s=localStorage.getItem(SK);return s?JSON.parse(s):DEF}catch{return DEF}}
-function saveEv2(){try{localStorage.setItem(SK,JSON.stringify(events))}catch{}}
-
-let events=loadEv();
-let nextId=Math.max(...events.map(e=>e.id),0)+1;
-let scale=1,offsetX=0,svgW=900;
-const H=340,AY=175;
-let editId=null,activeId=null,highlightId=null;
-let currentEra=null;
-let dragging=false,dsx=0,dsox=0;
-let hiddenCats=new Set();
-let pendingImg='';
-
-const svgEl=document.getElementById('tl-svg');
-const wrap=document.getElementById('tl-wrap');
-const tipEl=document.getElementById('tip');
-const cpop=document.getElementById('cpop');
-
-/* ══ ERA STRIP ══ */
-function buildEraStrip(){
-  const strip=document.getElementById('era-strip');
-  strip.innerHTML=ERAS.map(era=>{
-    const count=events.filter(e=>e.year>=era.from&&e.year<era.to&&!hiddenCats.has(e.cat)).length;
-    const isActive=currentEra&&currentEra.key===era.key;
-    return `<div class="era-card${isActive?' active':''}" style="--era-color:${era.color}" onclick="selectEra('${era.key}')">
-      <div class="ec-dot" style="background:${era.color}"></div>
-      <div class="ec-name">${era.name}</div>
-      <div class="ec-range">${era.from<0?Math.abs(era.from)+' av. J.-C.':era.from} → ${era.to<0?Math.abs(era.to)+' av. J.-C.':era.to}</div>
-      <div class="ec-count">${count} événement${count>1?'s':''}</div>
-      <span class="ec-arrow">→</span>
-    </div>`;
-  }).join('');
-}
-
-function selectEra(key){
-  currentEra=ERAS.find(e=>e.key===key);
-  buildEraStrip();
-  document.getElementById('era-hint').style.display='none';
-  const outer=document.getElementById('tl-outer');
-  outer.classList.add('show');
-  outer.style.animation='slideUp .3s cubic-bezier(.34,1.2,.64,1)';
-  document.getElementById('tl-dot').style.background=currentEra.color;
-  document.getElementById('tl-era-name').textContent=currentEra.name+' ('+
-    (currentEra.from<0?Math.abs(currentEra.from)+' av. J.-C.':currentEra.from)+' – '+
-    (currentEra.to<0?Math.abs(currentEra.to)+' av. J.-C.':currentEra.to)+')';
-  setTimeout(resetView,60);
-}
-
-function closeEra(){
-  currentEra=null;
-  buildEraStrip();
-  document.getElementById('tl-outer').classList.remove('show');
-  document.getElementById('era-hint').style.display='block';
-}
-
-/* ══ FILTER EVENTS BY ERA ══ */
-function eraEvents(){
-  if(!currentEra)return[];
-  return events.filter(e=>e.year>=currentEra.from&&e.year<currentEra.to&&!hiddenCats.has(e.cat));
-}
-
-/* ══ RANGE / SCALE ══ */
-function getRange(){
-  const ev=eraEvents();
-  if(!ev.length){
-    if(!currentEra)return{minY:0,maxY:2024};
-    return{minY:currentEra.from,maxY:currentEra.to};
-  }
-  const pad=(currentEra.to-currentEra.from)*0.04;
-  return{minY:Math.min(currentEra.from,Math.min(...ev.map(e=>e.year)))-pad,
-         maxY:Math.max(currentEra.to,  Math.max(...ev.map(e=>e.year)))+pad};
-}
-function yearToX(y){const{minY}=getRange();return 80+(y-minY)*scale+offsetX}
-function defScale(){const{minY,maxY}=getRange();return Math.max(.001,(svgW-160)/(maxY-minY||1))}
-function resetView(){scale=defScale();offsetX=0;render();updZoom()}
-function zoom(d){scale*=d>0?1.5:1/1.5;render();updZoom()}
-function updZoom(){
-  const pct=Math.round(scale/defScale()*100)+'%';
-  document.getElementById('zlbl').textContent=pct;
-  document.getElementById('zlbl2').textContent=pct;
-}
-function tickIv(){const yv=svgW/scale;for(const iv of[1,2,5,10,25,50,100,200,500,1000,5000,10000,50000,100000])if(svgW/(yv/iv)>75)return iv;return 100000}
-
-/* ══ RENDER ══ */
-function render(){
-  svgW=wrap.clientWidth||900;
-  svgEl.setAttribute('width',svgW);svgEl.setAttribute('height',H);
-  if(!currentEra){svgEl.innerHTML='';return}
-
-  const{minY,maxY}=getRange();
-  const iv=tickIv();
-  let h='';
-
-  /* gradient sky bg */
-  h+=`<defs>
-    <linearGradient id="bg-grad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${currentEra.color}" stop-opacity=".06"/>
-      <stop offset="100%" stop-color="${currentEra.color}" stop-opacity=".01"/>
-    </linearGradient>
-  </defs>`;
-  h+=`<rect x="0" y="0" width="${svgW}" height="${H}" fill="url(#bg-grad)"/>`;
-
-  /* vertical grid */
-  const st=Math.ceil((minY-iv*2)/iv)*iv,en=Math.floor((maxY+iv*2)/iv)*iv;
-  for(let y=st;y<=en;y+=iv){
-    const x=yearToX(y);if(x<-5||x>svgW+5)continue;
-    h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="var(--paper3)" stroke-width=".5" opacity=".8"/>`;
-  }
-
-  /* decorative era color band on axis */
-  h+=`<line x1="0" y1="${AY}" x2="${svgW}" y2="${AY}" stroke="${currentEra.color}" stroke-width="2" opacity=".35"/>`;
-
-  /* ticks + labels */
-  for(let y=st;y<=en;y+=iv){
-    const x=yearToX(y);if(x<-5||x>svgW+5)continue;
-    h+=`<circle cx="${x}" cy="${AY}" r="3" fill="${currentEra.color}" opacity=".4"/>`;
-    const lbl=y<0?Math.abs(y)+' av.':y===0?'0':y;
-    h+=`<text x="${x}" y="${AY+24}" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
-  }
-
-  /* place events — well-spaced */
-  const visible=eraEvents().sort((a,b)=>a.year-b.year);
-  const placed=[];
-  /* use columns: each event gets its own row band to avoid overlap */
-  /* approach: sort by year, assign alternating rows, with generous spacing */
-  const rowLastX={};
-  visible.forEach((ev,i)=>{
-    const x=yearToX(ev.year);
-    /* try rows from -1, 1, -2, 2, -3, 3 … */
-    const candidates=[];
-    for(let r=1;r<=5;r++){candidates.push(-r,r)}
-    let row=-1;
-    for(const r of candidates){
-      const last=rowLastX[r]||(-9999);
-      if(x-last>100){row=r;break}
-    }
-    rowLastX[row]=x;
-    placed.push({...ev,row,x});
-  });
-
-  /* draw connectors first, then cards on top */
-  placed.forEach(ev=>{
-    const x=ev.x;if(x<-80||x>svgW+80)return;
-    const cat=CATS[ev.cat]||CATS.autre;
-    const c=cat.c;
-    const above=ev.row<0;
-    const depth=Math.abs(ev.row);
-    const stemLen=48+depth*36;
-    const labelY=above?AY-stemLen:AY+stemLen;
-    const bh=38;
-    const by=above?labelY-bh:labelY;
-
-    /* dot on axis */
-    h+=`<circle cx="${x}" cy="${AY}" r="5.5" fill="${c}" opacity=".18" data-id="${ev.id}"/>`;
-    h+=`<circle cx="${x}" cy="${AY}" r="3.5" fill="${c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-id="${ev.id}"/>`;
-
-    /* stem */
-    h+=`<line x1="${x}" y1="${AY+(above?-5:5)}" x2="${x}" y2="${above?by+bh:by}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity=".4"/>`;
-  });
-
-  placed.forEach(ev=>{
-    const x=ev.x;if(x<-80||x>svgW+80)return;
-    const cat=CATS[ev.cat]||CATS.autre;
-    const c=cat.c;
-    const above=ev.row<0;
-    const depth=Math.abs(ev.row);
-    const stemLen=48+depth*36;
-    const labelY=above?AY-stemLen:AY+stemLen;
-    const label=ev.title.length>24?ev.title.slice(0,23)+'…':ev.title;
-    const bw=Math.min(label.length*7.2+32,195);
-    const bh=ev.img?60:42;
-    const bx=Math.max(4,Math.min(x-bw/2,svgW-bw-4));
-    const by=above?labelY-bh:labelY;
-    const yr=ev.year<0?Math.abs(ev.year)+' av.':ev.year;
-    const isActive=ev.id===activeId;
-    const isHL=ev.id===highlightId;
-
-    /* glow */
-    if(isActive||isHL){
-      h+=`<rect x="${bx-5}" y="${by-5}" width="${bw+10}" height="${bh+10}" rx="13" fill="${c}" opacity="${isHL?.22:.14}"/>`;
-    }
-
-    /* card */
-    h+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="10" fill="var(--paper)" stroke="${c}" stroke-width="${isActive?1.75:.8}" style="cursor:pointer" data-id="${ev.id}"/>`;
-
-    /* colored top bar */
-    h+=`<rect x="${bx}" y="${by}" width="${bw}" height="5" rx="5" fill="${c}" opacity=".75" style="pointer-events:none"/>`;
-    h+=`<rect x="${bx}" y="${by+3}" width="${bw}" height="3" fill="${c}" opacity=".75" style="pointer-events:none"/>`;
-
-    if(ev.img){
-      h+=`<image href="${ev.img}" x="${bx+5}" y="${by+9}" width="44" height="${bh-14}" preserveAspectRatio="xMidYMid slice" data-id="${ev.id}" style="cursor:pointer" clip-path="inset(0 0 0 0 round 6px)"/>`;
-      h+=`<text x="${bx+56}" y="${by+22}" font-size="11.5" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
-      h+=`<text x="${bx+56}" y="${by+37}" font-size="9.5" fill="${c}" opacity=".65" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${yr}</text>`;
-    }else{
-      h+=`<text x="${bx+10}" y="${by+21}" font-size="11.5" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
-      h+=`<text x="${bx+10}" y="${by+34}" font-size="9.5" fill="${c}" opacity=".65" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${yr}</text>`;
-    }
-  });
-
-  svgEl.innerHTML=h;
-  svgEl.querySelectorAll('[data-id]').forEach(el=>{
-    const id=parseInt(el.dataset.id);
-    el.addEventListener('click',e=>{e.stopPropagation();openCard(id,e)});
-    el.addEventListener('mousemove',e=>showTip(e,id));
-    el.addEventListener('mouseleave',()=>{tipEl.style.display='none'});
-  });
-  renderLegend();buildEraStrip();
-}
-
-/* ══ TOOLTIP ══ */
-function showTip(e,id){
-  const ev=events.find(x=>x.id===id);if(!ev)return;
-  const cat=CATS[ev.cat]||CATS.autre;
-  const yr=ev.year<0?Math.abs(ev.year)+' av. J.-C.':ev.year;
-  tipEl.style.display='block';
-  tipEl.style.left=(e.clientX+18)+'px';tipEl.style.top=(e.clientY-24)+'px';
-  tipEl.innerHTML=`<strong>${ev.title}</strong><div class="ty" style="color:${cat.c}">${yr} · ${cat.e} ${cat.l}</div>${ev.desc?`<div class="td">${ev.desc.slice(0,90)}${ev.desc.length>90?'…':''}</div>`:''}`;
-}
-
-/* ══ CARD ══ */
-function openCard(id,e){
-  const ev=events.find(x=>x.id===id);if(!ev)return;
-  const cat=CATS[ev.cat]||CATS.autre;
-  const yr=ev.year<0?Math.abs(ev.year)+' av. J.-C.':ev.year;
-  document.getElementById('cp-img-w').innerHTML=ev.img?`<img class="cp-img" src="${ev.img}" alt="${ev.title}"/>`:''
-  const st=document.getElementById('cp-stripe');
-  st.style.height=ev.img?'0':'5px';
-  st.style.background=ev.img?'none':`linear-gradient(90deg,${cat.c},${cat.c}88)`;
-  const ce=document.getElementById('cp-cat');
-  ce.textContent=`${cat.e} ${cat.l}`;ce.style.background=cat.bg;ce.style.color=cat.c;
-  document.getElementById('cp-year').textContent=yr;
-  document.getElementById('cp-title').textContent=ev.title;
-  document.getElementById('cp-desc').textContent=ev.desc||'Aucune description.';
-  const eb=document.getElementById('cp-edit');
-  eb.onclick=()=>{closeCard();openEdit(id)};
-  eb.style.background=`linear-gradient(135deg,${cat.c},${cat.c}cc)`;eb.style.color='#fff';
-  cpop.style.display='block';
-  const vw=window.innerWidth,vh=window.innerHeight,pw=320,ph=420;
-  cpop.style.left=Math.min(e.clientX+16,vw-pw-10)+'px';
-  cpop.style.top=Math.min(e.clientY-60,vh-ph-10)+'px';
-  activeId=id;render();
-}
-function closeCard(){cpop.style.display='none';activeId=null;render()}
-document.addEventListener('click',e=>{if(!cpop.contains(e.target)&&!e.target.dataset.id)closeCard()});
-
-/* ══ LEGEND ══ */
-function renderLegend(){
-  document.getElementById('legend').innerHTML=Object.entries(CATS).map(([k,v])=>{
-    const on=!hiddenCats.has(k);
-    return `<div class="leg-item" style="background:${on?v.bg:'var(--paper2)'};color:${on?v.c:'var(--ink3)'};border-color:${on?v.c:'var(--paper4)'};opacity:${on?1:.5}" onclick="toggleCat('${k}')">${v.e} ${v.l}</div>`;
-  }).join('');
-}
-function toggleCat(k){hiddenCats.has(k)?hiddenCats.delete(k):hiddenCats.add(k);render();buildEraStrip()}
-
-/* ══ SEARCH ══ */
-function hl(str,q){if(!q)return str;const re=new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');return str.replace(re,'<mark>$1</mark>')}
-function onSearch(q){
-  document.getElementById('scl').classList.toggle('on',q.length>0);
-  const res=document.getElementById('sres');
-  if(!q.trim()){res.classList.remove('open');highlightId=null;render();return}
-  const ql=q.toLowerCase(),yn=parseInt(q);
-  const matched=events.filter(ev=>{
-    const yr=String(Math.abs(ev.year));
-    return ev.title.toLowerCase().includes(ql)||(ev.desc||'').toLowerCase().includes(ql)||CATS[ev.cat].l.toLowerCase().includes(ql)||yr.includes(q)||(!isNaN(yn)&&Math.abs(ev.year-yn)<30);
-  }).sort((a,b)=>!isNaN(yn)?Math.abs(a.year-yn)-Math.abs(b.year-yn):a.year-b.year);
-  if(!matched.length){res.innerHTML=`<div class="sr-empty">Aucun résultat pour « ${q} »</div>`;res.classList.add('open');return}
-  res.innerHTML=matched.slice(0,8).map(ev=>{
-    const cat=CATS[ev.cat]||CATS.autre;
-    const yr=ev.year<0?Math.abs(ev.year)+' av. J.-C.':ev.year;
-    return `<div class="sri" onclick="goToEv(${ev.id})">
-      <div class="sri-dot" style="background:${cat.c}"></div>
-      <div><div class="sri-title">${hl(ev.title,q)}</div>
-      <div class="sri-meta">${yr} · ${cat.e} ${cat.l}</div></div>
-    </div>`;
-  }).join('');
-  res.classList.add('open');
-}
-function clearSearch(){
-  document.getElementById('si').value='';
-  document.getElementById('sres').classList.remove('open');
-  document.getElementById('scl').classList.remove('on');
-  highlightId=null;render();
-}
-function goToEv(id){
-  const ev=events.find(e=>e.id===id);if(!ev)return;
-  document.getElementById('sres').classList.remove('open');
-  /* select the right era */
-  const era=ERAS.find(er=>ev.year>=er.from&&ev.year<er.to);
-  if(era&&(!currentEra||currentEra.key!==era.key))selectEra(era.key);
-  highlightId=id;
-  setTimeout(()=>{
-    const{minY}=getRange();
-    scale=defScale()*5;
-    offsetX=(svgW/2)-80-(ev.year-minY)*scale;
-    render();updZoom();
-    setTimeout(()=>{highlightId=null;render()},2200);
-  },150);
-}
-
-/* ══ IMAGE ══ */
-function handleImg(input){
-  const file=input.files[0];if(!file)return;
-  if(file.size>4*1024*1024){alert('Image trop lourde (max ~3 Mo)');return}
-  const r=new FileReader();
-  r.onload=e=>{
-    pendingImg=e.target.result;
-    document.getElementById('ipr').style.display='block';
-    document.getElementById('iprel').src=pendingImg;
-    document.getElementById('imgz').style.display='none';
-  };
-  r.readAsDataURL(file);
-}
-function removeImg(){
-  pendingImg='';
-  document.getElementById('ipr').style.display='none';
-  document.getElementById('iprel').src='';
-  document.getElementById('imgz').style.display='block';
-  document.getElementById('fi').value='';
-}
-
-/* ══ CAT PICKER ══ */
-function buildCatPick(sel){
-  document.getElementById('cpick').innerHTML=Object.entries(CATS).map(([k,v])=>
-    `<div class="csw${k===sel?' sel':''}" style="background:${v.bg};color:${v.c};border-color:${k===sel?v.c:'transparent'}" onclick="pickCat('${k}',this)">${v.e} ${v.l}</div>`
-  ).join('');
-  document.getElementById('fc').value=sel||'autre';
-}
-function pickCat(k,el){
-  document.getElementById('fc').value=k;
-  document.querySelectorAll('.csw').forEach(s=>{s.classList.remove('sel');s.style.borderColor='transparent'});
-  el.classList.add('sel');el.style.borderColor=CATS[k].c;
-}
-
-/* ══ MODAL ══ */
-function openAdd(){
-  editId=null;pendingImg='';
-  document.getElementById('mtitle').textContent='Nouvel événement';
-  document.getElementById('ft').value='';
-  document.getElementById('fy').value=currentEra?Math.round((currentEra.from+currentEra.to)/2):new Date().getFullYear();
-  document.getElementById('fd').value='';
-  removeImg();buildCatPick('autre');
-  document.getElementById('bdel').style.display='none';
-  document.getElementById('mbg').classList.add('open');
-  setTimeout(()=>document.getElementById('ft').focus(),60);
-}
-function openEdit(id){
-  const ev=events.find(e=>e.id===id);if(!ev)return;
-  editId=id;pendingImg=ev.img||'';
-  document.getElementById('mtitle').textContent='Modifier l\'événement';
-  document.getElementById('ft').value=ev.title;
-  document.getElementById('fy').value=ev.year;
-  document.getElementById('fd').value=ev.desc||'';
-  buildCatPick(ev.cat);
-  if(ev.img){document.getElementById('ipr').style.display='block';document.getElementById('iprel').src=ev.img;document.getElementById('imgz').style.display='none';}
-  else removeImg();
-  document.getElementById('bdel').style.display='inline-block';
-  document.getElementById('mbg').classList.add('open');
-}
-function closeMod(){document.getElementById('mbg').classList.remove('open')}
-function saveEv(){
-  const title=document.getElementById('ft').value.trim();
-  const year=parseInt(document.getElementById('fy').value);
-  const fi=document.getElementById('ft');
-  if(!title||isNaN(year)){fi.style.borderColor='#f03060';fi.focus();return}
-  fi.style.borderColor='';
-  const desc=document.getElementById('fd').value.trim();
-  const cat=document.getElementById('fc').value;
-  if(editId)Object.assign(events.find(e=>e.id===editId),{title,year,desc,cat,img:pendingImg});
-  else events.push({id:nextId++,title,year,desc,cat,img:pendingImg});
-  saveEv2();closeMod();
-  /* auto-select era if needed */
-  const era=ERAS.find(er=>year>=er.from&&year<er.to);
-  if(era&&(!currentEra||currentEra.key!==era.key))selectEra(era.key);
-  else{render();updZoom();}
-}
-function deleteEv(){
-  if(!editId||!confirm('Supprimer cet événement ?'))return;
-  events=events.filter(e=>e.id!==editId);
-  saveEv2();closeMod();render();updZoom();
-}
-document.getElementById('mbg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMod()});
-
-/* ══ DRAG / WHEEL / TOUCH ══ */
-wrap.addEventListener('mousedown',e=>{if(e.target.dataset.id)return;dragging=true;dsx=e.clientX;dsox=offsetX;wrap.classList.add('dragging')});
-window.addEventListener('mousemove',e=>{if(!dragging)return;offsetX=dsox+(e.clientX-dsx);render()});
-window.addEventListener('mouseup',()=>{dragging=false;wrap.classList.remove('dragging')});
-wrap.addEventListener('wheel',e=>{
-  e.preventDefault();
-  const f=e.deltaY<0?1.18:1/1.18;
-  const mx=e.clientX-wrap.getBoundingClientRect().left;
-  const{minY}=getRange();
-  const yam=(mx-80-offsetX)/scale+minY;
-  scale*=f;offsetX=mx-80-(yam-minY)*scale;
-  render();updZoom();
-},{passive:false});
-let ltx=null,ltd=null;
-wrap.addEventListener('touchstart',e=>{ltx=e.touches[0].clientX;if(e.touches.length===2)ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)},{passive:true});
-wrap.addEventListener('touchmove',e=>{
-  if(e.touches.length===2&&ltd){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);scale*=d/ltd;ltd=d;render();updZoom()}
-  else if(ltx){offsetX+=e.touches[0].clientX-ltx;ltx=e.touches[0].clientX;render()}
-},{passive:true});
-wrap.addEventListener('touchend',()=>{ltx=null;ltd=null});
-
-/* ══ KEYBOARD ══ */
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeMod();closeCard();clearSearch()}
-  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();document.getElementById('si').focus()}
-});
-document.addEventListener('click',e=>{
-  if(!document.getElementById('sres').contains(e.target)&&e.target!==document.getElementById('si'))
-    document.getElementById('sres').classList.remove('open');
-});
-window.addEventListener('resize',()=>{if(currentEra)render()});
-
-/* ══ INIT ══ */
-renderLegend();
-buildEraStrip();
-</script>
+<script src="script.js"></script>
 </body>
 </html>
