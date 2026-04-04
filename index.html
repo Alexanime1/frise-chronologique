@@ -12,12 +12,11 @@
 <header class="hdr">
   <div class="hdr-orn">✦ Chronologie Personnelle ✦</div>
   <h1 class="hdr-title">Ma Frise Chronologique</h1>
-  <p class="hdr-sub">Choisissez une époque pour explorer ses événements · Ajoutez les vôtres · Illustrez l'histoire</p>
+  <p class="hdr-sub">Choisissez une époque · Zoomez pour explorer · Cliquez pour en savoir plus</p>
 </header>
 
 <div class="page">
 
-  <!-- TOOLBAR -->
   <div class="toolbar">
     <button class="btn" onclick="zoom(-1)">− Zoom</button>
     <span class="zoom-lbl" id="zlbl">100%</span>
@@ -28,34 +27,28 @@
     <button class="btn primary" onclick="openAdd()">＋ Ajouter un événement</button>
   </div>
 
-  <!-- SEARCH -->
   <div class="searchbox">
     <span class="si-icon">🔍</span>
     <input type="text" id="si"
-      placeholder="Rechercher un titre, une description, une date… (Ctrl+K)"
-      oninput="onSearch(this.value)"
-      autocomplete="off"/>
+      placeholder="Rechercher titre, description, date, catégorie… (Ctrl+K)"
+      oninput="onSearch(this.value)" autocomplete="off"/>
     <button class="sclear" id="scl" onclick="clearSearch()">✕</button>
   </div>
   <div id="sres"></div>
 
-  <!-- LEGEND -->
   <div class="legend" id="legend"></div>
 
-  <!-- ERA STRIP -->
   <div class="era-strip-wrap">
-    <div class="era-strip-label">Choisissez une époque pour afficher ses événements</div>
+    <div class="era-strip-label">Cliquez sur une époque pour afficher sa frise</div>
     <div class="era-strip" id="era-strip"></div>
   </div>
 
-  <!-- HINT -->
   <div class="era-hint" id="era-hint">
     <strong>👆 Sélectionnez une époque ci-dessus</strong>
-    Cliquez sur une période pour afficher sa frise chronologique détaillée.<br>
-    Vous pouvez aussi rechercher directement un événement, une date ou un mot-clé dans la description.
+    Les événements trop proches sont regroupés en bulles — cliquez la bulle pour les voir, puis zoomez pour les séparer.
+    Chaque événement a un lien vers Wikipedia pour en savoir plus.
   </div>
 
-  <!-- TIMELINE -->
   <div id="tl-outer">
     <div class="tl-header">
       <div class="tl-era-badge">
@@ -72,10 +65,9 @@
     <div id="tl-wrap"><svg id="tl-svg" height="340"></svg></div>
   </div>
 
-  <footer>Données sauvegardées dans votre navigateur · Cliquez sur un événement pour le détailler</footer>
+  <footer>Données sauvegardées dans votre navigateur · 100+ événements · Liens Wikipedia inclus</footer>
 </div>
 
-<!-- TOOLTIP -->
 <div id="tip"></div>
 
 <!-- CARD POPUP -->
@@ -95,91 +87,86 @@
     <div class="cp-desc" id="cp-desc"></div>
     <div class="cp-acts">
       <button class="cp-edit" id="cp-edit">✏️ Modifier</button>
-      <button class="cp-cls" onclick="closeCard()">Fermer</button>
+      <a class="cp-wiki" id="cp-wiki" href="#" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20M2 12h20"/></svg>
+        Wikipedia
+      </a>
+      <button class="cp-cls" onclick="closeCard()">✕</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL ADD / EDIT -->
+<!-- CLUSTER LIST POPUP -->
+<div id="cluster-list">
+  <div class="cl-header">
+    <span class="cl-title" id="cl-title-span"></span>
+    <button class="cl-close" onclick="closeClusterList()">✕</button>
+  </div>
+  <div id="cl-items"></div>
+</div>
+
+<!-- MODAL -->
 <div id="mbg">
   <div id="modal">
     <div class="mhdr">
       <h2 id="mtitle">Nouvel événement</h2>
       <button class="mcls" onclick="closeMod()">✕</button>
     </div>
-
     <div class="fgrid">
-
-      <!-- Titre -->
       <div class="fr s2">
         <label>Titre *</label>
         <input id="ft" type="text" placeholder="Ex : Révolution française"/>
       </div>
-
-      <!-- Dates -->
       <div class="fr s2">
-        <label>Date(s) * — un événement ponctuel ou une période</label>
+        <label>Date(s) — ponctuel ou période</label>
         <div class="date-row">
-          <div>
-            <input id="fy" type="number" placeholder="Année de début (ex : 1789, ou −44)"/>
-          </div>
+          <div><input id="fy" type="number" placeholder="Année de début (ex : 1789, ou −44)"/></div>
           <div class="date-sep">→</div>
-          <div>
-            <input id="fye" type="number" placeholder="Année de fin (laisser vide si ponctuel)"/>
-          </div>
+          <div><input id="fye" type="number" placeholder="Année de fin (vide = ponctuel)"/></div>
         </div>
-        <div class="fr-hint">Utilisez des valeurs négatives pour avant J.-C. Laissez « Année de fin » vide pour un événement ponctuel.</div>
+        <div class="fr-hint">Valeurs négatives pour avant J.-C.</div>
       </div>
-
-      <!-- Catégorie -->
       <div class="fr s2">
         <label>Catégorie</label>
         <div class="cat-pick" id="cpick"></div>
         <input type="hidden" id="fc" value="autre"/>
       </div>
-
-      <!-- Description -->
       <div class="fr s2">
         <label>Description</label>
-        <textarea id="fd" placeholder="Décrivez cet événement en quelques phrases…"></textarea>
+        <textarea id="fd" placeholder="Décrivez cet événement…"></textarea>
       </div>
-
-      <!-- Image -->
+      <div class="fr s2">
+        <label>Lien Wikipedia (optionnel)</label>
+        <input id="fwiki" type="text" placeholder="Ex : Révolution_française (titre de la page Wikipedia)"/>
+        <div class="fr-hint">Laissez vide pour utiliser le titre automatiquement</div>
+      </div>
       <div class="fr s2">
         <label>Image (optionnelle)</label>
         <div class="img-tabs">
           <button class="img-tab active" data-mode="upload" onclick="switchImgTab('upload')">📁 Depuis mon appareil</button>
           <button class="img-tab" data-mode="url" onclick="switchImgTab('url')">🔗 Via une URL</button>
         </div>
-
-        <!-- Upload panel -->
         <div class="img-panel active" data-panel="upload">
           <div class="imgzone" id="imgz">
             <input type="file" accept="image/*" id="fi" onchange="handleImg(this)"/>
             <span style="font-size:26px;display:block;margin-bottom:.4rem">🖼️</span>
             <p>Cliquez ou glissez une image ici</p>
-            <small>JPG, PNG, WebP, GIF — max 5 Mo</small>
+            <small>JPG, PNG, WebP — max 5 Mo</small>
           </div>
         </div>
-
-        <!-- URL panel -->
         <div class="img-panel" data-panel="url">
           <div style="display:flex;gap:8px;align-items:center">
-            <input id="f-img-url" type="url" placeholder="https://exemple.com/image.jpg" style="flex:1"/>
+            <input id="f-img-url" type="url" placeholder="https://upload.wikimedia.org/…" style="flex:1"/>
             <button class="btn" onclick="applyImgUrl()" style="white-space:nowrap">Utiliser</button>
           </div>
-          <div class="fr-hint">Collez l'URL directe d'une image (Wikipedia, Wikimedia Commons…)</div>
+          <div class="fr-hint">URL directe d'une image (Wikimedia Commons, etc.)</div>
         </div>
-
-        <!-- Preview -->
         <div id="ipr">
           <img id="iprel" src="" alt="Aperçu"/>
-          <button class="rmi" onclick="removeImg()">✕ Supprimer l'image</button>
+          <button class="rmi" onclick="removeImg()">✕ Supprimer</button>
         </div>
       </div>
-
-    </div><!-- /fgrid -->
-
+    </div>
     <div class="mbtns">
       <button class="bdel" id="bdel" onclick="deleteEv()" style="display:none">🗑 Supprimer</button>
       <button class="bcanc" onclick="closeMod()">Annuler</button>
