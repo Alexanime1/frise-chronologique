@@ -267,3 +267,16 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);padding:1.5rem 0 0;l
   .era-strip{grid-template-columns:repeat(4,1fr)}
   .fgrid{grid-template-columns:1fr 1fr}
 }
+
+/* Sync status */
+.sync-status{font-size:11px;color:var(--ink3);margin-left:2px;white-space:nowrap}
+
+/* Date parts (3 champs inline) */
+.date-parts{display:flex;gap:6px;align-items:center}
+.date-parts input,.date-parts select{padding:9px 10px;font-size:13px}
+
+/* Modal - plus grand sur mobile pour accueil du clavier */
+@media(max-width:640px){
+  .date-parts{flex-wrap:wrap}
+  .date-parts input,.date-parts select{min-width:0}
+}
