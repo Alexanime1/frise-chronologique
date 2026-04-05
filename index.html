@@ -2,17 +2,18 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover"/>
 <meta name="theme-color" content="#f6f0e6"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Ma Frise Chronologique</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 <header class="hdr">
   <div class="hdr-orn">✦ Chronologie Personnelle ✦</div>
   <h1 class="hdr-title">Ma Frise Chronologique</h1>
-  <p class="hdr-sub">Sélectionnez une époque · Zoomez · Cliquez pour explorer</p>
+  <p class="hdr-sub">Sélectionnez une époque · Zoomez pour voir mois et jours · Cliquez pour explorer</p>
 </header>
 
 <div class="page">
@@ -25,13 +26,13 @@
     <div class="sep"></div>
     <button class="btn primary" onclick="openAdd()">＋ Ajouter</button>
     <div class="sep"></div>
-    <button class="btn" id="sync-btn" onclick="manualSync()" title="Synchroniser avec les autres appareils">🔄 Sync</button>
+    <button class="btn" onclick="manualSync()" title="Synchroniser entre appareils">🔄</button>
     <span class="sync-status" id="sync-status"></span>
   </div>
 
   <div class="searchbox">
     <span class="si-icon">🔍</span>
-    <input type="search" id="si" placeholder="Titre, description, date, catégorie… (Ctrl+K)" oninput="onSearch(this.value)" autocomplete="off" autocorrect="off"/>
+    <input type="search" id="si" placeholder="Titre, description, date… (Ctrl+K)" oninput="onSearch(this.value)" autocomplete="off"/>
     <button class="sclear" id="scl" onclick="clearSearch()">✕</button>
   </div>
   <div id="sres"></div>
@@ -45,8 +46,8 @@
 
   <div class="era-hint" id="era-hint">
     <strong>👆 Sélectionnez une époque ci-dessus</strong>
-    Cliquez sur une carte pour afficher la frise de cette période.<br>
-    Deux événements à la même date restent toujours visibles séparément.
+    Zoomez pour voir apparaître les mois puis les jours.<br>
+    Les événements à la même date sont toujours tous visibles.
   </div>
 
   <div id="tl-outer">
@@ -56,21 +57,46 @@
         <span id="tl-era-name"></span>
       </div>
       <div class="tl-controls">
-        <button class="btn" onclick="zoom(-1)" style="padding:5px 10px">−</button>
+        <button class="btn" onclick="zoom(-1)" style="padding:6px 11px">−</button>
         <span class="zoom-lbl" id="zlbl2">100%</span>
-        <button class="btn" onclick="zoom(1)" style="padding:5px 10px">+</button>
+        <button class="btn" onclick="zoom(1)" style="padding:6px 11px">+</button>
         <button class="tl-close" onclick="closeEra()">✕ Fermer</button>
       </div>
     </div>
     <div id="tl-wrap"><svg id="tl-svg" height="340"></svg></div>
+    <!-- Navigation mobile : boutons de déplacement -->
+    <div class="tl-mobile-nav">
+      <button onclick="panLeft()">← Précédent</button>
+      <div class="nav-zoom">
+        <button onclick="zoom(-1)" style="width:40px">−</button>
+        <span class="zoom-lbl" id="zlbl3" style="min-width:44px;text-align:center">100%</span>
+        <button onclick="zoom(1)" style="width:40px">+</button>
+      </div>
+      <button onclick="panRight()">Suivant →</button>
+    </div>
   </div>
 
-  <footer>155+ événements · Synchronisé entre appareils · Liens Wikipedia</footer>
+  <!-- GUIDE FIREBASE -->
+  <div class="firebase-guide" id="firebase-guide" style="margin-top:1.5rem">
+    <h3>🔄 Synchronisation entre appareils — Guide Firebase</h3>
+    <p style="margin-bottom:.5rem">Pour que vos événements soient partagés entre tous vos appareils (téléphone, PC, tablette), configurez Firebase gratuitement :</p>
+    <ol>
+      <li>Allez sur <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a> et connectez-vous avec Google</li>
+      <li>Cliquez <strong>« Créer un projet »</strong>, donnez-lui un nom (ex : <code>ma-frise</code>), désactivez Google Analytics et cliquez Créer</li>
+      <li>Dans le menu gauche, cliquez <strong>Firestore Database</strong> → <strong>Créer une base de données</strong> → choisissez <strong>Mode test</strong> → Activer</li>
+      <li>Dans le menu gauche, cliquez ⚙️ <strong>Paramètres du projet</strong> → onglet <strong>Général</strong> → faites défiler jusqu'à <strong>Vos applications</strong> → cliquez l'icône <strong>&lt;/&gt;</strong> (Web)</li>
+      <li>Donnez un surnom à l'app, cliquez <strong>Enregistrer l'application</strong>, puis copiez les valeurs dans la section <code>firebaseConfig</code> qui s'affiche</li>
+      <li>Ouvrez le fichier <code>index.html</code>, trouvez <code>FIREBASE_CONFIG</code> et collez vos valeurs dans les champs correspondants</li>
+      <li>Uploadez les 3 fichiers sur GitHub, attendez 1 minute, et vos événements se synchronisent en temps réel sur tous vos appareils !</li>
+    </ol>
+    <p style="margin-top:.5rem;font-size:11px">Sans Firebase, la frise fonctionne parfaitement en local. Cliquez 🔄 Sync pour vérifier l'état de la connexion.</p>
+  </div>
+
+  <footer>165 événements · Zoom adaptatif années / mois / jours · Synchronisation Firebase</footer>
 </div>
 
 <div id="tip"></div>
 
-<!-- FICHE -->
 <div id="cpop">
   <div id="cp-img-w"></div>
   <div class="cp-stripe" id="cp-stripe"></div>
@@ -80,7 +106,7 @@
       <span class="cp-dates" id="cp-dates"></span>
     </div>
     <div class="cp-title" id="cp-title"></div>
-    <div class="cp-period-bar-wrap" id="cp-period-bar-wrap" style="display:none">
+    <div class="cp-period-wrap" id="cp-period-wrap" style="display:none">
       <div class="cp-period-label" id="cp-period-label"></div>
       <div class="cp-period-bar"><div class="cp-period-fill" id="cp-period-fill"></div></div>
     </div>
@@ -96,7 +122,6 @@
   </div>
 </div>
 
-<!-- CLUSTER LIST -->
 <div id="cluster-list">
   <div class="cl-header">
     <span class="cl-title" id="cl-title-span"></span>
@@ -105,99 +130,60 @@
   <div id="cl-items"></div>
 </div>
 
-<!-- MODAL -->
 <div id="mbg">
   <div id="modal">
+    <div class="modal-drag"></div>
     <div class="mhdr">
       <h2 id="mtitle">Nouvel événement</h2>
       <button class="mcls" onclick="closeMod()">✕</button>
     </div>
     <div class="fgrid">
+      <div class="fr s2"><label>Titre *</label><input id="ft" type="text" placeholder="Ex : Révolution française"/></div>
       <div class="fr s2">
-        <label>Titre *</label>
-        <input id="ft" type="text" placeholder="Ex : Révolution française"/>
-      </div>
-      <div class="fr s2">
-        <label>Date de début * — année, mois, jour (optionnels)</label>
-        <div class="date-parts">
-          <input id="fy"  type="number" placeholder="Année *" style="flex:2"/>
-          <select id="fm" style="flex:1.5">
-            <option value="">Mois</option>
-            <option value="1">Janvier</option><option value="2">Février</option>
-            <option value="3">Mars</option><option value="4">Avril</option>
-            <option value="5">Mai</option><option value="6">Juin</option>
-            <option value="7">Juillet</option><option value="8">Août</option>
-            <option value="9">Septembre</option><option value="10">Octobre</option>
-            <option value="11">Novembre</option><option value="12">Décembre</option>
-          </select>
-          <input id="fd2" type="number" min="1" max="31" placeholder="Jour" style="flex:1"/>
+        <label>Date de début *</label>
+        <div class="date-row">
+          <input id="fy" type="number" placeholder="Année *"/>
+          <select id="fm"><option value="">Mois</option><option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option><option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option><option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option><option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option></select>
+          <input id="fd2" type="number" min="1" max="31" placeholder="Jour"/>
         </div>
-        <div class="fr-hint">Valeurs négatives pour avant J.-C. (ex : −44 pour l'an 44 av. J.-C.)</div>
+        <div class="fr-hint">Année négative = avant J.-C. (ex : −44)</div>
       </div>
       <div class="fr s2">
-        <label>Date de fin — pour une période (optionnel)</label>
-        <div class="date-parts">
-          <input id="fye" type="number" placeholder="Année de fin" style="flex:2"/>
-          <select id="fme" style="flex:1.5">
-            <option value="">Mois</option>
-            <option value="1">Janvier</option><option value="2">Février</option>
-            <option value="3">Mars</option><option value="4">Avril</option>
-            <option value="5">Mai</option><option value="6">Juin</option>
-            <option value="7">Juillet</option><option value="8">Août</option>
-            <option value="9">Septembre</option><option value="10">Octobre</option>
-            <option value="11">Novembre</option><option value="12">Décembre</option>
-          </select>
-          <input id="fde" type="number" min="1" max="31" placeholder="Jour" style="flex:1"/>
+        <label>Date de fin (période, optionnel)</label>
+        <div class="date-row">
+          <input id="fye" type="number" placeholder="Année de fin"/>
+          <select id="fme"><option value="">Mois</option><option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option><option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option><option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option><option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option></select>
+          <input id="fde" type="number" min="1" max="31" placeholder="Jour"/>
         </div>
-        <div class="fr-hint">Laisser vide pour un événement ponctuel.</div>
+        <div class="fr-hint">Vide = événement ponctuel</div>
       </div>
-      <div class="fr s2">
-        <label>Catégorie</label>
-        <div class="cat-pick" id="cpick"></div>
-        <input type="hidden" id="fc" value="autre"/>
-      </div>
-      <div class="fr s2">
-        <label>Description</label>
-        <textarea id="fdesc" placeholder="Décrivez cet événement…"></textarea>
-      </div>
-      <div class="fr s2">
-        <label>Page Wikipedia (optionnel)</label>
-        <input id="fwiki" type="text" placeholder="Ex : Révolution_française"/>
-        <div class="fr-hint">Titre exact de la page fr.wikipedia.org</div>
-      </div>
+      <div class="fr s2"><label>Catégorie</label><div class="cat-pick" id="cpick"></div><input type="hidden" id="fc" value="autre"/></div>
+      <div class="fr s2"><label>Description</label><textarea id="fdesc" placeholder="Décrivez cet événement…"></textarea></div>
+      <div class="fr s2"><label>Page Wikipedia (optionnel)</label><input id="fwiki" type="text" placeholder="Ex : Révolution_française"/><div class="fr-hint">Titre de la page fr.wikipedia.org</div></div>
       <div class="fr s2">
         <label>Image — URL directe</label>
-        <div style="display:flex;gap:7px;align-items:center">
-          <input id="f-img-url" type="url" placeholder="https://…" style="flex:1"/>
-          <button class="btn" onclick="applyImgUrl()" style="flex-shrink:0">Prévisualiser</button>
+        <div class="img-row">
+          <input id="f-img-url" type="url" placeholder="https://upload.wikimedia.org/…"/>
+          <button class="btn" onclick="applyImgUrl()">Voir</button>
         </div>
-        <div class="fr-hint">URL directe d'une image (Wikimedia Commons, etc.)<br>
-          <a href="https://commons.wikimedia.org/wiki/Main_Page" target="_blank" rel="noopener" style="color:var(--cp);font-size:10.5px">→ Trouver des images sur Wikimedia Commons</a>
-        </div>
-        <div id="ipr" style="display:none;margin-top:8px">
-          <img id="iprel" src="" alt="Aperçu" style="max-height:120px;max-width:100%;border-radius:8px;object-fit:cover"/>
-          <div><button class="rmi" onclick="removeImg()">✕ Supprimer</button></div>
-        </div>
+        <div class="fr-hint">URL d'image Wikimedia Commons ou autre. <a href="https://commons.wikimedia.org" target="_blank" rel="noopener" style="color:var(--cp)">→ Chercher sur Commons</a></div>
+        <div id="ipr"><img id="iprel" src="" alt="Aperçu"/><div><button class="rmi" onclick="removeImg()">✕ Supprimer</button></div></div>
       </div>
     </div>
     <div class="mbtns">
-      <button class="bdel" id="bdel" onclick="deleteEv()" style="display:none">🗑 Supprimer</button>
+      <button class="bdel" id="bdel" onclick="deleteEv()" style="display:none">🗑</button>
       <button class="bcanc" onclick="closeMod()">Annuler</button>
-      <button class="bsave" id="bsave" onclick="saveEv()">Enregistrer</button>
+      <button class="bsave" onclick="saveEv()">Enregistrer</button>
     </div>
   </div>
 </div>
 
-<!-- Firebase SDK -->
+<!-- Firebase SDK (module) -->
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, getDocs, setDoc, deleteDoc, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,getDocs,setDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ⚠️ CONFIGURATION FIREBASE
-// Pour activer la sync multi-appareils :
-// 1. Créez un projet sur https://console.firebase.google.com (gratuit)
-// 2. Activez Firestore Database en mode "test"
-// 3. Allez dans Paramètres du projet > Vos applications > </> et copiez la config ici
+// ── Collez votre configuration Firebase ici ──
 const // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
@@ -218,79 +204,45 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app); = {
-  // Remplacez ces valeurs par votre config Firebase :
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+const analytics = getAnalytics(app);={
+  apiKey:"",
+  authDomain:"",
+  projectId:"",
+  storageBucket:"",
+  messagingSenderId:"",
+  appId:""
 };
 
-let db = null;
-let unsubscribe = null;
+let db=null;
+const ss=id=>document.getElementById(id);
+function setSt(msg,ok){const el=ss('sync-status');if(el){el.textContent=msg;el.style.color=ok===true?'#16c47a':ok===false?'#f03060':'#a855f7';}}
 
-async function initFirebase() {
-  const hasConfig = FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId;
-  if (!hasConfig) {
-    setSyncStatus('Local seulement (pas de config Firebase)', false);
-    return;
-  }
-  try {
-    const app = initializeApp(FIREBASE_CONFIG);
-    db = getFirestore(app);
-    setSyncStatus('Connexion…', null);
-    // Écoute temps réel
-    unsubscribe = onSnapshot(collection(db, 'events'), snapshot => {
-      const remote = [];
-      snapshot.forEach(d => remote.push(d.data()));
-      if (remote.length > 0) {
-        window.__mergeRemote(remote);
-      }
-      setSyncStatus('Synchronisé ✓', true);
-    }, err => {
-      setSyncStatus('Erreur sync', false);
-    });
-  } catch(e) {
-    setSyncStatus('Firebase non configuré', false);
-  }
+async function init(){
+  if(!FIREBASE_CONFIG.apiKey||!FIREBASE_CONFIG.projectId){setSt('Local uniquement',false);return;}
+  try{
+    const app=initializeApp(FIREBASE_CONFIG);db=getFirestore(app);setSt('Connexion…',null);
+    onSnapshot(collection(db,'events'),snap=>{
+      const remote=[];snap.forEach(d=>remote.push(d.data()));
+      if(remote.length>0&&window.__mergeRemote)window.__mergeRemote(remote);
+      setSt('Synchronisé ✓',true);
+    },()=>setSt('Erreur sync',false));
+  }catch{setSt('Config Firebase invalide',false);}
 }
 
-function setSyncStatus(msg, ok) {
-  const el = document.getElementById('sync-status');
-  if (el) { el.textContent = msg; el.style.color = ok === true ? '#16c47a' : ok === false ? '#f03060' : '#a855f7'; }
-}
-
-window.__firebaseSave = async function(evArr) {
-  if (!db) return;
-  try {
-    for (const ev of evArr) {
-      await setDoc(doc(db, 'events', String(ev.id)), ev);
-    }
-    setSyncStatus('Sauvegardé ✓', true);
-  } catch(e) { setSyncStatus('Erreur sauvegarde', false); }
+window.__firebaseSave=async function(evArr){
+  if(!db)return;
+  try{for(const ev of evArr)await setDoc(doc(db,'events',String(ev.id)),ev);setSt('Sauvegardé ✓',true);}
+  catch{setSt('Erreur sauvegarde',false);}
+};
+window.__firebaseDelete=async function(id){if(!db)return;try{await deleteDoc(doc(db,'events',String(id)));}catch{}};
+window.manualSync=async function(){
+  if(!db){setSt('Configurez Firebase (voir guide ci-dessous)',false);return;}
+  setSt('Sync…',null);
+  try{const s=await getDocs(collection(db,'events'));const r=[];s.forEach(d=>r.push(d.data()));if(r.length>0&&window.__mergeRemote)window.__mergeRemote(r);setSt('Synchronisé ✓',true);}
+  catch{setSt('Erreur',false);}
 };
 
-window.__firebaseDelete = async function(id) {
-  if (!db) return;
-  try { await deleteDoc(doc(db, 'events', String(id))); }
-  catch(e) {}
-};
-
-window.manualSync = async function() {
-  if (!db) { setSyncStatus('Configurez Firebase pour synchroniser', false); return; }
-  setSyncStatus('Synchronisation…', null);
-  try {
-    const snap = await getDocs(collection(db, 'events'));
-    const remote = [];
-    snap.forEach(d => remote.push(d.data()));
-    if (remote.length > 0) window.__mergeRemote(remote);
-    setSyncStatus('Synchronisé ✓', true);
-  } catch(e) { setSyncStatus('Erreur', false); }
-};
-
-initFirebase();
+window.addEventListener('load',init);
 </script>
 <script src="script.js"></script>
 </body>
