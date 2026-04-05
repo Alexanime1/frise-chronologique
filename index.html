@@ -198,7 +198,27 @@ import { getFirestore, collection, getDocs, setDoc, deleteDoc, doc, onSnapshot }
 // 1. Créez un projet sur https://console.firebase.google.com (gratuit)
 // 2. Activez Firestore Database en mode "test"
 // 3. Allez dans Paramètres du projet > Vos applications > </> et copiez la config ici
-const FIREBASE_CONFIG = {
+const // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCLVkOkURM2lFWw7d0QlSxfxdCCTyxTGxk",
+  authDomain: "frise-chronologique-535d1.firebaseapp.com",
+  projectId: "frise-chronologique-535d1",
+  storageBucket: "frise-chronologique-535d1.firebasestorage.app",
+  messagingSenderId: "1060147058484",
+  appId: "1:1060147058484:web:31e29e36c8eeb08e4f7761",
+  measurementId: "G-TJG3334FCM"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app); = {
   // Remplacez ces valeurs par votre config Firebase :
   apiKey: "",
   authDomain: "",
