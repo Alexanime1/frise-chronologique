@@ -1,44 +1,47 @@
 /* ═══ FRISE CHRONOLOGIQUE — script.js ═══ */
 const TODAY=new Date(), TODAY_Y=TODAY.getFullYear(), TODAY_M=TODAY.getMonth()+1, TODAY_D=TODAY.getDate();
 
-/* CATS et DEFAULTS chargés depuis data.json */
-let CATS={};
-let DEFAULTS=[];
+/* Catégories inline — toujours dispo même si data.json ne charge pas */
+let CATS={
+  politique:{c:'#4f6ef7',bg:'rgba(79,110,247,.13)',l:'Politique',e:'🏛'},
+  science:  {c:'#16c47a',bg:'rgba(22,196,122,.13)',l:'Science',e:'🔬'},
+  art:      {c:'#f0742a',bg:'rgba(240,116,42,.13)',l:'Art & Culture',e:'🎨'},
+  guerre:   {c:'#f03060',bg:'rgba(240,48,96,.13)',l:'Guerre',e:'⚔️'},
+  sport:    {c:'#f59e0b',bg:'rgba(245,158,11,.13)',l:'Sport',e:'🏆'},
+  autre:    {c:'#a855f7',bg:'rgba(168,85,247,.13)',l:'Autre',e:'✦'},
+};
 
 const ERAS=[
-  {key:'all',    name:'Toute l\'histoire',from:-300000,to:TODAY_Y,color:'#8b5cf6'},
-  {key:'prehist',name:'Préhistoire',      from:-300000,to:-3200,  color:'#e07820'},
-  {key:'antiq',  name:'Antiquité',        from:-3200,  to:476,    color:'#d4a020'},
-  {key:'moyen',  name:'Moyen Âge',        from:476,    to:1492,   color:'#4f6ef7'},
-  {key:'mod',    name:'Époque Moderne',   from:1492,   to:1789,   color:'#16c47a'},
-  {key:'contemp',name:'XIXᵉ siècle',      from:1789,   to:1900,   color:'#f03060'},
-  {key:'xx',     name:'XXᵉ siècle',       from:1900,   to:2000,   color:'#a855f7'},
-  {key:'xxi',    name:'XXIᵉ siècle',      from:2000,   to:TODAY_Y,color:'#06b6d4'},
+  {key:'all',    name:"Toute l'histoire",from:-300000,to:TODAY_Y, color:'#8b5cf6'},
+  {key:'prehist',name:'Préhistoire',     from:-300000,to:-3200,   color:'#e07820'},
+  {key:'antiq',  name:'Antiquité',       from:-3200,  to:476,     color:'#d4a020'},
+  {key:'moyen',  name:'Moyen Âge',       from:476,    to:1492,    color:'#4f6ef7'},
+  {key:'mod',    name:'Époque Moderne',  from:1492,   to:1789,    color:'#16c47a'},
+  {key:'contemp',name:'XIXᵉ siècle',     from:1789,   to:1900,    color:'#f03060'},
+  {key:'xx',     name:'XXᵉ siècle',      from:1900,   to:2000,    color:'#a855f7'},
+  {key:'xxi',    name:'XXIᵉ siècle',     from:2000,   to:TODAY_Y, color:'#06b6d4'},
 ];
 
 const ERA_BG={
-  all:    {c1:'#8b5cf6',c2:'#06b6d4',c3:'#f03060'},
-  prehist:{c1:'#e07820',c2:'#f59e0b',c3:'#b45309'},
-  antiq:  {c1:'#d4a020',c2:'#f59e0b',c3:'#92400e'},
-  moyen:  {c1:'#4f6ef7',c2:'#6366f1',c3:'#1d4ed8'},
-  mod:    {c1:'#16c47a',c2:'#10b981',c3:'#047857'},
-  contemp:{c1:'#f03060',c2:'#e11d48',c3:'#9f1239'},
-  xx:     {c1:'#a855f7',c2:'#9333ea',c3:'#6d28d9'},
-  xxi:    {c1:'#06b6d4',c2:'#0891b2',c3:'#155e75'},
+  all:    {c1:'#8b5cf6',c3:'#f03060'},
+  prehist:{c1:'#e07820',c3:'#b45309'},
+  antiq:  {c1:'#d4a020',c3:'#92400e'},
+  moyen:  {c1:'#4f6ef7',c3:'#1d4ed8'},
+  mod:    {c1:'#16c47a',c3:'#047857'},
+  contemp:{c1:'#f03060',c3:'#9f1239'},
+  xx:     {c1:'#a855f7',c3:'#6d28d9'},
+  xxi:    {c1:'#06b6d4',c3:'#155e75'},
 };
 
-/* ── Storage ── */
-const SK='frise_v10';
-function loadEv(){try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null;}catch{return null;}}
-function saveSt(){
-  try{localStorage.setItem(SK,JSON.stringify(events));}catch(e){}
-  if(window.__firebaseSave)window.__firebaseSave(events);
-}
+/* ── Storage localStorage ── */
+const SK='frise_v11';
+function loadLocal(){try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null;}catch{return null;}}
+function saveLocal(){try{localStorage.setItem(SK,JSON.stringify(events));}catch(e){}}
 
 let events=[];
 let nextId=1;
 
-/* ── Merge Firebase ── */
+/* ── Firebase: appelé depuis index.html après init Firebase ── */
 window.__mergeRemote=function(remote){
   let changed=false;
   remote.forEach(r=>{
@@ -46,52 +49,58 @@ window.__mergeRemote=function(remote){
     if(!loc){events.push(r);changed=true;}
     else if((r.updatedAt||0)>(loc.updatedAt||0)){Object.assign(loc,r);changed=true;}
   });
-  if(changed){
-    try{localStorage.setItem(SK,JSON.stringify(events));}catch(e){}
-    nextId=Math.max(...events.map(e=>e.id),0)+1;
-    render();buildEraStrip();
-  }
+  if(changed){saveLocal();nextId=Math.max(...events.map(e=>e.id),0)+1;render();buildEraStrip();}
 };
 
-/* ── Chargement initial depuis data.json ── */
-function initApp(data){
-  CATS=data.categories;
-  DEFAULTS=data.events;
-  const saved=loadEv();
-  events=saved&&saved.length>0?saved:DEFAULTS;
+function saveSt(){
+  saveLocal();
+  if(window.__firebaseSave)window.__firebaseSave(events);
+}
+
+/* ── Chargement data.json PUIS init (ordre garanti) ── */
+function startApp(defaults,cats){
+  if(cats)CATS=cats;
+  const saved=loadLocal();
+  /* Si on a des données locales ET au moins autant d'événements que les defaults, on les garde.
+     Sinon on repart des defaults pour que la frise ne soit jamais vide. */
+  if(saved&&saved.length>=defaults.length){
+    events=saved;
+  } else {
+    events=defaults;
+    saveLocal();
+  }
   nextId=Math.max(...events.map(e=>e.id),0)+1;
   buildCatSelects();
   renderLegend();
   buildEraStrip();
 }
 
-fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7')
-  .then(r=>r.json())
-  .then(initApp)
-  .catch(()=>{
-    /* Fallback si fetch échoue (ex: ouverture locale du fichier HTML) */
-    CATS={
-      politique:{c:'#4f6ef7',bg:'rgba(79,110,247,.13)',l:'Politique',e:'🏛'},
-      science:  {c:'#16c47a',bg:'rgba(22,196,122,.13)',l:'Science',e:'🔬'},
-      art:      {c:'#f0742a',bg:'rgba(240,116,42,.13)',l:'Art & Culture',e:'🎨'},
-      guerre:   {c:'#f03060',bg:'rgba(240,48,96,.13)',l:'Guerre',e:'⚔️'},
-      sport:    {c:'#f59e0b',bg:'rgba(245,158,11,.13)',l:'Sport',e:'🏆'},
-      autre:    {c:'#a855f7',bg:'rgba(168,85,247,.13)',l:'Autre',e:'✦'},
-    };
-    events=loadEv()||[];
+/* Tentative de chargement data.json — si ça échoue, on a quand même les catégories inline */
+fetch('data.json')
+  .then(r=>{if(!r.ok)throw new Error('data.json '+r.status);return r.json();})
+  .then(d=>startApp(d.events,d.categories))
+  .catch(err=>{
+    console.warn('data.json non trouvé, mode fallback:',err.message);
+    /* Fallback: events locaux ou vide, catégories inline déjà définies */
+    const saved=loadLocal();
+    events=saved&&saved.length>0?saved:[];
     nextId=Math.max(...events.map(e=>e.id),0)+1;
     buildCatSelects();
     renderLegend();
     buildEraStrip();
+    /* Afficher un message si vraiment aucun événement */
+    if(events.length===0){
+      const h=document.getElementById('era-hint');
+      if(h)h.innerHTML='<strong>⚠️ Chargement des données…</strong>Rechargez la page ou vérifiez que <code>data.json</code> est bien uploadé sur GitHub à côté de <code>index.html</code>.';
+    }
   });
 
 /* ── State ── */
-let scale=1,offsetX=0,svgW=900;
-let H=340; /* dynamique selon mobile */
-const AY_RATIO=0.515; /* axe à 51.5% de la hauteur */
-let editId=null,activeId=null,hlId=null;
+let scale=1, offsetX=0, svgW=900;
+let H=340, AY=175;
+let editId=null, activeId=null, hlId=null;
 let currentEra=null;
-let dragging=false,dsx=0,dsox=0;
+let dragging=false, dsx=0, dsox=0;
 let hiddenCats=new Set();
 
 const svgEl=document.getElementById('tl-svg');
@@ -100,33 +109,35 @@ const tipEl=document.getElementById('tip');
 const cpop=document.getElementById('cpop');
 const clList=document.getElementById('cluster-list');
 
-/* ── Cat selects dans le formulaire (construits dynamiquement) ── */
+/* ── Cat selects dynamiques depuis CATS ── */
 function buildCatSelects(){
-  const html=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v.e} ${v.l}</option>`).join('');
-  document.getElementById('fc-select').innerHTML=html;
-  buildCatPick('autre');
+  const opts=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v.e} ${v.l}</option>`).join('');
+  const sel=document.getElementById('fc-select');
+  if(sel)sel.innerHTML=opts;
 }
 
-/* ── Date helpers ── */
+/* ── Dates ── */
 const MN=['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 function fmtY(y){return y<0?Math.abs(y)+' av. J.-C.':String(y);}
 function fmtDate(ev){
   let s='';
   if(ev.d)s+=ev.d+' ';
   if(ev.m)s+=MN[ev.m]+' ';
-  s+=fmtY(ev.y);
-  return s;
+  return s+fmtY(ev.y);
 }
 function fmtDateEnd(ev){
   if(!ev.ye||ev.ye===ev.y)return null;
   let s='';
   if(ev.de)s+=ev.de+' ';
   if(ev.me)s+=MN[ev.me]+' ';
-  s+=fmtY(ev.ye);
-  return s;
+  return s+fmtY(ev.ye);
 }
 function midY(ev){return(ev.ye&&ev.ye!==ev.y)?(ev.y+ev.ye)/2:ev.y;}
-function yearFrac(y,m,d){return y+(m?((m-1)/12+(d?d/365:0)):0);}
+/* yearFrac: convertit année+mois+jour en fraction décimale pour positionner sur l'axe */
+function yearFrac(y,m,d){
+  if(!m)return y;
+  return y+(m-1)/12+(d?( (d-1)/( new Date(Math.abs(y),m,0).getDate() ) )/12 : 0);
+}
 function wikiUrl(ev){return'https://fr.wikipedia.org/wiki/'+encodeURIComponent((ev.wiki||ev.title).replace(/ /g,'_'));}
 
 /* ── Era strip ── */
@@ -136,7 +147,7 @@ function buildEraStrip(){
     const count=events.filter(e=>midY(e)>=era.from&&midY(e)<eT&&!hiddenCats.has(e.cat)).length;
     const active=currentEra&&currentEra.key===era.key;
     const fromS=era.from<0?Math.abs(era.from)+' av. J.-C.':era.from;
-    const toS=era.key==='xxi'||era.key==='all'?'Aujourd\'hui':(era.to<0?Math.abs(era.to)+' av. J.-C.':era.to);
+    const toS=era.key==='xxi'||era.key==='all'?"Aujourd'hui":(era.to<0?Math.abs(era.to)+' av. J.-C.':era.to);
     return`<div class="era-card${active?' active':''}${era.key==='all'?' era-all':''}" style="--era-color:${era.color}" onclick="selectEra('${era.key}')">
       <div class="ec-dot" style="background:${era.color}"></div>
       <div class="ec-name">${era.name}</div>
@@ -152,11 +163,13 @@ function selectEra(key){
   document.getElementById('era-hint').style.display='none';
   document.getElementById('tl-outer').classList.add('show');
   document.getElementById('tl-dot').style.background=currentEra.color;
-  const eT=key==='xxi'||key==='all'?TODAY_Y:currentEra.to;
-  const toS=key==='xxi'||key==='all'?'Aujourd\'hui':(eT<0?Math.abs(eT)+' av. J.-C.':eT);
+  const eT=eraToY();
+  const toS=key==='xxi'||key==='all'?"Aujourd'hui":(eT<0?Math.abs(eT)+' av. J.-C.':eT);
   const fromS=currentEra.from<0?Math.abs(currentEra.from)+' av. J.-C.':currentEra.from;
   document.getElementById('tl-era-name').textContent=currentEra.name+' ('+fromS+' – '+toS+')';
-  setTimeout(resetView,60);
+  /* Reset le zoom et offsetX avant de recalculer */
+  scale=1; offsetX=0;
+  setTimeout(()=>{resetView();},60);
   document.getElementById('tl-outer').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -166,88 +179,112 @@ function closeEra(){
   document.getElementById('era-hint').style.display='block';
 }
 
-/* ── Era events & range ── */
-function eraTo(){return currentEra.key==='xxi'||currentEra.key==='all'?TODAY_Y:currentEra.to;}
+/* ── Scale et range ── */
+function eraToY(){return currentEra.key==='xxi'||currentEra.key==='all'?TODAY_Y:currentEra.to;}
+
 function eraEvents(){
   if(!currentEra)return[];
-  const to=eraTo();
+  const to=eraToY();
   return events.filter(e=>midY(e)>=currentEra.from&&midY(e)<to&&!hiddenCats.has(e.cat));
 }
+
 function getRange(){
-  if(!currentEra)return{minY:0,maxY:TODAY_Y};
-  const from=currentEra.from,to=eraTo();
-  const pad=(to-from)*0.04;
-  return{minY:from-pad,maxY:to+pad};
+  if(!currentEra)return{minY:0,maxY:TODAY_Y,span:TODAY_Y};
+  const from=currentEra.from, to=eraToY();
+  const span=to-from;
+  const pad=span*0.04;
+  return{minY:from-pad, maxY:to+pad, span:span+pad*2};
 }
-function yearToX(y){const{minY}=getRange();return 80+(y-minY)*scale+offsetX;}
-function defScale(){const{minY,maxY}=getRange();return Math.max(.001,(svgW-160)/(maxY-minY||1));}
-function resetView(){scale=defScale();offsetX=0;render();updZoom();}
-function zoom(d){scale*=d>0?1.5:1/1.5;render();updZoom();}
+
+function yearToX(y){
+  const{minY}=getRange();
+  return 80+(y-minY)*scale+offsetX;
+}
+
+function xToYear(x){
+  const{minY}=getRange();
+  return (x-80-offsetX)/scale+minY;
+}
+
+function defScale(){
+  const{minY,maxY}=getRange();
+  return Math.max(0.0001,(svgW-160)/Math.max(1,maxY-minY));
+}
+
+function resetView(){
+  /* Recalcule H et AY pour la nouvelle taille */
+  H=window.innerWidth<640?260:340;
+  AY=Math.round(H*0.515);
+  svgW=wrap.clientWidth||window.innerWidth-20;
+  scale=defScale();
+  offsetX=0;
+  render();
+  updZoom();
+}
+
+function zoom(dir){
+  /* Centre le zoom sur le milieu visible de l'axe */
+  const midX=svgW/2;
+  const yearAtMid=xToYear(midX);
+  scale*=dir>0?1.5:1/1.5;
+  /* Clamp: ne pas dézoomer plus que la vue par défaut */
+  const ds=defScale();
+  if(scale<ds*0.95)scale=ds;
+  /* Recalcule offsetX pour garder le même point central */
+  offsetX=midX-80-(yearAtMid-getRange().minY)*scale;
+  render();
+  updZoom();
+}
+
 function updZoom(){
   const p=Math.round(scale/defScale()*100)+'%';
   ['zlbl','zlbl2','zlbl3'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=p;});
 }
 
-/* ── Tick adaptatif années/mois/jours ── */
-function getTickMode(){
-  const yv=svgW/scale;
-  if(yv<=3)return'days';
-  if(yv<=60)return'months';
-  return'years';
-}
-function tickIv(){
-  const mode=getTickMode();
-  if(mode==='days'){
-    const dv=svgW/(scale/365.25);
-    for(const iv of[1,2,5,7,10,15])if(svgW/dv*iv>60)return iv;
-    return 30;
-  }
-  if(mode==='months'){
-    const mv=svgW/(scale/12);
-    for(const iv of[1,2,3,6])if(svgW/mv*iv>55)return iv;
-    return 12;
-  }
-  const yv=svgW/scale;
-  for(const iv of[1,2,5,10,25,50,100,200,500,1000,2000,5000,10000,50000,100000])if(svgW/yv*iv>65)return iv;
-  return 100000;
+/* ── Ticks adaptatifs avec calcul PROPRE des bornes visibles ── */
+function getVisibleYearRange(){
+  const{minY,maxY}=getRange();
+  /* Ce qui est visible à l'écran */
+  const visMin=Math.max(minY, xToYear(0));
+  const visMax=Math.min(maxY, xToYear(svgW));
+  return{visMin, visMax, visSpan:visMax-visMin};
 }
 
-/* ── Cluster: regroupe uniquement 3+ événements trop proches ── */
-const MIN_DIST=70;
-function clusterEv(placed){
-  const sorted=[...placed].sort((a,b)=>a.px-b.px);
-  const clusters=[],used=new Set();
-  for(let i=0;i<sorted.length;i++){
-    if(used.has(i))continue;
-    const grp=[sorted[i]];used.add(i);
-    for(let j=i+1;j<sorted.length;j++){
-      if(used.has(j))continue;
-      if(sorted[j].px-sorted[i].px<MIN_DIST){grp.push(sorted[j]);used.add(j);}
-    }
-    if(grp.length>=3)clusters.push(grp);
-    else grp.forEach(ev=>clusters.push([ev]));
+function getTickMode(){
+  const{visSpan}=getVisibleYearRange();
+  if(visSpan<=2) return'days';
+  if(visSpan<=40) return'months';
+  return'years';
+}
+
+function pickYearInterval(span){
+  /* Choisit l'intervalle qui donne ~6-12 ticks visibles */
+  for(const iv of[1,2,5,10,25,50,100,200,500,1000,2000,5000,10000,50000,100000]){
+    if(span/iv<=14) return iv;
   }
-  return clusters;
+  return 100000;
 }
 
 /* ── Render ── */
 function render(){
   H=window.innerWidth<640?260:340;
-  const AY=Math.round(H*AY_RATIO);
+  AY=Math.round(H*0.515);
   svgW=wrap.clientWidth||window.innerWidth-20;
-  svgEl.setAttribute('width',svgW);svgEl.setAttribute('height',H);
+  if(svgW<10)return;
+  svgEl.setAttribute('width',svgW);
+  svgEl.setAttribute('height',H);
   if(!currentEra){svgEl.innerHTML='';clearClusters();return;}
-  const{minY}=getRange();
+
+  const{minY,maxY}=getRange();
+  const{visMin,visMax,visSpan}=getVisibleYearRange();
   const bg=ERA_BG[currentEra.key]||ERA_BG.xx;
   const mode=getTickMode();
-  const iv=tickIv();
   let h='';
 
-  /* Fond dégradé discret */
+  /* Fond dégradé */
   h+=`<defs>
     <linearGradient id="bgv" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${bg.c1}" stop-opacity=".09"/>
-      <stop offset="55%" stop-color="${bg.c1}" stop-opacity=".04"/>
       <stop offset="100%" stop-color="${bg.c1}" stop-opacity=".02"/>
     </linearGradient>
     <linearGradient id="bgh" x1="0" y1="0" x2="1" y2="0">
@@ -268,103 +305,128 @@ function render(){
   <rect x="0" y="0" width="${svgW}" height="${H}" fill="url(#bgr1)"/>
   <rect x="0" y="0" width="${svgW}" height="${H}" fill="url(#bgr2)"/>`;
 
-  /* Ticks selon le mode */
-  const eraFrom=currentEra.from, eraEnd=eraTo();
+  /* Axe en premier (sous les ticks) */
+  h+=`<line x1="0" y1="${AY}" x2="${svgW}" y2="${AY}" stroke="${currentEra.color}" stroke-width="2" opacity=".3"/>`;
+
+  /* ── Ticks PROPRES selon le mode ── */
   if(mode==='years'){
-    const st=Math.ceil((minY-iv*2)/iv)*iv;
-    const en=st+Math.ceil(svgW/scale/iv+4)*iv;
+    const iv=pickYearInterval(visSpan);
+    const st=Math.floor(visMin/iv)*iv;
+    const en=Math.ceil(visMax/iv)*iv;
     for(let y=st;y<=en;y+=iv){
-      const x=yearToX(y);if(x<-5||x>svgW+5)continue;
-      h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${bg.c1}" stroke-width=".4" opacity=".18"/>`;
-      h+=`<circle cx="${x}" cy="${AY}" r="3" fill="${currentEra.color}" opacity=".45"/>`;
-      const lbl=y<0?Math.abs(y)+' av.':y===0?'0':y;
-      h+=`<text x="${x}" y="${AY+22}" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
+      if(y<minY||y>maxY)continue;
+      const x=yearToX(y);
+      if(x<30||x>svgW-10)continue;
+      h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${bg.c1}" stroke-width=".5" opacity=".2"/>`;
+      h+=`<circle cx="${x}" cy="${AY}" r="3" fill="${currentEra.color}" opacity=".5"/>`;
+      const lbl=y<0?Math.abs(y)+' av.':y===0?'0':String(y);
+      h+=`<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
     }
   } else if(mode==='months'){
-    const startY=Math.max(Math.floor(minY),eraFrom), endY=Math.min(Math.ceil((minY+svgW/scale)),eraEnd);
-    for(let y=startY;y<=endY;y++){
-      for(let m=1;m<=12;m+=iv){
-        const yf=yearFrac(y,m,1);if(yf<minY||yf>minY+svgW/scale)continue;
-        const x=yearToX(yf);if(x<-5||x>svgW+5)continue;
+    /* Mois visibles */
+    const startY=Math.max(Math.floor(visMin),currentEra.from);
+    const endY=Math.min(Math.ceil(visMax),eraToY());
+    /* Intervalle de mois: 1 si on voit ≤24 mois, sinon 2 ou 3 */
+    const mIv=visSpan<=2?1:visSpan<=5?2:3;
+    for(let y=startY;y<=endY+1;y++){
+      for(let m=1;m<=12;m+=mIv){
+        const yf=yearFrac(y,m,1);
+        if(yf<visMin-0.1||yf>visMax+0.1)continue;
+        const x=yearToX(yf);
+        if(x<20||x>svgW-10)continue;
         const isMaj=m===1;
-        h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${bg.c1}" stroke-width="${isMaj?.7:.3}" opacity="${isMaj?.28:.1}"/>`;
-        h+=`<circle cx="${x}" cy="${AY}" r="${isMaj?3.5:2}" fill="${currentEra.color}" opacity="${isMaj?.5:.3}"/>`;
+        h+=`<line x1="${x}" y1="${isMaj?0:AY-20}" x2="${x}" y2="${AY+8}" stroke="${bg.c1}" stroke-width="${isMaj?.8:.4}" opacity="${isMaj?.35:.15}"/>`;
+        h+=`<circle cx="${x}" cy="${AY}" r="${isMaj?3.5:2}" fill="${currentEra.color}" opacity="${isMaj?.55:.3}"/>`;
         const lbl=isMaj?String(y):MN[m];
-        h+=`<text x="${x}" y="${AY+22}" text-anchor="middle" font-size="${isMaj?10:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif" font-weight="${isMaj?'500':'400'}">${lbl}</text>`;
+        h+=`<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="${isMaj?10:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif" font-weight="${isMaj?'500':'400'}">${lbl}</text>`;
       }
     }
   } else {
-    const startY=Math.max(Math.floor(minY),eraFrom), endY=Math.min(Math.ceil(minY+svgW/scale),eraEnd);
-    for(let y=startY;y<=endY;y++){
+    /* Jours */
+    const startY=Math.max(Math.floor(visMin),currentEra.from);
+    const endY=Math.min(Math.ceil(visMax),eraToY());
+    /* Intervalle de jours */
+    const totalDays=visSpan*365;
+    const dIv=totalDays<=20?1:totalDays<=60?2:totalDays<=100?5:7;
+    for(let y=startY;y<=endY+1;y++){
       for(let m=1;m<=12;m++){
-        for(let dd=1;dd<=31;dd+=iv){
-          if(dd>28&&m===2)continue;if(dd>30&&[4,6,9,11].includes(m))continue;
-          const yf=yearFrac(y,m,dd);if(yf<minY||yf>minY+svgW/scale)continue;
-          const x=yearToX(yf);if(x<-5||x>svgW+5)continue;
+        const daysInMonth=new Date(Math.abs(y),m,0).getDate();
+        for(let dd=1;dd<=daysInMonth;dd+=dIv){
+          const yf=yearFrac(y,m,dd);
+          if(yf<visMin-0.01||yf>visMax+0.01)continue;
+          const x=yearToX(yf);
+          if(x<20||x>svgW-10)continue;
           const isFM=dd===1&&m===1, isFirst=dd===1;
-          h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${bg.c1}" stroke-width="${isFM?.8:isFirst?.4:.2}" opacity="${isFM?.32:isFirst?.18:.08}"/>`;
-          h+=`<circle cx="${x}" cy="${AY}" r="${isFM?3.5:isFirst?2.5:1.5}" fill="${currentEra.color}" opacity="${isFM?.5:isFirst?.35:.2}"/>`;
+          h+=`<line x1="${x}" y1="${isFM?0:isFirst?AY-15:AY-8}" x2="${x}" y2="${AY+5}" stroke="${bg.c1}" stroke-width="${isFM?.9:isFirst?.5:.25}" opacity="${isFM?.4:isFirst?.22:.1}"/>`;
+          h+=`<circle cx="${x}" cy="${AY}" r="${isFM?3.5:isFirst?2.5:1.5}" fill="${currentEra.color}" opacity="${isFM?.55:isFirst?.38:.22}"/>`;
           const lbl=isFM?String(y):isFirst?MN[m]:String(dd);
-          h+=`<text x="${x}" y="${AY+22}" text-anchor="middle" font-size="${isFM?10:isFirst?9.5:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
+          h+=`<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="${isFM?10:isFirst?9.5:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
         }
       }
     }
   }
 
-  /* Axe */
-  h+=`<line x1="0" y1="${AY}" x2="${svgW}" y2="${AY}" stroke="${currentEra.color}" stroke-width="2.5" opacity=".35"/>`;
-
   /* Marqueur aujourd'hui */
   if(currentEra.key==='xxi'||currentEra.key==='all'){
     const tx=yearToX(yearFrac(TODAY_Y,TODAY_M,TODAY_D));
-    if(tx>=10&&tx<=svgW-10){
-      h+=`<line x1="${tx}" y1="0" x2="${tx}" y2="${H}" stroke="${currentEra.color}" stroke-width="1.5" stroke-dasharray="4 4" opacity=".5"/>`;
+    if(tx>=20&&tx<=svgW-20){
+      h+=`<line x1="${tx}" y1="0" x2="${tx}" y2="${H}" stroke="${currentEra.color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".5"/>`;
       const lx=Math.min(tx+4,svgW-72);
-      h+=`<rect x="${lx}" y="6" width="66" height="16" rx="8" fill="${currentEra.color}" opacity=".14"/>`;
-      h+=`<text x="${lx+33}" y="18" text-anchor="middle" font-size="9.5" fill="${currentEra.color}" font-family="'DM Sans',sans-serif" font-weight="500">Aujourd'hui</text>`;
+      h+=`<rect x="${lx}" y="5" width="66" height="16" rx="8" fill="${currentEra.color}" opacity=".14"/>`;
+      h+=`<text x="${lx+33}" y="17" text-anchor="middle" font-size="9.5" fill="${currentEra.color}" font-family="'DM Sans',sans-serif" font-weight="500">Aujourd'hui</text>`;
     }
   }
 
   /* Placement des événements */
   const visible=eraEvents().sort((a,b)=>a.y-b.y);
-  const raw=[]; const rowLast={};
+  const raw=[];
+  const rowLast={};
   visible.forEach((ev,i)=>{
     const px=yearToX(yearFrac(ev.y,ev.m,ev.d));
-    const cands=[];for(let r=1;r<=8;r++)cands.push(-r,r);
+    /* Cherche une ligne libre */
     let row=i%2===0?-1:1;
-    for(const r of cands){if(!rowLast[r]||px-rowLast[r]>95){row=r;break;}}
-    rowLast[row]=px;raw.push({...ev,row,px});
+    for(let r=1;r<=8;r++){
+      const candidates=[-r,r];
+      for(const c of candidates){
+        if(!rowLast[c]||px-rowLast[c]>95){row=c;goto:{break goto;}; }
+      }
+    }
+    rowLast[row]=px;
+    raw.push({...ev,row,px});
   });
 
-  /* Barres de période */
+  /* Barres de période (sous tout le reste) */
   raw.forEach(ev=>{
     if(!ev.ye||ev.ye===ev.y)return;
-    const x1=Math.max(0,yearToX(ev.y)),x2=Math.min(svgW,yearToX(ev.ye));
+    const x1=Math.max(0,yearToX(ev.y));
+    const x2=Math.min(svgW,yearToX(ev.ye));
     if(x2<0||x1>svgW)return;
     const c=(CATS[ev.cat]||CATS.autre).c;
-    const above=ev.row<0,depth=Math.abs(ev.row);
+    const above=ev.row<0, depth=Math.abs(ev.row);
     const barY=above?AY-(48+depth*36)-10:AY+(48+depth*36)+4;
     h+=`<rect x="${x1}" y="${barY}" width="${Math.max(1,x2-x1)}" height="6" rx="3" fill="${c}" opacity=".17"/>`;
     if(x1>=0)h+=`<line x1="${x1}" y1="${AY}" x2="${x1}" y2="${barY+3}" stroke="${c}" stroke-width=".7" opacity=".28"/>`;
     if(x2<=svgW)h+=`<line x1="${x2}" y1="${AY}" x2="${x2}" y2="${barY+3}" stroke="${c}" stroke-width=".7" opacity=".28"/>`;
   });
 
+  /* Cluster (3+ seulement) */
   const clusters=clusterEv(raw);
   const singles=new Set(clusters.filter(g=>g.length===1).flatMap(g=>g.map(e=>e.id)));
 
   /* Stems + dots */
   raw.filter(ev=>singles.has(ev.id)).forEach(ev=>{
-    const px=ev.px;if(px<-80||px>svgW+80)return;
+    const px=ev.px;
+    if(px<-80||px>svgW+80)return;
     const c=(CATS[ev.cat]||CATS.autre).c;
-    const above=ev.row<0,depth=Math.abs(ev.row),sl=48+depth*36;
-    const lY=above?AY-sl:AY+sl,by=above?lY-42:lY;
+    const above=ev.row<0, depth=Math.abs(ev.row), sl=48+depth*36;
+    const lY=above?AY-sl:AY+sl, by=above?lY-42:lY;
     h+=`<circle cx="${px}" cy="${AY}" r="7" fill="${c}" opacity=".17" data-id="${ev.id}"/>`;
     h+=`<circle cx="${px}" cy="${AY}" r="${activeId===ev.id?5.5:4}" fill="${c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-id="${ev.id}"/>`;
     h+=`<line x1="${px}" y1="${AY+(above?-5:5)}" x2="${px}" y2="${above?by+42:by}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity=".38"/>`;
   });
 
-  /* Cartes */
-  raw.filter(ev=>singles.has(ev.id)).forEach(ev=>{h+=buildCard(ev,AY);});
+  /* Cartes événements */
+  raw.filter(ev=>singles.has(ev.id)).forEach(ev=>{h+=buildCard(ev);});
 
   svgEl.setAttribute('height',H);
   svgEl.innerHTML=h;
@@ -375,34 +437,55 @@ function render(){
     el.addEventListener('mouseleave',()=>{tipEl.style.display='none';});
   });
   clearClusters();
-  clusters.filter(g=>g.length>=3).forEach(g=>buildClusterOv(g,AY));
-  renderLegend();buildEraStrip();
+  clusters.filter(g=>g.length>=3).forEach(g=>buildClusterOv(g));
+  renderLegend();
+  buildEraStrip();
 }
 
-function buildCard(ev,AY){
-  const cat=CATS[ev.cat]||CATS.autre,c=cat.c;
-  const px=ev.px;if(px<-80||px>svgW+80)return'';
-  const above=ev.row<0,depth=Math.abs(ev.row),sl=48+depth*36;
+/* ── Placement des événements: algo propre ── */
+function clusterEv(placed){
+  const sorted=[...placed].sort((a,b)=>a.px-b.px);
+  const clusters=[],used=new Set();
+  for(let i=0;i<sorted.length;i++){
+    if(used.has(i))continue;
+    const grp=[sorted[i]];used.add(i);
+    for(let j=i+1;j<sorted.length;j++){
+      if(used.has(j))continue;
+      if(sorted[j].px-sorted[i].px<70){grp.push(sorted[j]);used.add(j);}
+    }
+    if(grp.length>=3)clusters.push(grp);
+    else grp.forEach(ev=>clusters.push([ev]));
+  }
+  return clusters;
+}
+
+function buildCard(ev){
+  const cat=CATS[ev.cat]||CATS.autre, c=cat.c;
+  const px=ev.px;
+  if(px<-80||px>svgW+80)return'';
+  const above=ev.row<0, depth=Math.abs(ev.row), sl=48+depth*36;
   const lY=above?AY-sl:AY+sl;
   const label=ev.title.length>25?ev.title.slice(0,24)+'…':ev.title;
   const bw=Math.min(label.length*7.2+30,192);
-  const bh=42,bx=Math.max(4,Math.min(px-bw/2,svgW-bw-4));
+  const bh=42, bx=Math.max(4,Math.min(px-bw/2,svgW-bw-4));
   const by=above?lY-bh:lY;
   const isHL=ev.id===hlId;
   let s='';
-  if(ev.id===activeId||isHL)s+=`<rect x="${bx-5}" y="${by-5}" width="${bw+10}" height="${bh+10}" rx="13" fill="${c}" opacity="${isHL?.2:.13}"/>`;
+  if(ev.id===activeId||isHL)
+    s+=`<rect x="${bx-5}" y="${by-5}" width="${bw+10}" height="${bh+10}" rx="13" fill="${c}" opacity="${isHL?.2:.13}"/>`;
   s+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="10" fill="var(--paper)" stroke="${c}" stroke-width="${activeId===ev.id?1.75:.75}" style="cursor:pointer" data-id="${ev.id}"/>`;
   s+=`<rect x="${bx}" y="${by}" width="${bw}" height="5" rx="5" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
   s+=`<rect x="${bx}" y="${by+3}" width="${bw}" height="3" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
-  if(ev.ye&&ev.ye!==ev.y)s+=`<rect x="${bx+bw-13}" y="${by+9}" width="7" height="7" rx="2" fill="${c}" opacity=".38" style="pointer-events:none"/>`;
+  if(ev.ye&&ev.ye!==ev.y)
+    s+=`<rect x="${bx+bw-13}" y="${by+9}" width="7" height="7" rx="2" fill="${c}" opacity=".38" style="pointer-events:none"/>`;
   s+=`<text x="${bx+9}" y="${by+20}" font-size="11.5" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
   s+=`<text x="${bx+9}" y="${by+33}" font-size="9.5" fill="${c}" opacity=".68" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
   return s;
 }
 
-/* ── Cluster overlays HTML ── */
+/* ── Cluster overlays ── */
 function clearClusters(){document.querySelectorAll('.cluster-ov').forEach(e=>e.remove());}
-function buildClusterOv(grp,AY){
+function buildClusterOv(grp){
   const avgX=grp.reduce((s,e)=>s+e.px,0)/grp.length;
   if(avgX<-30||avgX>svgW+30)return;
   const catC={};grp.forEach(e=>{catC[e.cat]=(catC[e.cat]||0)+1;});
@@ -420,7 +503,8 @@ function buildClusterOv(grp,AY){
   div.addEventListener('click',e=>{e.stopPropagation();openClusterList(grp,e);});
   div.addEventListener('mouseenter',()=>div.style.transform='translate(-50%,-50%) scale(1.1)');
   div.addEventListener('mouseleave',()=>div.style.transform='translate(-50%,-50%)');
-  wrap.style.position='relative';wrap.appendChild(div);
+  wrap.style.position='relative';
+  wrap.appendChild(div);
 }
 
 function openClusterList(grp,e){
@@ -446,7 +530,8 @@ function closeClusterList(){clList.style.display='none';}
 function zoomToEv(id){
   closeClusterList();
   const ev=events.find(e=>e.id===id);if(!ev)return;
-  const{minY}=getRange();scale=defScale()*7;
+  const{minY}=getRange();
+  scale=defScale()*7;
   offsetX=(svgW/2)-80-(yearFrac(ev.y,ev.m,ev.d)-minY)*scale;
   render();updZoom();hlId=id;
   setTimeout(()=>{hlId=null;render();},2200);
@@ -463,7 +548,7 @@ function showTip(e,id){
     ${ev.desc?`<div class="td">${ev.desc.slice(0,100)}${ev.desc.length>100?'…':''}</div>`:''}`;
 }
 
-/* ── Card popup — images via <img> HTML standard ── */
+/* ── Card popup ── */
 function openCard(id,e){
   const ev=events.find(x=>x.id===id);if(!ev)return;
   const cat=CATS[ev.cat]||CATS.autre;
@@ -480,7 +565,7 @@ function openCard(id,e){
   document.getElementById('cp-title').textContent=ev.title;
   const pbw=document.getElementById('cp-period-wrap');
   if(ev.ye&&ev.ye!==ev.y&&currentEra){
-    const span=ev.ye-ev.y,eraSpan=eraTo()-currentEra.from;
+    const span=ev.ye-ev.y, eraSpan=eraToY()-currentEra.from;
     const pct=Math.min(100,Math.round(span/eraSpan*100));
     pbw.style.display='block';
     document.getElementById('cp-period-label').textContent=`Durée : ${span} an${span>1?'s':''} (${pct}% de l'époque)`;
@@ -494,7 +579,7 @@ function openCard(id,e){
   if(window.innerWidth<640){
     cpop.style.cssText='display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;z-index:250';
   } else {
-    const vw=window.innerWidth,vh=window.innerHeight;
+    const vw=window.innerWidth, vh=window.innerHeight;
     cpop.style.cssText=`display:block;position:fixed;border-radius:var(--rxl);width:min(350px,90vw);z-index:250;
       top:${Math.min(e.clientY-60,vh-520)}px;left:${Math.min(e.clientX+16,vw-366)}px`;
   }
@@ -527,15 +612,21 @@ function onSearch(q){
   const ql=q.toLowerCase(),yn=parseInt(q);
   const matched=events.filter(ev=>
     ev.title.toLowerCase().includes(ql)||(ev.desc||'').toLowerCase().includes(ql)||
-    (ev.wiki||'').toLowerCase().includes(ql)||(CATS[ev.cat]?CATS[ev.cat].l.toLowerCase().includes(ql):false)||
-    String(Math.abs(ev.y)).includes(q)||(!isNaN(yn)&&Math.abs(ev.y-yn)<30)
+    (ev.wiki||'').toLowerCase().includes(ql)||
+    (CATS[ev.cat]?CATS[ev.cat].l.toLowerCase().includes(ql):false)||
+    String(Math.abs(ev.y)).includes(q)||
+    (!isNaN(yn)&&Math.abs(ev.y-yn)<30)
   ).sort((a,b)=>!isNaN(yn)?Math.abs(a.y-yn)-Math.abs(b.y-yn):a.y-b.y);
   if(!matched.length){res.innerHTML=`<div class="sr-empty">Aucun résultat pour « ${q} »</div>`;res.classList.add('open');return;}
   res.innerHTML=matched.slice(0,10).map(ev=>{
     const cat=CATS[ev.cat]||CATS.autre;
     const dm=(ev.desc||'').toLowerCase().includes(ql);
     let ds='';
-    if(dm){const i=(ev.desc||'').toLowerCase().indexOf(ql);const s=Math.max(0,i-30);ds=`<div class="sri-desc">${hl((s>0?'…':''+(ev.desc||'').slice(s,i+ql.length+50)+'…'),q)}</div>`;}
+    if(dm){
+      const i=(ev.desc||'').toLowerCase().indexOf(ql);
+      const s=Math.max(0,i-30);
+      ds=`<div class="sri-desc">${hl((s>0?'…':''+(ev.desc||'').slice(s,i+ql.length+50)+'…'),q)}</div>`;
+    }
     const endS=fmtDateEnd(ev);
     return`<div class="sri" onclick="goToEv(${ev.id})">
       <div class="sri-dot" style="background:${cat.c}"></div>
@@ -574,7 +665,6 @@ function applyImgUrl(){
   if(!url)return;
   document.getElementById('ipr').style.display='block';
   document.getElementById('iprel').src=url;
-  document.getElementById('iprel').onerror=()=>{document.getElementById('iprel').alt='URL invalide';};
 }
 function removeImg(){
   document.getElementById('ipr').style.display='none';
@@ -605,7 +695,10 @@ function resetForm(){
 function openAdd(){
   editId=null;resetForm();
   document.getElementById('mtitle').textContent='Nouvel événement';
-  if(currentEra){const mid=Math.round((currentEra.from+Math.min(eraTo(),TODAY_Y))/2);document.getElementById('fy').value=mid;}
+  if(currentEra){
+    const mid=Math.round((currentEra.from+Math.min(eraToY(),TODAY_Y))/2);
+    document.getElementById('fy').value=mid;
+  }
   buildCatPick('autre');
   document.getElementById('bdel').style.display='none';
   document.getElementById('mbg').classList.add('open');
@@ -634,11 +727,21 @@ function closeMod(){document.getElementById('mbg').classList.remove('open');}
 function saveEv(){
   const title=(document.getElementById('ft').value||'').trim();
   const yv=(document.getElementById('fy').value||'').trim();
-  if(!title){document.getElementById('ft').style.borderColor='#f03060';document.getElementById('ft').focus();return;}
-  if(!yv){document.getElementById('fy').style.borderColor='#f03060';document.getElementById('fy').focus();return;}
+  if(!title){
+    document.getElementById('ft').style.borderColor='#f03060';
+    document.getElementById('ft').focus();return;
+  }
+  if(!yv){
+    document.getElementById('fy').style.borderColor='#f03060';
+    document.getElementById('fy').focus();return;
+  }
   const y=parseInt(yv);
-  if(isNaN(y)){document.getElementById('fy').style.borderColor='#f03060';document.getElementById('fy').focus();return;}
-  document.getElementById('ft').style.borderColor='';document.getElementById('fy').style.borderColor='';
+  if(isNaN(y)){
+    document.getElementById('fy').style.borderColor='#f03060';
+    document.getElementById('fy').focus();return;
+  }
+  document.getElementById('ft').style.borderColor='';
+  document.getElementById('fy').style.borderColor='';
   const mRaw=document.getElementById('fm').value;const m=mRaw?parseInt(mRaw):undefined;
   const dRaw=document.getElementById('fd2').value;const d=dRaw?parseInt(dRaw):undefined;
   const yeRaw=(document.getElementById('fye').value||'').trim();const ye=yeRaw?parseInt(yeRaw):y;
@@ -671,38 +774,54 @@ document.getElementById('mbg').addEventListener('click',e=>{if(e.target===e.curr
 function panLeft(){offsetX+=svgW*0.4;render();}
 function panRight(){offsetX-=svgW*0.4;render();}
 
-/* ── Drag / wheel / touch ── */
+/* ── Drag souris ── */
 wrap.addEventListener('mousedown',e=>{
   if(e.target.dataset.id||e.target.closest('.cluster-ov'))return;
   dragging=true;dsx=e.clientX;dsox=offsetX;wrap.classList.add('dragging');
 });
 window.addEventListener('mousemove',e=>{if(!dragging)return;offsetX=dsox+(e.clientX-dsx);render();});
 window.addEventListener('mouseup',()=>{dragging=false;wrap.classList.remove('dragging');});
+
+/* ── Molette ── */
 wrap.addEventListener('wheel',e=>{
   e.preventDefault();
   const f=e.deltaY<0?1.18:1/1.18;
   const mx=e.clientX-wrap.getBoundingClientRect().left;
-  const{minY}=getRange();
-  const yam=(mx-80-offsetX)/scale+minY;
-  scale*=f;offsetX=mx-80-(yam-minY)*scale;
+  const yearAtMouse=xToYear(mx);
+  scale*=f;
+  const ds=defScale();if(scale<ds*0.95)scale=ds;
+  offsetX=mx-80-(yearAtMouse-getRange().minY)*scale;
   render();updZoom();
 },{passive:false});
-let ltx=null,ltd=null;
+
+/* ── Touch (glisser + pincer) ── */
+let ltx=null, ltd=null, ltcx=null;
 wrap.addEventListener('touchstart',e=>{
-  if(e.touches.length===2){ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);ltx=null;}
-  else{ltx=e.touches[0].clientX;ltd=null;}
-},{passive:true});
-wrap.addEventListener('touchmove',e=>{
-  if(e.touches.length===2&&ltd){
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    const cx=(e.touches[0].clientX+e.touches[1].clientX)/2-wrap.getBoundingClientRect().left;
-    const{minY}=getRange();const yam=(cx-80-offsetX)/scale+minY;
-    scale*=d/ltd;ltd=d;offsetX=cx-80-(yam-minY)*scale;render();updZoom();
-  } else if(ltx&&e.touches.length===1){
-    offsetX+=e.touches[0].clientX-ltx;ltx=e.touches[0].clientX;render();
+  if(e.touches.length===2){
+    ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    ltcx=(e.touches[0].clientX+e.touches[1].clientX)/2-wrap.getBoundingClientRect().left;
+    ltx=null;
+  } else {
+    ltx=e.touches[0].clientX;ltd=null;
   }
 },{passive:true});
-wrap.addEventListener('touchend',()=>{ltx=null;ltd=null;});
+wrap.addEventListener('touchmove',e=>{
+  if(e.touches.length===2&&ltd!==null){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    const cx=(e.touches[0].clientX+e.touches[1].clientX)/2-wrap.getBoundingClientRect().left;
+    const yearAtCenter=xToYear(ltcx);
+    scale*=d/ltd;
+    const ds=defScale();if(scale<ds*0.95)scale=ds;
+    ltd=d;ltcx=cx;
+    offsetX=cx-80-(yearAtCenter-getRange().minY)*scale;
+    render();updZoom();
+  } else if(ltx!==null&&e.touches.length===1){
+    offsetX+=e.touches[0].clientX-ltx;
+    ltx=e.touches[0].clientX;
+    render();
+  }
+},{passive:true});
+wrap.addEventListener('touchend',()=>{ltx=null;ltd=null;ltcx=null;});
 
 /* ── Keyboard ── */
 document.addEventListener('keydown',e=>{
@@ -714,4 +833,4 @@ document.addEventListener('click',e=>{
   if(!document.getElementById('sres').contains(e.target)&&e.target!==document.getElementById('si'))
     document.getElementById('sres').classList.remove('open');
 });
-window.addEventListener('resize',()=>{if(currentEra)render();});
+window.addEventListener('resize',()=>{if(currentEra)resetView();});
