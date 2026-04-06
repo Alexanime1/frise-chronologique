@@ -164,15 +164,16 @@
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,getDocs,setDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ── Collez votre configuration Firebase ici ──
-const FIREBASE_CONFIG={
-  apiKey:"",
-  authDomain:"",
-  projectId:"",
-  storageBucket:"",
-  messagingSenderId:"",
-  appId:""
+const firebaseConfig = {
+  // apiKey: "VOTRE_API_KEY", // À récupérer depuis la console Firebase
+  authDomain: "frise-chronologique-535d1.firebaseapp.com",
+  projectId: "frise-chronologique-535d1",
+  storageBucket: "frise-chronologique-535d1.appspot.com", // Généralement basé sur le Project ID
+  // messagingSenderId: "VOTRE_SENDER_ID", // À récupérer depuis la console Firebase
+  // appId: "VOTRE_APP_ID", // À récupérer depuis la console Firebase
+  measurementId: "G-531324465" // Basé sur votre Property ID Google Analytics
 };
+
 
 let db=null;
 const ss=id=>document.getElementById(id);
