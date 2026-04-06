@@ -141,7 +141,7 @@
         </div>
         <div class="fr-hint">Vide = événement ponctuel</div>
       </div>
-      <div class="fr s2"><label>Catégorie</label><div class="cat-pick" id="cpick"></div><input type="hidden" id="fc" value="autre"/></div>
+      <div class="fr s2"><label>Catégorie</label><div class="cat-pick" id="cpick"></div><input type="hidden" id="fc" value="autre"/><select id="fc-select" style="display:none"></select></div>
       <div class="fr s2"><label>Description</label><textarea id="fdesc" placeholder="Décrivez cet événement…"></textarea></div>
       <div class="fr s2"><label>Page Wikipedia (optionnel)</label><input id="fwiki" type="text" placeholder="Ex : Révolution_française"/><div class="fr-hint">Titre de la page fr.wikipedia.org</div></div>
       <div class="fr s2">
@@ -168,27 +168,7 @@ import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-ap
 import{getFirestore,collection,getDocs,setDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ── Collez votre configuration Firebase ici ──
-const // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCLVkOkURM2lFWw7d0QlSxfxdCCTyxTGxk",
-  authDomain: "frise-chronologique-535d1.firebaseapp.com",
-  projectId: "frise-chronologique-535d1",
-  storageBucket: "frise-chronologique-535d1.firebasestorage.app",
-  messagingSenderId: "1060147058484",
-  appId: "1:1060147058484:web:31e29e36c8eeb08e4f7761",
-  measurementId: "G-TJG3334FCM"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);={
+const FIREBASE_CONFIG={
   apiKey:"",
   authDomain:"",
   projectId:"",
