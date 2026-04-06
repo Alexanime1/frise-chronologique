@@ -76,7 +76,7 @@ function startApp(defaults,cats){
 }
 
 /* Tentative de chargement data.json — si ça échoue, on a quand même les catégories inline */
-fetch('data.json')
+fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7')
   .then(r=>{if(!r.ok)throw new Error('data.json '+r.status);return r.json();})
   .then(d=>startApp(d.events,d.categories))
   .catch(err=>{
