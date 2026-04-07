@@ -95,7 +95,7 @@ function startApp(defaults, cats) {
 }
 
 /* JSONbin : données par défaut partagées */
-fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7/latest')
+fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(d => {
     const data = d.record || d; // JSONbin enveloppe dans .record
