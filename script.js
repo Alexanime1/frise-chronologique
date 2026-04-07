@@ -4,14 +4,13 @@ const TODAY_Y = TODAY.getFullYear();
 const TODAY_M = TODAY.getMonth() + 1;
 const TODAY_D = TODAY.getDate();
 
-/* Catégories — toujours disponibles même sans data.json */
 let CATS = {
-  politique: { c:'#4f6ef7', bg:'rgba(79,110,247,.13)',  l:'Politique',   e:'🏛' },
-  science:   { c:'#16c47a', bg:'rgba(22,196,122,.13)',  l:'Science',     e:'🔬' },
+  politique: { c:'#4f6ef7', bg:'rgba(79,110,247,.13)',  l:'Politique',    e:'🏛' },
+  science:   { c:'#16c47a', bg:'rgba(22,196,122,.13)',  l:'Science',      e:'🔬' },
   art:       { c:'#f0742a', bg:'rgba(240,116,42,.13)',  l:'Art & Culture',e:'🎨' },
-  guerre:    { c:'#f03060', bg:'rgba(240,48,96,.13)',   l:'Guerre',      e:'⚔️' },
-  sport:     { c:'#f59e0b', bg:'rgba(245,158,11,.13)',  l:'Sport',       e:'🏆' },
-  autre:     { c:'#a855f7', bg:'rgba(168,85,247,.13)',  l:'Autre',       e:'✦'  },
+  guerre:    { c:'#f03060', bg:'rgba(240,48,96,.13)',   l:'Guerre',       e:'⚔️' },
+  sport:     { c:'#f59e0b', bg:'rgba(245,158,11,.13)',  l:'Sport',        e:'🏆' },
+  autre:     { c:'#a855f7', bg:'rgba(168,85,247,.13)',  l:'Autre',        e:'✦'  },
 };
 
 const ERAS = [
@@ -36,21 +35,72 @@ const ERA_BG = {
   xxi:    { c1:'#06b6d4', c3:'#155e75' },
 };
 
-/* ── localStorage ── */
-const SK = 'frise_v12';
-function loadLocal() {
-  try { const s = localStorage.getItem(SK); return s ? JSON.parse(s) : null; }
-  catch { return null; }
-}
-function saveLocal() {
-  try { localStorage.setItem(SK, JSON.stringify(events)); } catch(e) {}
-}
+const CONTINENTS = {
+  'Europe':        ['France','Allemagne','Royaume-Uni','Italie','Espagne','Grèce','Russie','Belgique','Pays-Bas','Portugal','Pologne','Autriche','Suisse','Suède','Norvège','Danemark','Rome','Athènes','Paris','Berlin','Byzance','Constantinople'],
+  'Asie':          ['Chine','Japon','Inde','Corée','Vietnam','Iraq','Iran','Perse','Mésopotamie','Syrie','Turquie','Afghanistan','Pakistan','Mongolie','Cambodge'],
+  'Amériques':     ['États-Unis','Amérique','Brésil','Argentine','Cuba','Mexique','Canada','Colombie','Haïti','Chili','Pérou','Incas','Aztèques','Mayas'],
+  'Afrique':       ['Égypte','Algérie','Rwanda','Maroc','Tunisie','Afrique du Sud','Mali','Éthiopie','Libye','Soudan','Congo','Mozambique','Zimbabwe'],
+  'Moyen-Orient':  ['Israël','Palestine','Arabie','Arabie Saoudite','Irak','Iran','Syrie','Liban','Jordanie','Yémen','Koweït','Turquie','Ottoman','Suez'],
+  'Océanie':       ['Australie','Nouvelle-Zélande','Polynésie','Pacifique'],
+  'Monde entier':  ['Monde','mondial','mondial','universel','ONU','international','Europe','Occident','Alliés'],
+};
 
-let events = [];
+/* ── Storage ── */
+const SK = 'frise_v13';
+function loadLocal() { try { const s = localStorage.getItem(SK); return s ? JSON.parse(s) : null; } catch { return null; } }
+function saveLocal() { try { localStorage.setItem(SK, JSON.stringify(events)); } catch(e) {} }
+
+/* ── État global ── */
+let events = [];        // tous les événements (base + ajoutés)
+let baseIds = new Set();// IDs des événements de base (depuis JSONbin)
 let nextId = 1;
-let firebaseReady = false;
+let favorites = new Set(JSON.parse(localStorage.getItem('frise_favs') || '[]'));
 
-/* ── Merge Firebase → local (appelé par onSnapshot) ── */
+function saveFavs() { localStorage.setItem('frise_favs', JSON.stringify([...favorites])); }
+
+/* ─────────────────────────────────────────────────────────────
+   CORRECTION DU BUG PRINCIPAL :
+   
+   Avant : startApp prenait les données locales si elles existaient,
+   ignorant les events de base. Résultat : les 166 events JSONbin
+   disparaissaient si l'user avait ajouté 1 event.
+   
+   Fix : on fusionne toujours les events de base AVEC les events locaux.
+   La règle : event de base = id dans baseIds. Event ajouté = id absent de baseIds.
+   On garde TOUJOURS les deux.
+   ──────────────────────────────────────────────────────────── */
+function startApp(defaults, cats) {
+  if (cats) CATS = cats;
+
+  // Mémoriser les IDs de base
+  baseIds = new Set(defaults.map(e => e.id));
+
+  // Charger les events sauvegardés localement
+  const saved = loadLocal() || [];
+
+  // Séparer : events ajoutés par l'utilisateur (pas dans baseIds)
+  const userAdded = saved.filter(e => !baseIds.has(e.id));
+
+  // Fusionner : base + ajouts utilisateur
+  // Pour les events de base : prendre la version locale si elle a été modifiée (updatedAt > 0)
+  const merged = defaults.map(base => {
+    const localVersion = saved.find(e => e.id === base.id);
+    return (localVersion && (localVersion.updatedAt || 0) > 0) ? localVersion : base;
+  });
+
+  // Ajouter les events créés par l'utilisateur
+  userAdded.forEach(ev => merged.push(ev));
+
+  events = merged;
+  nextId = Math.max(...events.map(e => e.id), 0) + 1;
+  saveLocal();
+  buildCatPick('autre');
+  renderLegend();
+  buildEraStrip();
+  updateEvCount();
+}
+
+/* Merge depuis Firebase (temps réel) */
 window.__mergeRemote = function(remote) {
   if (!remote || remote.length === 0) return;
   let changed = false;
@@ -58,6 +108,7 @@ window.__mergeRemote = function(remote) {
     if (!r || !r.id) return;
     const loc = events.find(e => e.id === r.id);
     if (!loc) {
+      // Nouvel event ajouté depuis un autre appareil
       events.push(r);
       changed = true;
     } else if ((r.updatedAt || 0) > (loc.updatedAt || 0)) {
@@ -68,50 +119,41 @@ window.__mergeRemote = function(remote) {
   if (changed) {
     saveLocal();
     nextId = Math.max(...events.map(e => e.id), 0) + 1;
-    render();
-    buildEraStrip();
-    const ec = document.getElementById('ev-count');
-    if (ec) ec.textContent = events.length + ' événements';
+    render(); buildEraStrip(); updateEvCount();
   }
 };
 
-/* Sauvegarde : local + Firebase */
 function saveSt() {
   saveLocal();
   if (window.__firebaseSave) window.__firebaseSave(events);
 }
 
-/* ── Chargement JSONbin → puis Firebase prend le relais ── */
-function startApp(defaults, cats) {
-  if (cats) CATS = cats;
-  const saved = loadLocal();
-  // On prend les données locales si elles existent, sinon les defaults
-  events = (saved && saved.length > 0) ? saved : (defaults || []);
-  nextId = Math.max(...events.map(e => e.id), 0) + 1;
-  saveLocal();
-  buildCatPick('autre');
-  renderLegend();
-  buildEraStrip();
+function updateEvCount() {
+  const ec = document.getElementById('ev-count');
+  if (ec) ec.textContent = events.length + ' événements';
 }
 
-/* JSONbin : données par défaut partagées */
-fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7')
+/* ── Chargement JSONbin ── */
+fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7/latest')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(d => {
-    const data = d.record || d; // JSONbin enveloppe dans .record
+    const data = d.record || d;
+    if (!data.events || !Array.isArray(data.events) || data.events.length === 0) throw new Error('no events');
     startApp(data.events, data.categories);
   })
   .catch(err => {
-    console.warn('JSONbin non disponible:', err.message);
+    console.warn('JSONbin indisponible:', err.message);
+    // Fallback : utiliser uniquement les données locales
     const saved = loadLocal();
     events = saved && saved.length > 0 ? saved : [];
     nextId = Math.max(...events.map(e => e.id), 0) + 1;
     buildCatPick('autre');
     renderLegend();
     buildEraStrip();
+    updateEvCount();
     if (events.length === 0) {
       const h = document.getElementById('era-hint');
-      if (h) h.innerHTML = '<strong>⚠️ Données non chargées</strong><br>Vérifiez votre connexion et rechargez la page.';
+      if (h) h.innerHTML = '<strong>⚠️ Données non chargées</strong><br>Vérifiez votre connexion internet et rechargez la page.';
     }
   });
 
@@ -122,11 +164,13 @@ let editId = null, activeId = null, hlId = null;
 let currentEra = null;
 let dragging = false, dsx = 0, dsox = 0;
 let hiddenCats = new Set();
+let activeRegion = null;   // filtre pays/région actif
+let showOnlyFavs = false;  // filtre favoris
 
-const svgEl = document.getElementById('tl-svg');
-const wrap  = document.getElementById('tl-wrap');
-const tipEl = document.getElementById('tip');
-const cpop  = document.getElementById('cpop');
+const svgEl  = document.getElementById('tl-svg');
+const wrap   = document.getElementById('tl-wrap');
+const tipEl  = document.getElementById('tip');
+const cpop   = document.getElementById('cpop');
 const clList = document.getElementById('cluster-list');
 
 /* ── Cat picker ── */
@@ -139,8 +183,7 @@ function buildCatPick(sel) {
 function pickCat(k, el) {
   document.getElementById('fc').value = k;
   document.querySelectorAll('.csw').forEach(s => { s.classList.remove('sel'); s.style.borderColor = 'transparent'; });
-  el.classList.add('sel');
-  el.style.borderColor = CATS[k].c;
+  el.classList.add('sel'); el.style.borderColor = CATS[k].c;
 }
 
 /* ── Dates ── */
@@ -165,15 +208,39 @@ function yearFrac(y, m, d) {
   const days = new Date(Math.abs(y), m, 0).getDate();
   return y + (m - 1) / 12 + (d ? (d - 1) / days / 12 : 0);
 }
-function wikiUrl(ev) {
-  return 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((ev.wiki || ev.title).replace(/ /g, '_'));
+function wikiUrl(ev) { return 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((ev.wiki || ev.title).replace(/ /g, '_')); }
+
+/* ── Filtre région : détecte le continent d'un événement depuis titre/desc/région ── */
+function getEventContinent(ev) {
+  const text = ((ev.title || '') + ' ' + (ev.desc || '') + ' ' + (ev.region || '')).toLowerCase();
+  for (const [continent, keywords] of Object.entries(CONTINENTS)) {
+    if (keywords.some(k => text.includes(k.toLowerCase()))) return continent;
+  }
+  return null;
+}
+
+function eventMatchesRegion(ev) {
+  if (!activeRegion) return true;
+  const text = ((ev.title || '') + ' ' + (ev.desc || '') + ' ' + (ev.region || '')).toLowerCase();
+  const q = activeRegion.toLowerCase();
+  // Recherche directe dans le texte
+  if (text.includes(q)) return true;
+  // Recherche dans le continent
+  const continent = CONTINENTS[activeRegion];
+  if (continent) return continent.some(k => text.includes(k.toLowerCase()));
+  return false;
 }
 
 /* ── Era strip ── */
 function buildEraStrip() {
   document.getElementById('era-strip').innerHTML = ERAS.map(era => {
     const eT = era.key === 'xxi' || era.key === 'all' ? TODAY_Y : era.to;
-    const count = events.filter(e => midY(e) >= era.from && midY(e) < eT && !hiddenCats.has(e.cat)).length;
+    const count = events.filter(e =>
+      midY(e) >= era.from && midY(e) < eT &&
+      !hiddenCats.has(e.cat) &&
+      eventMatchesRegion(e) &&
+      (!showOnlyFavs || favorites.has(e.id))
+    ).length;
     const active = currentEra && currentEra.key === era.key;
     const fromS = era.from < 0 ? Math.abs(era.from) + ' av. J.-C.' : era.from;
     const toS = era.key === 'xxi' || era.key === 'all' ? "Aujourd'hui"
@@ -203,21 +270,23 @@ function selectEra(key) {
 }
 
 function closeEra() {
-  currentEra = null;
-  buildEraStrip();
+  currentEra = null; buildEraStrip();
   document.getElementById('tl-outer').classList.remove('show');
   document.getElementById('era-hint').style.display = 'block';
 }
 
-/* ── Calculs de scale ── */
-function eraToY() {
-  return currentEra.key === 'xxi' || currentEra.key === 'all' ? TODAY_Y : currentEra.to;
-}
+/* ── Scale ── */
+function eraToY() { return currentEra.key === 'xxi' || currentEra.key === 'all' ? TODAY_Y : currentEra.to; }
 
 function eraEvents() {
   if (!currentEra) return [];
   const to = eraToY();
-  return events.filter(e => midY(e) >= currentEra.from && midY(e) < to && !hiddenCats.has(e.cat));
+  return events.filter(e =>
+    midY(e) >= currentEra.from && midY(e) < to &&
+    !hiddenCats.has(e.cat) &&
+    eventMatchesRegion(e) &&
+    (!showOnlyFavs || favorites.has(e.id))
+  );
 }
 
 function getRange() {
@@ -227,29 +296,16 @@ function getRange() {
   return { minY: from - pad, maxY: to + pad };
 }
 
-function yearToX(y) {
-  const { minY } = getRange();
-  return 80 + (y - minY) * scale + offsetX;
-}
-
-function xToYear(x) {
-  const { minY } = getRange();
-  return (x - 80 - offsetX) / scale + minY;
-}
-
-function defScale() {
-  const { minY, maxY } = getRange();
-  return Math.max(0.0001, (svgW - 160) / Math.max(1, maxY - minY));
-}
+function yearToX(y) { const { minY } = getRange(); return 80 + (y - minY) * scale + offsetX; }
+function xToYear(x) { const { minY } = getRange(); return (x - 80 - offsetX) / scale + minY; }
+function defScale() { const { minY, maxY } = getRange(); return Math.max(0.0001, (svgW - 160) / Math.max(1, maxY - minY)); }
 
 function resetView() {
   H = window.innerWidth < 640 ? 260 : 340;
   AY = Math.round(H * 0.515);
   svgW = wrap.clientWidth || window.innerWidth - 20;
-  scale = defScale();
-  offsetX = 0;
-  render();
-  updZoom();
+  scale = defScale(); offsetX = 0;
+  render(); updZoom();
 }
 
 function zoom(dir) {
@@ -259,43 +315,44 @@ function zoom(dir) {
   const ds = defScale();
   if (scale < ds * 0.98) scale = ds;
   offsetX = midX - 80 - (yAtMid - getRange().minY) * scale;
-  render();
-  updZoom();
+  render(); updZoom();
 }
 
 function updZoom() {
   const p = Math.round(scale / defScale() * 100) + '%';
-  ['zlbl', 'zlbl2', 'zlbl3'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = p;
-  });
+  ['zlbl','zlbl2','zlbl3'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p; });
 }
 
-/* ── Ticks adaptatifs ── */
+/* ── Ticks adaptatifs CORRIGÉS ──
+   Logique claire basée sur le span visible en années :
+   > 200 ans  → intervalles de 5/10/25/50/100/200/500…ans (jamais de mois)
+   10-200 ans → années individuelles
+   2-10 ans   → mois
+   < 2 ans    → jours
+*/
 function getVisibleRange() {
   const { minY, maxY } = getRange();
-  return {
-    visMin: Math.max(minY, xToYear(0)),
-    visMax: Math.min(maxY, xToYear(svgW)),
-  };
+  return { visMin: Math.max(minY, xToYear(0)), visMax: Math.min(maxY, xToYear(svgW)) };
 }
 
 function getTickMode() {
   const { visMin, visMax } = getVisibleRange();
   const span = visMax - visMin;
-  if (span <= 2)  return 'days';
-  if (span <= 40) return 'months';
+  if (span < 2)   return 'days';
+  if (span < 10)  return 'months';
   return 'years';
 }
 
 function pickYearIv(span) {
+  // Ne jamais afficher des intervalles inférieurs à 1 an en mode 'years'
+  // Choisit l'intervalle qui donne 6-14 ticks visibles
   for (const iv of [1,2,5,10,25,50,100,200,500,1000,2000,5000,10000,50000,100000]) {
-    if (span / iv <= 13) return iv;
+    if (span / iv <= 14) return iv;
   }
   return 100000;
 }
 
-/* ── Render principal ── */
+/* ── Render ── */
 function render() {
   H = window.innerWidth < 640 ? 260 : 340;
   AY = Math.round(H * 0.515);
@@ -303,7 +360,6 @@ function render() {
   if (svgW < 10) return;
   svgEl.setAttribute('width', svgW);
   svgEl.setAttribute('height', H);
-
   if (!currentEra) { svgEl.innerHTML = ''; clearClusters(); return; }
 
   const { minY, maxY } = getRange();
@@ -313,7 +369,7 @@ function render() {
   const mode = getTickMode();
   let h = '';
 
-  /* Dégradés de fond */
+  /* Fond dégradé */
   h += `<defs>
     <linearGradient id="bgv" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${bg.c1}" stop-opacity=".09"/>
@@ -337,7 +393,6 @@ function render() {
   <rect x="0" y="0" width="${svgW}" height="${H}" fill="url(#bgr1)"/>
   <rect x="0" y="0" width="${svgW}" height="${H}" fill="url(#bgr2)"/>`;
 
-  /* Axe */
   h += `<line x1="0" y1="${AY}" x2="${svgW}" y2="${AY}" stroke="${currentEra.color}" stroke-width="2" opacity=".3"/>`;
 
   /* ── Ticks ── */
@@ -352,12 +407,12 @@ function render() {
       h += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${bg.c1}" stroke-width=".5" opacity=".18"/>`;
       h += `<circle cx="${x}" cy="${AY}" r="3" fill="${currentEra.color}" opacity=".5"/>`;
       const lbl = y < 0 ? Math.abs(y) + ' av.' : y === 0 ? '0' : String(y);
-      h += `<text x="${x}" y="${AY + 20}" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
+      h += `<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
     }
   } else if (mode === 'months') {
     const startY = Math.max(Math.floor(visMin), currentEra.from);
     const endY   = Math.min(Math.ceil(visMax) + 1, eraToY());
-    const mIv = visSpan <= 3 ? 1 : visSpan <= 8 ? 2 : 3;
+    const mIv = visSpan <= 3 ? 1 : visSpan <= 7 ? 2 : 3;
     for (let y = startY; y <= endY; y++) {
       for (let m = 1; m <= 12; m += mIv) {
         const yf = yearFrac(y, m, 1);
@@ -365,30 +420,30 @@ function render() {
         const x = yearToX(yf);
         if (x < 15 || x > svgW - 10) continue;
         const isMaj = m === 1;
-        h += `<line x1="${x}" y1="${isMaj ? 0 : AY - 18}" x2="${x}" y2="${AY + 6}" stroke="${bg.c1}" stroke-width="${isMaj ? .8 : .35}" opacity="${isMaj ? .32 : .14}"/>`;
-        h += `<circle cx="${x}" cy="${AY}" r="${isMaj ? 3.5 : 2}" fill="${currentEra.color}" opacity="${isMaj ? .55 : .3}"/>`;
+        h += `<line x1="${x}" y1="${isMaj?0:AY-18}" x2="${x}" y2="${AY+6}" stroke="${bg.c1}" stroke-width="${isMaj?.8:.35}" opacity="${isMaj?.32:.14}"/>`;
+        h += `<circle cx="${x}" cy="${AY}" r="${isMaj?3.5:2}" fill="${currentEra.color}" opacity="${isMaj?.55:.3}"/>`;
         const lbl = isMaj ? String(y) : MN[m];
-        h += `<text x="${x}" y="${AY + 20}" text-anchor="middle" font-size="${isMaj ? 10 : 9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif" font-weight="${isMaj ? '500' : '400'}">${lbl}</text>`;
+        h += `<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="${isMaj?10:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif" font-weight="${isMaj?'500':'400'}">${lbl}</text>`;
       }
     }
   } else {
+    // Days
     const startY = Math.max(Math.floor(visMin), currentEra.from);
     const endY   = Math.min(Math.ceil(visMax) + 1, eraToY());
     const totalDays = visSpan * 365;
     const dIv = totalDays <= 25 ? 1 : totalDays <= 70 ? 2 : totalDays <= 120 ? 5 : 7;
     for (let y = startY; y <= endY; y++) {
       for (let m = 1; m <= 12; m++) {
-        const daysInMonth = new Date(Math.abs(y), m, 0).getDate();
-        for (let dd = 1; dd <= daysInMonth; dd += dIv) {
+        const dim = new Date(Math.abs(y), m, 0).getDate();
+        for (let dd = 1; dd <= dim; dd += dIv) {
           const yf = yearFrac(y, m, dd);
           if (yf < visMin - 0.02 || yf > visMax + 0.02) continue;
           const x = yearToX(yf);
           if (x < 15 || x > svgW - 10) continue;
           const isFM = dd === 1 && m === 1, isFirst = dd === 1;
-          h += `<line x1="${x}" y1="${isFM ? 0 : isFirst ? AY - 14 : AY - 7}" x2="${x}" y2="${AY + 5}" stroke="${bg.c1}" stroke-width="${isFM ? .9 : isFirst ? .5 : .25}" opacity="${isFM ? .38 : isFirst ? .2 : .1}"/>`;
-          h += `<circle cx="${x}" cy="${AY}" r="${isFM ? 3.5 : isFirst ? 2.5 : 1.5}" fill="${currentEra.color}" opacity="${isFM ? .55 : isFirst ? .38 : .22}"/>`;
-          const lbl = isFM ? String(y) : isFirst ? MN[m] : String(dd);
-          h += `<text x="${x}" y="${AY + 20}" text-anchor="middle" font-size="${isFM ? 10 : isFirst ? 9.5 : 9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
+          h += `<line x1="${x}" y1="${isFM?0:isFirst?AY-14:AY-7}" x2="${x}" y2="${AY+5}" stroke="${bg.c1}" stroke-width="${isFM?.9:isFirst?.5:.25}" opacity="${isFM?.38:isFirst?.2:.1}"/>`;
+          h += `<circle cx="${x}" cy="${AY}" r="${isFM?3.5:isFirst?2.5:1.5}" fill="${currentEra.color}" opacity="${isFM?.55:isFirst?.38:.22}"/>`;
+          h += `<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="${isFM?10:isFirst?9.5:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${isFM?String(y):isFirst?MN[m]:String(dd)}</text>`;
         }
       }
     }
@@ -401,61 +456,53 @@ function render() {
       h += `<line x1="${tx}" y1="0" x2="${tx}" y2="${H}" stroke="${currentEra.color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".5"/>`;
       const lx = Math.min(tx + 4, svgW - 72);
       h += `<rect x="${lx}" y="5" width="66" height="16" rx="8" fill="${currentEra.color}" opacity=".14"/>`;
-      h += `<text x="${lx + 33}" y="17" text-anchor="middle" font-size="9.5" fill="${currentEra.color}" font-family="'DM Sans',sans-serif" font-weight="500">Aujourd'hui</text>`;
+      h += `<text x="${lx+33}" y="17" text-anchor="middle" font-size="9.5" fill="${currentEra.color}" font-family="'DM Sans',sans-serif" font-weight="500">Aujourd'hui</text>`;
     }
   }
 
-  /* ── Placement des événements ── */
+  /* ── Placement événements ── */
   const visible = eraEvents().sort((a, b) => a.y - b.y);
-  const raw = [];
-  const rowLast = {};
-
+  const raw = []; const rowLast = {};
   visible.forEach((ev, i) => {
     const px = yearToX(yearFrac(ev.y, ev.m, ev.d));
-    // Cherche une rangée libre en alternant haut/bas
     let row = i % 2 === 0 ? -1 : 1;
     let found = false;
     for (let depth = 1; depth <= 8 && !found; depth++) {
       for (const r of [-depth, depth]) {
-        if (!rowLast[r] || px - rowLast[r] > 95) {
-          row = r;
-          found = true;
-          break;
-        }
+        if (!rowLast[r] || px - rowLast[r] > 95) { row = r; found = true; break; }
       }
     }
     rowLast[row] = px;
     raw.push({ ...ev, row, px });
   });
 
-  /* Calcul de la longueur de tige — STRICTEMENT bornée */
+  /* Longueur de tige bornée */
   function stemLen(row) {
     const depth = Math.abs(row);
     const above = row < 0;
     const maxLen = above ? AY - 50 : H - AY - 50;
-    return Math.max(0, Math.min(32 + depth * 22, maxLen));
+    return Math.max(0, Math.min(30 + depth * 20, maxLen));
   }
 
   /* Barres de période */
   raw.forEach(ev => {
     if (!ev.ye || ev.ye === ev.y) return;
-    const x1 = Math.max(0, yearToX(ev.y));
-    const x2 = Math.min(svgW, yearToX(ev.ye));
+    const x1 = Math.max(0, yearToX(ev.y)), x2 = Math.min(svgW, yearToX(ev.ye));
     if (x2 < 0 || x1 > svgW) return;
     const c = (CATS[ev.cat] || CATS.autre).c;
-    const above = ev.row < 0;
     const sl = stemLen(ev.row);
     if (sl < 5) return;
+    const above = ev.row < 0;
     const barY = above ? AY - sl - 5 : AY + sl + 4;
     if (barY < 4 || barY > H - 6) return;
-    h += `<rect x="${x1}" y="${barY}" width="${Math.max(1, x2 - x1)}" height="5" rx="2.5" fill="${c}" opacity=".17"/>`;
-    if (x1 >= 0) h += `<line x1="${x1}" y1="${AY}" x2="${x1}" y2="${barY + 2}" stroke="${c}" stroke-width=".7" opacity=".25"/>`;
-    if (x2 <= svgW) h += `<line x1="${x2}" y1="${AY}" x2="${x2}" y2="${barY + 2}" stroke="${c}" stroke-width=".7" opacity=".25"/>`;
+    h += `<rect x="${x1}" y="${barY}" width="${Math.max(1,x2-x1)}" height="5" rx="2.5" fill="${c}" opacity=".17"/>`;
+    if (x1 >= 0) h += `<line x1="${x1}" y1="${AY}" x2="${x1}" y2="${barY+2}" stroke="${c}" stroke-width=".7" opacity=".25"/>`;
+    if (x2 <= svgW) h += `<line x1="${x2}" y1="${AY}" x2="${x2}" y2="${barY+2}" stroke="${c}" stroke-width=".7" opacity=".25"/>`;
   });
 
-  /* Cluster (3+ seulement) */
+  /* Clusters */
   const clusters = clusterEv(raw);
-  const singles  = new Set(clusters.filter(g => g.length === 1).flatMap(g => g.map(e => e.id)));
+  const singles = new Set(clusters.filter(g => g.length === 1).flatMap(g => g.map(e => e.id)));
 
   /* Stems + dots */
   raw.filter(ev => singles.has(ev.id)).forEach(ev => {
@@ -466,16 +513,17 @@ function render() {
     const sl = stemLen(ev.row);
     if (sl < 5) return;
     const tipY = above ? AY - sl : AY + sl;
-    // Vérifier que la carte rentrera dans le SVG
     const cardTop = above ? tipY - 38 : tipY;
     const cardBot = above ? tipY : tipY + 38;
     if (cardTop < 4 || cardBot > H - 4) return;
+    const isFav = favorites.has(ev.id);
     h += `<circle cx="${px}" cy="${AY}" r="5.5" fill="${c}" opacity=".15" data-id="${ev.id}"/>`;
     h += `<circle cx="${px}" cy="${AY}" r="${activeId === ev.id ? 4.5 : 3.5}" fill="${c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-id="${ev.id}"/>`;
-    h += `<line x1="${px}" y1="${AY + (above ? -3 : 3)}" x2="${px}" y2="${above ? tipY : tipY}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity=".35"/>`;
+    if (isFav) h += `<text x="${px+5}" y="${AY-5}" font-size="9" fill="#f59e0b" style="pointer-events:none">★</text>`;
+    h += `<line x1="${px}" y1="${AY+(above?-3:3)}" x2="${px}" y2="${tipY}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity=".35"/>`;
   });
 
-  /* Cartes événements */
+  /* Cartes */
   raw.filter(ev => singles.has(ev.id)).forEach(ev => { h += buildCard(ev); });
 
   svgEl.setAttribute('height', H);
@@ -497,11 +545,7 @@ function buildCard(ev) {
   const px = ev.px;
   if (px < -80 || px > svgW + 80) return '';
   const above = ev.row < 0;
-  const sl = Math.abs(ev.row) < 1 ? 35 : (() => {
-    const depth = Math.abs(ev.row);
-    const maxLen = above ? AY - 50 : H - AY - 50;
-    return Math.max(0, Math.min(32 + depth * 22, maxLen));
-  })();
+  const sl = stemLen2(ev.row);
   if (sl < 5) return '';
   const tipY = above ? AY - sl : AY + sl;
   const label = ev.title.length > 25 ? ev.title.slice(0, 24) + '…' : ev.title;
@@ -511,18 +555,29 @@ function buildCard(ev) {
   const by = above ? tipY - bh : tipY;
   if (by < 3 || by + bh > H - 3) return '';
   const isHL = ev.id === hlId;
+  const isFav = favorites.has(ev.id);
   let s = '';
   if (ev.id === activeId || isHL)
-    s += `<rect x="${bx - 4}" y="${by - 4}" width="${bw + 8}" height="${bh + 8}" rx="12" fill="${c}" opacity="${isHL ? .2 : .12}"/>`;
-  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="9" fill="var(--paper)" stroke="${c}" stroke-width="${activeId === ev.id ? 1.75 : .75}" style="cursor:pointer" data-id="${ev.id}"/>`;
+    s += `<rect x="${bx-4}" y="${by-4}" width="${bw+8}" height="${bh+8}" rx="12" fill="${c}" opacity="${isHL?.2:.12}"/>`;
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="9" fill="var(--paper)" stroke="${c}" stroke-width="${activeId===ev.id?1.75:.75}" style="cursor:pointer" data-id="${ev.id}"/>`;
   s += `<rect x="${bx}" y="${by}" width="${bw}" height="4" rx="4" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
-  s += `<rect x="${bx}" y="${by + 2}" width="${bw}" height="2" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
+  s += `<rect x="${bx}" y="${by+2}" width="${bw}" height="2" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
   if (ev.ye && ev.ye !== ev.y)
-    s += `<rect x="${bx + bw - 12}" y="${by + 8}" width="6" height="6" rx="2" fill="${c}" opacity=".35" style="pointer-events:none"/>`;
-  s += `<text x="${bx + 8}" y="${by + 18}" font-size="11" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
-  s += `<text x="${bx + 8}" y="${by + 30}" font-size="9" fill="${c}" opacity=".65" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
+    s += `<rect x="${bx+bw-12}" y="${by+8}" width="6" height="6" rx="2" fill="${c}" opacity=".35" style="pointer-events:none"/>`;
+  if (isFav)
+    s += `<text x="${bx+bw-6}" y="${by+bh-5}" font-size="9" fill="#f59e0b" text-anchor="middle" style="pointer-events:none">★</text>`;
+  s += `<text x="${bx+8}" y="${by+18}" font-size="11" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
+  s += `<text x="${bx+8}" y="${by+30}" font-size="9" fill="${c}" opacity=".65" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
   return s;
 }
+
+// Fonction helper pour buildCard (evite la closure)
+function stemLen2(row) {
+  const depth = Math.abs(row), above = row < 0;
+  const maxLen = above ? AY - 50 : H - AY - 50;
+  return Math.max(0, Math.min(30 + depth * 20, maxLen));
+}
+function stemLen(row) { return stemLen2(row); }
 
 /* ── Clusters ── */
 function clusterEv(placed) {
@@ -542,7 +597,6 @@ function clusterEv(placed) {
 }
 
 function clearClusters() { document.querySelectorAll('.cluster-ov').forEach(e => e.remove()); }
-
 function buildClusterOv(grp) {
   const avgX = grp.reduce((s, e) => s + e.px, 0) / grp.length;
   if (avgX < -30 || avgX > svgW + 30) return;
@@ -550,19 +604,19 @@ function buildClusterOv(grp) {
   const dc = Object.entries(catC).sort((a, b) => b[1] - a[1])[0][0];
   const c = (CATS[dc] || CATS.autre).c;
   const sz = window.innerWidth < 640 ? Math.min(56 + grp.length * 4, 82) : Math.min(48 + grp.length * 4, 74);
+  const hasFav = grp.some(ev => favorites.has(ev.id));
   const div = document.createElement('div');
   div.className = 'cluster-ov';
   div.style.cssText = `position:absolute;left:${avgX}px;top:${AY}px;transform:translate(-50%,-50%);
     width:${sz}px;height:${sz}px;border-radius:50%;background:var(--paper);
     border:2.5px solid ${c};display:flex;flex-direction:column;align-items:center;justify-content:center;
     cursor:pointer;transition:transform .15s;box-shadow:0 2px 12px ${c}30;font-family:var(--fb);z-index:10`;
-  div.innerHTML = `<span style="font-size:${sz > 60 ? 15 : 13}px;font-weight:600;color:${c};line-height:1">${grp.length}</span>
-    <span style="font-size:9px;color:${c};opacity:.7;margin-top:2px">évts</span>`;
+  div.innerHTML = `<span style="font-size:${sz>60?15:13}px;font-weight:600;color:${c};line-height:1">${grp.length}</span>
+    <span style="font-size:9px;color:${c};opacity:.7;margin-top:2px">évts${hasFav?' ★':''}</span>`;
   div.addEventListener('click', e => { e.stopPropagation(); openClusterList(grp, e); });
   div.addEventListener('mouseenter', () => div.style.transform = 'translate(-50%,-50%) scale(1.1)');
   div.addEventListener('mouseleave', () => div.style.transform = 'translate(-50%,-50%)');
-  wrap.style.position = 'relative';
-  wrap.appendChild(div);
+  wrap.style.position = 'relative'; wrap.appendChild(div);
 }
 
 function openClusterList(grp, e) {
@@ -570,9 +624,10 @@ function openClusterList(grp, e) {
   document.getElementById('cl-title-span').textContent = grp.length + ' événements groupés';
   document.getElementById('cl-items').innerHTML = grp.sort((a, b) => a.y - b.y).map(ev => {
     const cat = CATS[ev.cat] || CATS.autre;
+    const isFav = favorites.has(ev.id);
     return `<div class="cl-item" onclick="zoomToEv(${ev.id})">
       <div class="cl-dot" style="background:${cat.c}"></div>
-      <div><div class="cl-name">${ev.title}</div>
+      <div style="flex:1"><div class="cl-name">${ev.title}${isFav?' <span style="color:#f59e0b">★</span>':''}</div>
       <div class="cl-yr">${fmtDate(ev)} · ${cat.e} ${cat.l}</div></div>
     </div>`;
   }).join('');
@@ -581,7 +636,7 @@ function openClusterList(grp, e) {
     clList.style.cssText = 'display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:var(--rxl) var(--rxl) 0 0;z-index:260';
   } else {
     const vw = window.innerWidth, vh = window.innerHeight;
-    clList.style.cssText = `display:block;position:fixed;z-index:260;width:300px;left:${Math.min(e.clientX + 10, vw - 310)}px;top:${Math.min(e.clientY - 40, vh - 380)}px`;
+    clList.style.cssText = `display:block;position:fixed;z-index:260;width:300px;left:${Math.min(e.clientX+10,vw-310)}px;top:${Math.min(e.clientY-40,vh-380)}px`;
   }
 }
 function closeClusterList() { clList.style.display = 'none'; }
@@ -601,11 +656,10 @@ function showTip(e, id) {
   const ev = events.find(x => x.id === id); if (!ev) return;
   const cat = CATS[ev.cat] || CATS.autre;
   tipEl.style.display = 'block';
-  tipEl.style.left = (e.clientX + 16) + 'px';
-  tipEl.style.top  = (e.clientY - 22) + 'px';
-  tipEl.innerHTML = `<strong>${ev.title}</strong>
-    <div class="ty" style="color:${cat.c}">${fmtDate(ev)} · ${cat.e} ${cat.l}</div>
-    ${ev.desc ? `<div class="td">${ev.desc.slice(0, 100)}${ev.desc.length > 100 ? '…' : ''}</div>` : ''}`;
+  tipEl.style.left = (e.clientX + 16) + 'px'; tipEl.style.top = (e.clientY - 22) + 'px';
+  tipEl.innerHTML = `<strong>${ev.title}${favorites.has(ev.id)?' ★':''}</strong>
+    <div class="ty" style="color:${cat.c}">${fmtDate(ev)} · ${cat.e} ${cat.l}${ev.region?' · 📍'+ev.region:''}</div>
+    ${ev.desc ? `<div class="td">${ev.desc.slice(0,100)}${ev.desc.length>100?'…':''}</div>` : ''}`;
 }
 
 /* ── Card popup ── */
@@ -613,6 +667,7 @@ function openCard(id, e) {
   const ev = events.find(x => x.id === id); if (!ev) return;
   const cat = CATS[ev.cat] || CATS.autre;
   const endS = fmtDateEnd(ev);
+  const isFav = favorites.has(ev.id);
   document.getElementById('cp-img-w').innerHTML = ev.img
     ? `<img class="cp-img" src="${ev.img}" alt="${ev.title}" loading="lazy"
         onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:72px;display:flex;align-items:center;justify-content:center;font-size:40px;background:${cat.bg}\\'>${cat.e}</div>'">`
@@ -623,15 +678,27 @@ function openCard(id, e) {
   document.getElementById('cp-dates').innerHTML = endS
     ? `<strong style="color:${cat.c}">${fmtDate(ev)}</strong><br>→ ${endS}` : fmtDate(ev);
   document.getElementById('cp-title').textContent = ev.title;
+  if (ev.region) {
+    document.getElementById('cp-title').textContent = ev.title;
+    document.getElementById('cp-region').textContent = '📍 ' + ev.region;
+    document.getElementById('cp-region').style.display = 'block';
+  } else {
+    document.getElementById('cp-region').style.display = 'none';
+  }
   const pbw = document.getElementById('cp-period-wrap');
   if (ev.ye && ev.ye !== ev.y && currentEra) {
     const span = ev.ye - ev.y, eraSpan = eraToY() - currentEra.from;
     const pct = Math.min(100, Math.round(span / eraSpan * 100));
     pbw.style.display = 'block';
-    document.getElementById('cp-period-label').textContent = `Durée : ${span} an${span > 1 ? 's' : ''} (${pct}% de l'époque)`;
+    document.getElementById('cp-period-label').textContent = `Durée : ${span} an${span>1?'s':''} (${pct}% de l'époque)`;
     document.getElementById('cp-period-fill').style.cssText = `width:${pct}%;background:${cat.c}`;
   } else pbw.style.display = 'none';
   document.getElementById('cp-desc').textContent = ev.desc || 'Aucune description.';
+  // Bouton favori
+  const fbtn = document.getElementById('cp-fav');
+  fbtn.textContent = isFav ? '★ Favori' : '☆ Favori';
+  fbtn.style.cssText = `background:${isFav?'#f59e0b':'transparent'};color:${isFav?'#fff':'#f59e0b'};border:1.5px solid #f59e0b;border-radius:100px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:var(--fb)`;
+  fbtn.onclick = () => toggleFav(id);
   document.getElementById('cp-edit').onclick = () => { closeCard(); openEdit(id); };
   document.getElementById('cp-edit').style.cssText = `background:linear-gradient(135deg,${cat.c},${cat.c}bb);color:#fff;flex:1;min-width:70px;font-family:var(--fb);font-size:12px;font-weight:500;padding:8px;border-radius:100px;cursor:pointer;border:none`;
   document.getElementById('cp-wiki').href = wikiUrl(ev);
@@ -640,7 +707,7 @@ function openCard(id, e) {
     cpop.style.cssText = 'display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;z-index:250';
   } else {
     const vw = window.innerWidth, vh = window.innerHeight;
-    cpop.style.cssText = `display:block;position:fixed;border-radius:var(--rxl);width:min(350px,90vw);z-index:250;top:${Math.min(e.clientY - 60, vh - 520)}px;left:${Math.min(e.clientX + 16, vw - 366)}px`;
+    cpop.style.cssText = `display:block;position:fixed;border-radius:var(--rxl);width:min(350px,90vw);z-index:250;top:${Math.min(e.clientY-60,vh-540)}px;left:${Math.min(e.clientX+16,vw-366)}px`;
   }
   activeId = id; render();
 }
@@ -650,19 +717,84 @@ document.addEventListener('click', e => {
   if (clList.style.display !== 'none' && !clList.contains(e.target) && !e.target.closest('.cluster-ov')) closeClusterList();
 });
 
+/* ── Favoris ── */
+function toggleFav(id) {
+  if (favorites.has(id)) favorites.delete(id);
+  else favorites.add(id);
+  saveFavs();
+  // Mettre à jour le bouton dans la popup sans la fermer
+  const fbtn = document.getElementById('cp-fav');
+  if (fbtn) {
+    const isFav = favorites.has(id);
+    fbtn.textContent = isFav ? '★ Favori' : '☆ Favori';
+    fbtn.style.background = isFav ? '#f59e0b' : 'transparent';
+    fbtn.style.color = isFav ? '#fff' : '#f59e0b';
+  }
+  render(); buildEraStrip();
+}
+
+function toggleFavsFilter() {
+  showOnlyFavs = !showOnlyFavs;
+  const btn = document.getElementById('fav-filter-btn');
+  if (btn) {
+    btn.style.background = showOnlyFavs ? '#f59e0b' : '';
+    btn.style.color = showOnlyFavs ? '#fff' : '';
+    btn.textContent = showOnlyFavs ? '★ Favoris (actif)' : '☆ Favoris';
+  }
+  render(); buildEraStrip();
+}
+
 /* ── Legend ── */
 function renderLegend() {
   document.getElementById('legend').innerHTML = Object.entries(CATS).map(([k, v]) => {
     const on = !hiddenCats.has(k);
-    return `<div class="leg-item" style="background:${on ? v.bg : 'var(--paper2)'};color:${on ? v.c : 'var(--ink3)'};border-color:${on ? v.c : 'var(--paper4)'};opacity:${on ? 1 : .45}" onclick="toggleCat('${k}')">${v.e} ${v.l}</div>`;
+    return `<div class="leg-item" style="background:${on?v.bg:'var(--paper2)'};color:${on?v.c:'var(--ink3)'};border-color:${on?v.c:'var(--paper4)'};opacity:${on?1:.45}" onclick="toggleCat('${k}')">${v.e} ${v.l}</div>`;
   }).join('');
 }
 function toggleCat(k) { hiddenCats.has(k) ? hiddenCats.delete(k) : hiddenCats.add(k); render(); buildEraStrip(); }
 
-/* ── Search ── */
+/* ── Recherche région ── */
+function onRegionSearch(q) {
+  const res = document.getElementById('region-results');
+  if (!q.trim()) { res.style.display = 'none'; return; }
+  const ql = q.toLowerCase();
+  // Cherche dans les continents et dans les pays/mots-clés
+  const matches = new Set();
+  Object.entries(CONTINENTS).forEach(([continent, keywords]) => {
+    if (continent.toLowerCase().includes(ql)) matches.add(continent);
+    keywords.forEach(k => { if (k.toLowerCase().includes(ql)) matches.add(k); });
+  });
+  // Aussi chercher directement dans les champs région des événements
+  events.forEach(ev => {
+    if (ev.region && ev.region.toLowerCase().includes(ql)) matches.add(ev.region);
+  });
+  if (!matches.size) { res.innerHTML = '<div class="rr-item" style="color:var(--ink3);padding:8px 12px">Aucun résultat</div>'; res.style.display = 'block'; return; }
+  res.innerHTML = [...matches].slice(0, 10).map(m =>
+    `<div class="rr-item" onclick="setRegionFilter('${m}')">${Object.keys(CONTINENTS).includes(m) ? '🌍' : '📍'} ${m}</div>`
+  ).join('');
+  res.style.display = 'block';
+}
+
+function setRegionFilter(region) {
+  activeRegion = region;
+  document.getElementById('region-input').value = region;
+  document.getElementById('region-results').style.display = 'none';
+  document.getElementById('region-clear').style.display = 'inline';
+  render(); buildEraStrip();
+}
+
+function clearRegionFilter() {
+  activeRegion = null;
+  document.getElementById('region-input').value = '';
+  document.getElementById('region-results').style.display = 'none';
+  document.getElementById('region-clear').style.display = 'none';
+  render(); buildEraStrip();
+}
+
+/* ── Search événements ── */
 function hl(str, q) {
   if (!q) return str;
-  return String(str).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<mark>$1</mark>');
+  return String(str).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
 }
 function onSearch(q) {
   document.getElementById('scl').classList.toggle('on', q.length > 0);
@@ -673,22 +805,21 @@ function onSearch(q) {
     ev.title.toLowerCase().includes(ql) ||
     (ev.desc || '').toLowerCase().includes(ql) ||
     (ev.wiki || '').toLowerCase().includes(ql) ||
+    (ev.region || '').toLowerCase().includes(ql) ||
     (CATS[ev.cat] ? CATS[ev.cat].l.toLowerCase().includes(ql) : false) ||
     String(Math.abs(ev.y)).includes(q) ||
     (!isNaN(yn) && Math.abs(ev.y - yn) < 30)
   ).sort((a, b) => !isNaN(yn) ? Math.abs(a.y - yn) - Math.abs(b.y - yn) : a.y - b.y);
-  if (!matched.length) {
-    res.innerHTML = `<div class="sr-empty">Aucun résultat pour « ${q} »</div>`;
-    res.classList.add('open'); return;
-  }
+  if (!matched.length) { res.innerHTML = `<div class="sr-empty">Aucun résultat pour « ${q} »</div>`; res.classList.add('open'); return; }
   res.innerHTML = matched.slice(0, 10).map(ev => {
     const cat = CATS[ev.cat] || CATS.autre;
     const endS = fmtDateEnd(ev);
+    const isFav = favorites.has(ev.id);
     return `<div class="sri" onclick="goToEv(${ev.id})">
       <div class="sri-dot" style="background:${cat.c}"></div>
       <div style="min-width:0">
-        <div class="sri-title">${hl(ev.title, q)}</div>
-        <div class="sri-meta">${fmtDate(ev)}${endS ? ' → ' + endS : ''} · ${cat.e} ${cat.l}</div>
+        <div class="sri-title">${hl(ev.title,q)}${isFav?' <span style="color:#f59e0b">★</span>':''}</div>
+        <div class="sri-meta">${fmtDate(ev)}${endS?' → '+endS:''} · ${cat.e} ${cat.l}${ev.region?' · 📍'+ev.region:''}</div>
       </div>
     </div>`;
   }).join('');
@@ -707,8 +838,7 @@ function goToEv(id) {
   if (era && (!currentEra || currentEra.key !== era.key)) selectEra(era.key);
   hlId = id;
   setTimeout(() => {
-    const { minY } = getRange();
-    scale = defScale() * 7;
+    const { minY } = getRange(); scale = defScale() * 7;
     offsetX = (svgW / 2) - 80 - (yearFrac(ev.y, ev.m, ev.d) - minY) * scale;
     render(); updZoom();
     setTimeout(() => { hlId = null; render(); }, 2500);
@@ -717,8 +847,7 @@ function goToEv(id) {
 
 /* ── Image ── */
 function applyImgUrl() {
-  const url = document.getElementById('f-img-url').value.trim();
-  if (!url) return;
+  const url = document.getElementById('f-img-url').value.trim(); if (!url) return;
   document.getElementById('ipr').style.display = 'block';
   document.getElementById('iprel').src = url;
 }
@@ -730,7 +859,7 @@ function removeImg() {
 
 /* ── Modal ── */
 function resetForm() {
-  ['ft','fy','fm','fd2','fye','fme','fde','fdesc','fwiki','f-img-url'].forEach(id => {
+  ['ft','fy','fm','fd2','fye','fme','fde','fdesc','fwiki','f-img-url','f-region'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   removeImg();
@@ -760,11 +889,8 @@ function openEdit(id) {
   document.getElementById('fde').value = ev.de || '';
   document.getElementById('fdesc').value = ev.desc || '';
   document.getElementById('fwiki').value = ev.wiki || '';
-  if (ev.img) {
-    document.getElementById('f-img-url').value = ev.img;
-    document.getElementById('ipr').style.display = 'block';
-    document.getElementById('iprel').src = ev.img;
-  }
+  document.getElementById('f-region').value = ev.region || '';
+  if (ev.img) { document.getElementById('f-img-url').value = ev.img; document.getElementById('ipr').style.display = 'block'; document.getElementById('iprel').src = ev.img; }
   buildCatPick(ev.cat || 'autre');
   document.getElementById('bdel').style.display = 'inline-block';
   document.getElementById('mbg').classList.add('open');
@@ -773,28 +899,29 @@ function closeMod() { document.getElementById('mbg').classList.remove('open'); }
 
 function saveEv() {
   const title = (document.getElementById('ft').value || '').trim();
-  const yv    = (document.getElementById('fy').value  || '').trim();
-  if (!title) { document.getElementById('ft').style.borderColor = '#f03060'; document.getElementById('ft').focus(); return; }
-  if (!yv)    { document.getElementById('fy').style.borderColor = '#f03060'; document.getElementById('fy').focus(); return; }
+  const yv    = (document.getElementById('fy').value || '').trim();
+  if (!title) { document.getElementById('ft').style.borderColor='#f03060'; document.getElementById('ft').focus(); return; }
+  if (!yv)    { document.getElementById('fy').style.borderColor='#f03060'; document.getElementById('fy').focus(); return; }
   const y = parseInt(yv);
-  if (isNaN(y)) { document.getElementById('fy').style.borderColor = '#f03060'; return; }
+  if (isNaN(y)) { document.getElementById('fy').style.borderColor='#f03060'; return; }
   document.getElementById('ft').style.borderColor = '';
   document.getElementById('fy').style.borderColor = '';
-  const mRaw  = document.getElementById('fm').value;   const m  = mRaw  ? parseInt(mRaw)  : undefined;
-  const dRaw  = document.getElementById('fd2').value;  const d  = dRaw  ? parseInt(dRaw)  : undefined;
-  const yeRaw = (document.getElementById('fye').value || '').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
-  const meRaw = document.getElementById('fme').value;  const me = meRaw ? parseInt(meRaw) : undefined;
-  const deRaw = document.getElementById('fde').value;  const de = deRaw ? parseInt(deRaw) : undefined;
-  const desc  = document.getElementById('fdesc').value.trim();
-  const cat   = document.getElementById('fc').value || 'autre';
-  const wiki  = document.getElementById('fwiki').value.trim();
-  const img   = document.getElementById('f-img-url').value.trim();
-  const obj   = { id: editId || nextId, title, y, ye, cat, desc, wiki, img, updatedAt: Date.now() };
+  const mRaw = document.getElementById('fm').value;   const m  = mRaw  ? parseInt(mRaw)  : undefined;
+  const dRaw = document.getElementById('fd2').value;  const d  = dRaw  ? parseInt(dRaw)  : undefined;
+  const yeRaw = (document.getElementById('fye').value||'').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
+  const meRaw = document.getElementById('fme').value; const me = meRaw ? parseInt(meRaw) : undefined;
+  const deRaw = document.getElementById('fde').value; const de = deRaw ? parseInt(deRaw) : undefined;
+  const desc   = document.getElementById('fdesc').value.trim();
+  const cat    = document.getElementById('fc').value || 'autre';
+  const wiki   = document.getElementById('fwiki').value.trim();
+  const img    = document.getElementById('f-img-url').value.trim();
+  const region = document.getElementById('f-region').value.trim();
+  const obj    = { id: editId || nextId, title, y, ye, cat, desc, wiki, img, region, updatedAt: Date.now() };
   if (m)  obj.m  = m;  if (d)  obj.d  = d;
   if (me) obj.me = me; if (de) obj.de = de;
   if (editId) { const i = events.findIndex(e => e.id === editId); if (i >= 0) events[i] = obj; }
-  else        { nextId++; events.push(obj); }
-  saveSt(); closeMod();
+  else { nextId++; events.push(obj); }
+  saveSt(); closeMod(); updateEvCount();
   const mid = Math.round((y + ye) / 2);
   const era = ERAS.find(er => er.key !== 'all' && mid >= er.from && mid < (er.key === 'xxi' ? TODAY_Y : er.to));
   if (era && (!currentEra || currentEra.key !== era.key)) selectEra(era.key);
@@ -804,8 +931,9 @@ function saveEv() {
 function deleteEv() {
   if (!editId || !confirm('Supprimer cet événement ?')) return;
   if (window.__firebaseDelete) window.__firebaseDelete(editId);
+  favorites.delete(editId); saveFavs();
   events = events.filter(e => e.id !== editId);
-  saveSt(); closeMod(); render(); updZoom();
+  saveSt(); closeMod(); render(); updZoom(); updateEvCount();
 }
 document.getElementById('mbg').addEventListener('click', e => { if (e.target === e.currentTarget) closeMod(); });
 
@@ -813,7 +941,7 @@ document.getElementById('mbg').addEventListener('click', e => { if (e.target ===
 function panLeft()  { offsetX += svgW * 0.4; render(); }
 function panRight() { offsetX -= svgW * 0.4; render(); }
 
-/* ── Drag souris ── */
+/* ── Drag ── */
 wrap.addEventListener('mousedown', e => {
   if (e.target.dataset.id || e.target.closest('.cluster-ov')) return;
   dragging = true; dsx = e.clientX; dsox = offsetX; wrap.classList.add('dragging');
@@ -833,29 +961,26 @@ wrap.addEventListener('wheel', e => {
   render(); updZoom();
 }, { passive: false });
 
-/* ── Touch (glisser + pincer) ── */
+/* ── Touch ── */
 let ltx = null, ltd = null, ltcx = null;
 wrap.addEventListener('touchstart', e => {
   if (e.touches.length === 2) {
-    ltd  = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    ltcx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - wrap.getBoundingClientRect().left;
+    ltd  = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    ltcx = (e.touches[0].clientX+e.touches[1].clientX)/2 - wrap.getBoundingClientRect().left;
     ltx  = null;
   } else { ltx = e.touches[0].clientX; ltd = null; }
 }, { passive: true });
 wrap.addEventListener('touchmove', e => {
   if (e.touches.length === 2 && ltd !== null) {
-    const d   = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    const cx  = (e.touches[0].clientX + e.touches[1].clientX) / 2 - wrap.getBoundingClientRect().left;
+    const d   = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    const cx  = (e.touches[0].clientX+e.touches[1].clientX)/2 - wrap.getBoundingClientRect().left;
     const yAC = xToYear(ltcx);
-    scale *= d / ltd;
-    const ds = defScale(); if (scale < ds * 0.98) scale = ds;
+    scale *= d / ltd; const ds = defScale(); if (scale < ds * 0.98) scale = ds;
     ltd = d; ltcx = cx;
     offsetX = cx - 80 - (yAC - getRange().minY) * scale;
     render(); updZoom();
   } else if (ltx !== null && e.touches.length === 1) {
-    offsetX += e.touches[0].clientX - ltx;
-    ltx = e.touches[0].clientX;
-    render();
+    offsetX += e.touches[0].clientX - ltx; ltx = e.touches[0].clientX; render();
   }
 }, { passive: true });
 wrap.addEventListener('touchend', () => { ltx = null; ltd = null; ltcx = null; });
@@ -869,5 +994,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('click', e => {
   if (!document.getElementById('sres').contains(e.target) && e.target !== document.getElementById('si'))
     document.getElementById('sres').classList.remove('open');
+  if (!document.getElementById('region-results').contains(e.target) && e.target !== document.getElementById('region-input'))
+    document.getElementById('region-results').style.display = 'none';
 });
 window.addEventListener('resize', () => { if (currentEra) resetView(); });
