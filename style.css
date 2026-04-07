@@ -204,3 +204,17 @@ footer{text-align:center;font-size:10.5px;color:var(--ink3);padding:1.25rem 0 0;
   .fr.s2{grid-column:span 2}
   #tip{display:block}
 }
+
+/* ── Filtre barre ── */
+.filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.85rem}
+.region-search-wrap{position:relative;flex:1;min-width:180px}
+.region-search-box{display:flex;align-items:center;gap:6px;padding:.55rem .85rem;background:var(--paper2);border:1.5px solid var(--paper3);border-radius:var(--rlg);transition:border-color .2s}
+.region-search-box:focus-within{border-color:var(--cp)}
+.region-search-box input{flex:1;background:none;border:none;outline:none;font-family:var(--fb);font-size:14px;color:var(--ink)}
+.region-search-box input::placeholder{color:var(--ink3);font-size:12px}
+.rr-item{padding:8px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--paper3);transition:background .12s}
+.rr-item:last-child{border-bottom:none}
+.rr-item:hover,.rr-item:active{background:var(--paper2)}
+
+/* ── Favoris ── */
+#fav-filter-btn{display:flex;align-items:center;gap:4px;white-space:nowrap;transition:all .2s}
