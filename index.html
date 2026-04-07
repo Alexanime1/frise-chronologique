@@ -159,12 +159,11 @@
   </div>
 </div>
 
-<!-- Firebase SDK (module) -->
+<!-- Firebase SDK (module) - ✅ CORRIGÉ -->
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import{getFirestore,collection,getDocs,setDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCLVkOkURM2lFWw7d0QlSxfxdCCTyxTGxk",
   authDomain: "frise-chronologique-535d1.firebaseapp.com",
@@ -175,15 +174,15 @@ const firebaseConfig = {
   measurementId: "G-TJG3334FCM"
 };
 
-
 let db=null;
 const ss=id=>document.getElementById(id);
 function setSt(msg,ok){const el=ss('sync-status');if(el){el.textContent=msg;el.style.color=ok===true?'#16c47a':ok===false?'#f03060':'#a855f7';}}
 
 async function init(){
-  if(!FIREBASE_CONFIG.apiKey||!FIREBASE_CONFIG.projectId){setSt('Local uniquement',false);return;}
+  // ✅ CORRECTION : firebaseConfig au lieu de FIREBASE_CONFIG
+  if(!firebaseConfig.apiKey||!firebaseConfig.projectId){setSt('Local uniquement',false);return;}
   try{
-    const app=initializeApp(FIREBASE_CONFIG);db=getFirestore(app);setSt('Connexion…',null);
+    const app=initializeApp(firebaseConfig);db=getFirestore(app);setSt('Connexion…',null);
     onSnapshot(collection(db,'events'),snap=>{
       const remote=[];snap.forEach(d=>remote.push(d.data()));
       if(remote.length>0&&window.__mergeRemote)window.__mergeRemote(remote);
