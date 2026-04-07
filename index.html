@@ -181,7 +181,8 @@ const ss=id=>document.getElementById(id);
 function setSt(msg,ok){const el=ss('sync-status');if(el){el.textContent=msg;el.style.color=ok===true?'#16c47a':ok===false?'#f03060':'#a855f7';}}
 
 async function init(){
-  if(!FIREBASE_CONFIG.apiKey||!FIREBASE_CONFIG.projectId){setSt('Local uniquement',false);return;}
+  if(!firebaseConfig.apiKey||!firebaseConfig.projectId)
+  {setSt('Local uniquement',false);return;}
   try{
     const app=initializeApp(FIREBASE_CONFIG);db=getFirestore(app);setSt('Connexion…',null);
     onSnapshot(collection(db,'events'),snap=>{
