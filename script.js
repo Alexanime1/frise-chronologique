@@ -1,288 +1,320 @@
 /* ═══ FRISE CHRONOLOGIQUE — script.js ═══ */
-const TODAY=new Date(), TODAY_Y=TODAY.getFullYear(), TODAY_M=TODAY.getMonth()+1, TODAY_D=TODAY.getDate();
+const TODAY = new Date();
+const TODAY_Y = TODAY.getFullYear();
+const TODAY_M = TODAY.getMonth() + 1;
+const TODAY_D = TODAY.getDate();
 
-/* Catégories inline — toujours dispo même si data.json ne charge pas */
-let CATS={
-  politique:{c:'#4f6ef7',bg:'rgba(79,110,247,.13)',l:'Politique',e:'🏛'},
-  science:  {c:'#16c47a',bg:'rgba(22,196,122,.13)',l:'Science',e:'🔬'},
-  art:      {c:'#f0742a',bg:'rgba(240,116,42,.13)',l:'Art & Culture',e:'🎨'},
-  guerre:   {c:'#f03060',bg:'rgba(240,48,96,.13)',l:'Guerre',e:'⚔️'},
-  sport:    {c:'#f59e0b',bg:'rgba(245,158,11,.13)',l:'Sport',e:'🏆'},
-  autre:    {c:'#a855f7',bg:'rgba(168,85,247,.13)',l:'Autre',e:'✦'},
+/* Catégories — toujours disponibles même sans data.json */
+let CATS = {
+  politique: { c:'#4f6ef7', bg:'rgba(79,110,247,.13)',  l:'Politique',   e:'🏛' },
+  science:   { c:'#16c47a', bg:'rgba(22,196,122,.13)',  l:'Science',     e:'🔬' },
+  art:       { c:'#f0742a', bg:'rgba(240,116,42,.13)',  l:'Art & Culture',e:'🎨' },
+  guerre:    { c:'#f03060', bg:'rgba(240,48,96,.13)',   l:'Guerre',      e:'⚔️' },
+  sport:     { c:'#f59e0b', bg:'rgba(245,158,11,.13)',  l:'Sport',       e:'🏆' },
+  autre:     { c:'#a855f7', bg:'rgba(168,85,247,.13)',  l:'Autre',       e:'✦'  },
 };
 
-const ERAS=[
-  {key:'all',    name:"Toute l'histoire",from:-300000,to:TODAY_Y, color:'#8b5cf6'},
-  {key:'prehist',name:'Préhistoire',     from:-300000,to:-3200,   color:'#e07820'},
-  {key:'antiq',  name:'Antiquité',       from:-3200,  to:476,     color:'#d4a020'},
-  {key:'moyen',  name:'Moyen Âge',       from:476,    to:1492,    color:'#4f6ef7'},
-  {key:'mod',    name:'Époque Moderne',  from:1492,   to:1789,    color:'#16c47a'},
-  {key:'contemp',name:'XIXᵉ siècle',     from:1789,   to:1900,    color:'#f03060'},
-  {key:'xx',     name:'XXᵉ siècle',      from:1900,   to:2000,    color:'#a855f7'},
-  {key:'xxi',    name:'XXIᵉ siècle',     from:2000,   to:TODAY_Y, color:'#06b6d4'},
+const ERAS = [
+  { key:'all',    name:"Toute l'histoire", from:-300000, to:TODAY_Y, color:'#8b5cf6' },
+  { key:'prehist',name:'Préhistoire',      from:-300000, to:-3200,   color:'#e07820' },
+  { key:'antiq',  name:'Antiquité',        from:-3200,   to:476,     color:'#d4a020' },
+  { key:'moyen',  name:'Moyen Âge',        from:476,     to:1492,    color:'#4f6ef7' },
+  { key:'mod',    name:'Époque Moderne',   from:1492,    to:1789,    color:'#16c47a' },
+  { key:'contemp',name:'XIXᵉ siècle',      from:1789,    to:1900,    color:'#f03060' },
+  { key:'xx',     name:'XXᵉ siècle',       from:1900,    to:2000,    color:'#a855f7' },
+  { key:'xxi',    name:'XXIᵉ siècle',      from:2000,    to:TODAY_Y, color:'#06b6d4' },
 ];
 
-const ERA_BG={
-  all:    {c1:'#8b5cf6',c3:'#f03060'},
-  prehist:{c1:'#e07820',c3:'#b45309'},
-  antiq:  {c1:'#d4a020',c3:'#92400e'},
-  moyen:  {c1:'#4f6ef7',c3:'#1d4ed8'},
-  mod:    {c1:'#16c47a',c3:'#047857'},
-  contemp:{c1:'#f03060',c3:'#9f1239'},
-  xx:     {c1:'#a855f7',c3:'#6d28d9'},
-  xxi:    {c1:'#06b6d4',c3:'#155e75'},
+const ERA_BG = {
+  all:    { c1:'#8b5cf6', c3:'#f03060' },
+  prehist:{ c1:'#e07820', c3:'#b45309' },
+  antiq:  { c1:'#d4a020', c3:'#92400e' },
+  moyen:  { c1:'#4f6ef7', c3:'#1d4ed8' },
+  mod:    { c1:'#16c47a', c3:'#047857' },
+  contemp:{ c1:'#f03060', c3:'#9f1239' },
+  xx:     { c1:'#a855f7', c3:'#6d28d9' },
+  xxi:    { c1:'#06b6d4', c3:'#155e75' },
 };
 
-/* ── Storage localStorage ── */
-const SK='frise_v11';
-function loadLocal(){try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null;}catch{return null;}}
-function saveLocal(){try{localStorage.setItem(SK,JSON.stringify(events));}catch(e){}}
-
-let events=[];
-let nextId=1;
-
-/* ── Firebase: appelé depuis index.html après init Firebase ── */
-window.__mergeRemote=function(remote){
-  let changed=false;
-  remote.forEach(r=>{
-    const loc=events.find(e=>e.id===r.id);
-    if(!loc){events.push(r);changed=true;}
-    else if((r.updatedAt||0)>(loc.updatedAt||0)){Object.assign(loc,r);changed=true;}
-  });
-  if(changed){saveLocal();nextId=Math.max(...events.map(e=>e.id),0)+1;render();buildEraStrip();}
-};
-
-function saveSt(){
-  saveLocal();
-  if(window.__firebaseSave)window.__firebaseSave(events);
+/* ── localStorage ── */
+const SK = 'frise_v12';
+function loadLocal() {
+  try { const s = localStorage.getItem(SK); return s ? JSON.parse(s) : null; }
+  catch { return null; }
+}
+function saveLocal() {
+  try { localStorage.setItem(SK, JSON.stringify(events)); } catch(e) {}
 }
 
-/* ── Chargement data.json PUIS init (ordre garanti) ── */
-function startApp(defaults,cats){
-  if(cats)CATS=cats;
-  const saved=loadLocal();
-  /* Si on a des données locales ET au moins autant d'événements que les defaults, on les garde.
-     Sinon on repart des defaults pour que la frise ne soit jamais vide. */
-  if(saved&&saved.length>=defaults.length){
-    events=saved;
-  } else {
-    events=defaults;
+let events = [];
+let nextId = 1;
+let firebaseReady = false;
+
+/* ── Merge Firebase → local (appelé par onSnapshot) ── */
+window.__mergeRemote = function(remote) {
+  if (!remote || remote.length === 0) return;
+  let changed = false;
+  remote.forEach(r => {
+    if (!r || !r.id) return;
+    const loc = events.find(e => e.id === r.id);
+    if (!loc) {
+      events.push(r);
+      changed = true;
+    } else if ((r.updatedAt || 0) > (loc.updatedAt || 0)) {
+      Object.assign(loc, r);
+      changed = true;
+    }
+  });
+  if (changed) {
     saveLocal();
+    nextId = Math.max(...events.map(e => e.id), 0) + 1;
+    render();
+    buildEraStrip();
+    const ec = document.getElementById('ev-count');
+    if (ec) ec.textContent = events.length + ' événements';
   }
-  nextId=Math.max(...events.map(e=>e.id),0)+1;
-  buildCatSelects();
+};
+
+/* Sauvegarde : local + Firebase */
+function saveSt() {
+  saveLocal();
+  if (window.__firebaseSave) window.__firebaseSave(events);
+}
+
+/* ── Chargement JSONbin → puis Firebase prend le relais ── */
+function startApp(defaults, cats) {
+  if (cats) CATS = cats;
+  const saved = loadLocal();
+  // On prend les données locales si elles existent, sinon les defaults
+  events = (saved && saved.length > 0) ? saved : (defaults || []);
+  nextId = Math.max(...events.map(e => e.id), 0) + 1;
+  saveLocal();
+  buildCatPick('autre');
   renderLegend();
   buildEraStrip();
 }
 
-/* Tentative de chargement data.json — si ça échoue, on a quand même les catégories inline */
-fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7')
-  .then(r=>{if(!r.ok)throw new Error('data.json '+r.status);return r.json();})
-  .then(d=>startApp(d.events,d.categories))
-  .catch(err=>{
-    console.warn('data.json non trouvé, mode fallback:',err.message);
-    /* Fallback: events locaux ou vide, catégories inline déjà définies */
-    const saved=loadLocal();
-    events=saved&&saved.length>0?saved:[];
-    nextId=Math.max(...events.map(e=>e.id),0)+1;
-    buildCatSelects();
+/* JSONbin : données par défaut partagées */
+fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7/latest')
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => {
+    const data = d.record || d; // JSONbin enveloppe dans .record
+    startApp(data.events, data.categories);
+  })
+  .catch(err => {
+    console.warn('JSONbin non disponible:', err.message);
+    const saved = loadLocal();
+    events = saved && saved.length > 0 ? saved : [];
+    nextId = Math.max(...events.map(e => e.id), 0) + 1;
+    buildCatPick('autre');
     renderLegend();
     buildEraStrip();
-    /* Afficher un message si vraiment aucun événement */
-    if(events.length===0){
-      const h=document.getElementById('era-hint');
-      if(h)h.innerHTML='<strong>⚠️ Chargement des données…</strong>Rechargez la page ou vérifiez que <code>data.json</code> est bien uploadé sur GitHub à côté de <code>index.html</code>.';
+    if (events.length === 0) {
+      const h = document.getElementById('era-hint');
+      if (h) h.innerHTML = '<strong>⚠️ Données non chargées</strong><br>Vérifiez votre connexion et rechargez la page.';
     }
   });
 
 /* ── State ── */
-let scale=1, offsetX=0, svgW=900;
-let H=340, AY=175;
-let editId=null, activeId=null, hlId=null;
-let currentEra=null;
-let dragging=false, dsx=0, dsox=0;
-let hiddenCats=new Set();
+let scale = 1, offsetX = 0, svgW = 900;
+let H = 340, AY = 175;
+let editId = null, activeId = null, hlId = null;
+let currentEra = null;
+let dragging = false, dsx = 0, dsox = 0;
+let hiddenCats = new Set();
 
-const svgEl=document.getElementById('tl-svg');
-const wrap=document.getElementById('tl-wrap');
-const tipEl=document.getElementById('tip');
-const cpop=document.getElementById('cpop');
-const clList=document.getElementById('cluster-list');
+const svgEl = document.getElementById('tl-svg');
+const wrap  = document.getElementById('tl-wrap');
+const tipEl = document.getElementById('tip');
+const cpop  = document.getElementById('cpop');
+const clList = document.getElementById('cluster-list');
 
-/* ── Cat selects dynamiques depuis CATS ── */
-function buildCatSelects(){
-  const opts=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v.e} ${v.l}</option>`).join('');
-  const sel=document.getElementById('fc-select');
-  if(sel)sel.innerHTML=opts;
+/* ── Cat picker ── */
+function buildCatPick(sel) {
+  document.getElementById('cpick').innerHTML = Object.entries(CATS).map(([k, v]) =>
+    `<div class="csw${k === sel ? ' sel' : ''}" style="background:${v.bg};color:${v.c};border-color:${k === sel ? v.c : 'transparent'}" onclick="pickCat('${k}',this)">${v.e} ${v.l}</div>`
+  ).join('');
+  document.getElementById('fc').value = sel || Object.keys(CATS)[0] || 'autre';
+}
+function pickCat(k, el) {
+  document.getElementById('fc').value = k;
+  document.querySelectorAll('.csw').forEach(s => { s.classList.remove('sel'); s.style.borderColor = 'transparent'; });
+  el.classList.add('sel');
+  el.style.borderColor = CATS[k].c;
 }
 
 /* ── Dates ── */
-const MN=['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-function fmtY(y){return y<0?Math.abs(y)+' av. J.-C.':String(y);}
-function fmtDate(ev){
-  let s='';
-  if(ev.d)s+=ev.d+' ';
-  if(ev.m)s+=MN[ev.m]+' ';
-  return s+fmtY(ev.y);
+const MN = ['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+function fmtY(y) { return y < 0 ? Math.abs(y) + ' av. J.-C.' : String(y); }
+function fmtDate(ev) {
+  let s = '';
+  if (ev.d) s += ev.d + ' ';
+  if (ev.m) s += MN[ev.m] + ' ';
+  return s + fmtY(ev.y);
 }
-function fmtDateEnd(ev){
-  if(!ev.ye||ev.ye===ev.y)return null;
-  let s='';
-  if(ev.de)s+=ev.de+' ';
-  if(ev.me)s+=MN[ev.me]+' ';
-  return s+fmtY(ev.ye);
+function fmtDateEnd(ev) {
+  if (!ev.ye || ev.ye === ev.y) return null;
+  let s = '';
+  if (ev.de) s += ev.de + ' ';
+  if (ev.me) s += MN[ev.me] + ' ';
+  return s + fmtY(ev.ye);
 }
-function midY(ev){return(ev.ye&&ev.ye!==ev.y)?(ev.y+ev.ye)/2:ev.y;}
-/* yearFrac: convertit année+mois+jour en fraction décimale pour positionner sur l'axe */
-function yearFrac(y,m,d){
-  if(!m)return y;
-  return y+(m-1)/12+(d?( (d-1)/( new Date(Math.abs(y),m,0).getDate() ) )/12 : 0);
+function midY(ev) { return (ev.ye && ev.ye !== ev.y) ? (ev.y + ev.ye) / 2 : ev.y; }
+function yearFrac(y, m, d) {
+  if (!m) return y;
+  const days = new Date(Math.abs(y), m, 0).getDate();
+  return y + (m - 1) / 12 + (d ? (d - 1) / days / 12 : 0);
 }
-function wikiUrl(ev){return'https://fr.wikipedia.org/wiki/'+encodeURIComponent((ev.wiki||ev.title).replace(/ /g,'_'));}
+function wikiUrl(ev) {
+  return 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((ev.wiki || ev.title).replace(/ /g, '_'));
+}
 
 /* ── Era strip ── */
-function buildEraStrip(){
-  document.getElementById('era-strip').innerHTML=ERAS.map(era=>{
-    const eT=era.key==='xxi'||era.key==='all'?TODAY_Y:era.to;
-    const count=events.filter(e=>midY(e)>=era.from&&midY(e)<eT&&!hiddenCats.has(e.cat)).length;
-    const active=currentEra&&currentEra.key===era.key;
-    const fromS=era.from<0?Math.abs(era.from)+' av. J.-C.':era.from;
-    const toS=era.key==='xxi'||era.key==='all'?"Aujourd'hui":(era.to<0?Math.abs(era.to)+' av. J.-C.':era.to);
-    return`<div class="era-card${active?' active':''}${era.key==='all'?' era-all':''}" style="--era-color:${era.color}" onclick="selectEra('${era.key}')">
+function buildEraStrip() {
+  document.getElementById('era-strip').innerHTML = ERAS.map(era => {
+    const eT = era.key === 'xxi' || era.key === 'all' ? TODAY_Y : era.to;
+    const count = events.filter(e => midY(e) >= era.from && midY(e) < eT && !hiddenCats.has(e.cat)).length;
+    const active = currentEra && currentEra.key === era.key;
+    const fromS = era.from < 0 ? Math.abs(era.from) + ' av. J.-C.' : era.from;
+    const toS = era.key === 'xxi' || era.key === 'all' ? "Aujourd'hui"
+      : (era.to < 0 ? Math.abs(era.to) + ' av. J.-C.' : era.to);
+    return `<div class="era-card${active ? ' active' : ''}${era.key === 'all' ? ' era-all' : ''}" style="--era-color:${era.color}" onclick="selectEra('${era.key}')">
       <div class="ec-dot" style="background:${era.color}"></div>
       <div class="ec-name">${era.name}</div>
       <div class="ec-range">${fromS} → ${toS}</div>
-      <div class="ec-count">${count} événement${count>1?'s':''}</div>
+      <div class="ec-count">${count} événement${count > 1 ? 's' : ''}</div>
     </div>`;
   }).join('');
 }
 
-function selectEra(key){
-  currentEra=ERAS.find(e=>e.key===key);
+function selectEra(key) {
+  currentEra = ERAS.find(e => e.key === key);
   buildEraStrip();
-  document.getElementById('era-hint').style.display='none';
+  document.getElementById('era-hint').style.display = 'none';
   document.getElementById('tl-outer').classList.add('show');
-  document.getElementById('tl-dot').style.background=currentEra.color;
-  const eT=eraToY();
-  const toS=key==='xxi'||key==='all'?"Aujourd'hui":(eT<0?Math.abs(eT)+' av. J.-C.':eT);
-  const fromS=currentEra.from<0?Math.abs(currentEra.from)+' av. J.-C.':currentEra.from;
-  document.getElementById('tl-era-name').textContent=currentEra.name+' ('+fromS+' – '+toS+')';
-  /* Reset le zoom et offsetX avant de recalculer */
-  scale=1; offsetX=0;
-  setTimeout(()=>{resetView();},60);
-  document.getElementById('tl-outer').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('tl-dot').style.background = currentEra.color;
+  const eT = eraToY();
+  const toS = key === 'xxi' || key === 'all' ? "Aujourd'hui" : (eT < 0 ? Math.abs(eT) + ' av. J.-C.' : eT);
+  const fromS = currentEra.from < 0 ? Math.abs(currentEra.from) + ' av. J.-C.' : currentEra.from;
+  document.getElementById('tl-era-name').textContent = currentEra.name + ' (' + fromS + ' – ' + toS + ')';
+  scale = 1; offsetX = 0;
+  setTimeout(resetView, 60);
+  document.getElementById('tl-outer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function closeEra(){
-  currentEra=null;buildEraStrip();
+function closeEra() {
+  currentEra = null;
+  buildEraStrip();
   document.getElementById('tl-outer').classList.remove('show');
-  document.getElementById('era-hint').style.display='block';
+  document.getElementById('era-hint').style.display = 'block';
 }
 
-/* ── Scale et range ── */
-function eraToY(){return currentEra.key==='xxi'||currentEra.key==='all'?TODAY_Y:currentEra.to;}
-
-function eraEvents(){
-  if(!currentEra)return[];
-  const to=eraToY();
-  return events.filter(e=>midY(e)>=currentEra.from&&midY(e)<to&&!hiddenCats.has(e.cat));
+/* ── Calculs de scale ── */
+function eraToY() {
+  return currentEra.key === 'xxi' || currentEra.key === 'all' ? TODAY_Y : currentEra.to;
 }
 
-function getRange(){
-  if(!currentEra)return{minY:0,maxY:TODAY_Y,span:TODAY_Y};
-  const from=currentEra.from, to=eraToY();
-  const span=to-from;
-  const pad=span*0.04;
-  return{minY:from-pad, maxY:to+pad, span:span+pad*2};
+function eraEvents() {
+  if (!currentEra) return [];
+  const to = eraToY();
+  return events.filter(e => midY(e) >= currentEra.from && midY(e) < to && !hiddenCats.has(e.cat));
 }
 
-function yearToX(y){
-  const{minY}=getRange();
-  return 80+(y-minY)*scale+offsetX;
+function getRange() {
+  if (!currentEra) return { minY: 0, maxY: TODAY_Y };
+  const from = currentEra.from, to = eraToY();
+  const pad = (to - from) * 0.04;
+  return { minY: from - pad, maxY: to + pad };
 }
 
-function xToYear(x){
-  const{minY}=getRange();
-  return (x-80-offsetX)/scale+minY;
+function yearToX(y) {
+  const { minY } = getRange();
+  return 80 + (y - minY) * scale + offsetX;
 }
 
-function defScale(){
-  const{minY,maxY}=getRange();
-  return Math.max(0.0001,(svgW-160)/Math.max(1,maxY-minY));
+function xToYear(x) {
+  const { minY } = getRange();
+  return (x - 80 - offsetX) / scale + minY;
 }
 
-function resetView(){
-  /* Recalcule H et AY pour la nouvelle taille */
-  H=window.innerWidth<640?260:340;
-  AY=Math.round(H*0.515);
-  svgW=wrap.clientWidth||window.innerWidth-20;
-  scale=defScale();
-  offsetX=0;
+function defScale() {
+  const { minY, maxY } = getRange();
+  return Math.max(0.0001, (svgW - 160) / Math.max(1, maxY - minY));
+}
+
+function resetView() {
+  H = window.innerWidth < 640 ? 260 : 340;
+  AY = Math.round(H * 0.515);
+  svgW = wrap.clientWidth || window.innerWidth - 20;
+  scale = defScale();
+  offsetX = 0;
   render();
   updZoom();
 }
 
-function zoom(dir){
-  /* Centre le zoom sur le milieu visible de l'axe */
-  const midX=svgW/2;
-  const yearAtMid=xToYear(midX);
-  scale*=dir>0?1.5:1/1.5;
-  /* Clamp: ne pas dézoomer plus que la vue par défaut */
-  const ds=defScale();
-  if(scale<ds*0.95)scale=ds;
-  /* Recalcule offsetX pour garder le même point central */
-  offsetX=midX-80-(yearAtMid-getRange().minY)*scale;
+function zoom(dir) {
+  const midX = svgW / 2;
+  const yAtMid = xToYear(midX);
+  scale *= dir > 0 ? 1.5 : 1 / 1.5;
+  const ds = defScale();
+  if (scale < ds * 0.98) scale = ds;
+  offsetX = midX - 80 - (yAtMid - getRange().minY) * scale;
   render();
   updZoom();
 }
 
-function updZoom(){
-  const p=Math.round(scale/defScale()*100)+'%';
-  ['zlbl','zlbl2','zlbl3'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=p;});
+function updZoom() {
+  const p = Math.round(scale / defScale() * 100) + '%';
+  ['zlbl', 'zlbl2', 'zlbl3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = p;
+  });
 }
 
-/* ── Ticks adaptatifs avec calcul PROPRE des bornes visibles ── */
-function getVisibleYearRange(){
-  const{minY,maxY}=getRange();
-  /* Ce qui est visible à l'écran */
-  const visMin=Math.max(minY, xToYear(0));
-  const visMax=Math.min(maxY, xToYear(svgW));
-  return{visMin, visMax, visSpan:visMax-visMin};
+/* ── Ticks adaptatifs ── */
+function getVisibleRange() {
+  const { minY, maxY } = getRange();
+  return {
+    visMin: Math.max(minY, xToYear(0)),
+    visMax: Math.min(maxY, xToYear(svgW)),
+  };
 }
 
-function getTickMode(){
-  const{visSpan}=getVisibleYearRange();
-  if(visSpan<=2) return'days';
-  if(visSpan<=40) return'months';
-  return'years';
+function getTickMode() {
+  const { visMin, visMax } = getVisibleRange();
+  const span = visMax - visMin;
+  if (span <= 2)  return 'days';
+  if (span <= 40) return 'months';
+  return 'years';
 }
 
-function pickYearInterval(span){
-  /* Choisit l'intervalle qui donne ~6-12 ticks visibles */
-  for(const iv of[1,2,5,10,25,50,100,200,500,1000,2000,5000,10000,50000,100000]){
-    if(span/iv<=14) return iv;
+function pickYearIv(span) {
+  for (const iv of [1,2,5,10,25,50,100,200,500,1000,2000,5000,10000,50000,100000]) {
+    if (span / iv <= 13) return iv;
   }
   return 100000;
 }
 
-/* ── Render ── */
-function render(){
-  H=window.innerWidth<640?260:340;
-  AY=Math.round(H*0.515);
-  svgW=wrap.clientWidth||window.innerWidth-20;
-  if(svgW<10)return;
-  svgEl.setAttribute('width',svgW);
-  svgEl.setAttribute('height',H);
-  if(!currentEra){svgEl.innerHTML='';clearClusters();return;}
+/* ── Render principal ── */
+function render() {
+  H = window.innerWidth < 640 ? 260 : 340;
+  AY = Math.round(H * 0.515);
+  svgW = wrap.clientWidth || window.innerWidth - 20;
+  if (svgW < 10) return;
+  svgEl.setAttribute('width', svgW);
+  svgEl.setAttribute('height', H);
 
-  const{minY,maxY}=getRange();
-  const{visMin,visMax,visSpan}=getVisibleYearRange();
-  const bg=ERA_BG[currentEra.key]||ERA_BG.xx;
-  const mode=getTickMode();
-  let h='';
+  if (!currentEra) { svgEl.innerHTML = ''; clearClusters(); return; }
 
-  /* Fond dégradé */
-  h+=`<defs>
+  const { minY, maxY } = getRange();
+  const { visMin, visMax } = getVisibleRange();
+  const visSpan = visMax - visMin;
+  const bg = ERA_BG[currentEra.key] || ERA_BG.xx;
+  const mode = getTickMode();
+  let h = '';
+
+  /* Dégradés de fond */
+  h += `<defs>
     <linearGradient id="bgv" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${bg.c1}" stop-opacity=".09"/>
       <stop offset="100%" stop-color="${bg.c1}" stop-opacity=".02"/>
@@ -291,11 +323,11 @@ function render(){
       <stop offset="0%" stop-color="${bg.c1}" stop-opacity=".06"/>
       <stop offset="100%" stop-color="${bg.c3}" stop-opacity=".06"/>
     </linearGradient>
-    <radialGradient id="bgr1" cx="12%" cy="28%" r="42%">
+    <radialGradient id="bgr1" cx="12%" cy="28%" r="45%">
       <stop offset="0%" stop-color="${bg.c1}" stop-opacity=".08"/>
       <stop offset="100%" stop-color="${bg.c1}" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="bgr2" cx="88%" cy="72%" r="42%">
+    <radialGradient id="bgr2" cx="88%" cy="72%" r="45%">
       <stop offset="0%" stop-color="${bg.c3}" stop-opacity=".07"/>
       <stop offset="100%" stop-color="${bg.c3}" stop-opacity="0"/>
     </radialGradient>
@@ -305,542 +337,537 @@ function render(){
   <rect x="0" y="0" width="${svgW}" height="${H}" fill="url(#bgr1)"/>
   <rect x="0" y="0" width="${svgW}" height="${H}" fill="url(#bgr2)"/>`;
 
-  /* Axe en premier (sous les ticks) */
-  h+=`<line x1="0" y1="${AY}" x2="${svgW}" y2="${AY}" stroke="${currentEra.color}" stroke-width="2" opacity=".3"/>`;
+  /* Axe */
+  h += `<line x1="0" y1="${AY}" x2="${svgW}" y2="${AY}" stroke="${currentEra.color}" stroke-width="2" opacity=".3"/>`;
 
-  /* ── Ticks PROPRES selon le mode ── */
-  if(mode==='years'){
-    const iv=pickYearInterval(visSpan);
-    const st=Math.floor(visMin/iv)*iv;
-    const en=Math.ceil(visMax/iv)*iv;
-    for(let y=st;y<=en;y+=iv){
-      if(y<minY||y>maxY)continue;
-      const x=yearToX(y);
-      if(x<30||x>svgW-10)continue;
-      h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${bg.c1}" stroke-width=".5" opacity=".2"/>`;
-      h+=`<circle cx="${x}" cy="${AY}" r="3" fill="${currentEra.color}" opacity=".5"/>`;
-      const lbl=y<0?Math.abs(y)+' av.':y===0?'0':String(y);
-      h+=`<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
+  /* ── Ticks ── */
+  if (mode === 'years') {
+    const iv = pickYearIv(visSpan);
+    const st = Math.floor(visMin / iv) * iv;
+    const en = Math.ceil(visMax / iv) * iv;
+    for (let y = st; y <= en; y += iv) {
+      if (y < minY || y > maxY) continue;
+      const x = yearToX(y);
+      if (x < 25 || x > svgW - 10) continue;
+      h += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${bg.c1}" stroke-width=".5" opacity=".18"/>`;
+      h += `<circle cx="${x}" cy="${AY}" r="3" fill="${currentEra.color}" opacity=".5"/>`;
+      const lbl = y < 0 ? Math.abs(y) + ' av.' : y === 0 ? '0' : String(y);
+      h += `<text x="${x}" y="${AY + 20}" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
     }
-  } else if(mode==='months'){
-    /* Mois visibles */
-    const startY=Math.max(Math.floor(visMin),currentEra.from);
-    const endY=Math.min(Math.ceil(visMax),eraToY());
-    /* Intervalle de mois: 1 si on voit ≤24 mois, sinon 2 ou 3 */
-    const mIv=visSpan<=2?1:visSpan<=5?2:3;
-    for(let y=startY;y<=endY+1;y++){
-      for(let m=1;m<=12;m+=mIv){
-        const yf=yearFrac(y,m,1);
-        if(yf<visMin-0.1||yf>visMax+0.1)continue;
-        const x=yearToX(yf);
-        if(x<20||x>svgW-10)continue;
-        const isMaj=m===1;
-        h+=`<line x1="${x}" y1="${isMaj?0:AY-20}" x2="${x}" y2="${AY+8}" stroke="${bg.c1}" stroke-width="${isMaj?.8:.4}" opacity="${isMaj?.35:.15}"/>`;
-        h+=`<circle cx="${x}" cy="${AY}" r="${isMaj?3.5:2}" fill="${currentEra.color}" opacity="${isMaj?.55:.3}"/>`;
-        const lbl=isMaj?String(y):MN[m];
-        h+=`<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="${isMaj?10:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif" font-weight="${isMaj?'500':'400'}">${lbl}</text>`;
+  } else if (mode === 'months') {
+    const startY = Math.max(Math.floor(visMin), currentEra.from);
+    const endY   = Math.min(Math.ceil(visMax) + 1, eraToY());
+    const mIv = visSpan <= 3 ? 1 : visSpan <= 8 ? 2 : 3;
+    for (let y = startY; y <= endY; y++) {
+      for (let m = 1; m <= 12; m += mIv) {
+        const yf = yearFrac(y, m, 1);
+        if (yf < visMin - 0.15 || yf > visMax + 0.15) continue;
+        const x = yearToX(yf);
+        if (x < 15 || x > svgW - 10) continue;
+        const isMaj = m === 1;
+        h += `<line x1="${x}" y1="${isMaj ? 0 : AY - 18}" x2="${x}" y2="${AY + 6}" stroke="${bg.c1}" stroke-width="${isMaj ? .8 : .35}" opacity="${isMaj ? .32 : .14}"/>`;
+        h += `<circle cx="${x}" cy="${AY}" r="${isMaj ? 3.5 : 2}" fill="${currentEra.color}" opacity="${isMaj ? .55 : .3}"/>`;
+        const lbl = isMaj ? String(y) : MN[m];
+        h += `<text x="${x}" y="${AY + 20}" text-anchor="middle" font-size="${isMaj ? 10 : 9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif" font-weight="${isMaj ? '500' : '400'}">${lbl}</text>`;
       }
     }
   } else {
-    /* Jours */
-    const startY=Math.max(Math.floor(visMin),currentEra.from);
-    const endY=Math.min(Math.ceil(visMax),eraToY());
-    /* Intervalle de jours */
-    const totalDays=visSpan*365;
-    const dIv=totalDays<=20?1:totalDays<=60?2:totalDays<=100?5:7;
-    for(let y=startY;y<=endY+1;y++){
-      for(let m=1;m<=12;m++){
-        const daysInMonth=new Date(Math.abs(y),m,0).getDate();
-        for(let dd=1;dd<=daysInMonth;dd+=dIv){
-          const yf=yearFrac(y,m,dd);
-          if(yf<visMin-0.01||yf>visMax+0.01)continue;
-          const x=yearToX(yf);
-          if(x<20||x>svgW-10)continue;
-          const isFM=dd===1&&m===1, isFirst=dd===1;
-          h+=`<line x1="${x}" y1="${isFM?0:isFirst?AY-15:AY-8}" x2="${x}" y2="${AY+5}" stroke="${bg.c1}" stroke-width="${isFM?.9:isFirst?.5:.25}" opacity="${isFM?.4:isFirst?.22:.1}"/>`;
-          h+=`<circle cx="${x}" cy="${AY}" r="${isFM?3.5:isFirst?2.5:1.5}" fill="${currentEra.color}" opacity="${isFM?.55:isFirst?.38:.22}"/>`;
-          const lbl=isFM?String(y):isFirst?MN[m]:String(dd);
-          h+=`<text x="${x}" y="${AY+20}" text-anchor="middle" font-size="${isFM?10:isFirst?9.5:9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
+    const startY = Math.max(Math.floor(visMin), currentEra.from);
+    const endY   = Math.min(Math.ceil(visMax) + 1, eraToY());
+    const totalDays = visSpan * 365;
+    const dIv = totalDays <= 25 ? 1 : totalDays <= 70 ? 2 : totalDays <= 120 ? 5 : 7;
+    for (let y = startY; y <= endY; y++) {
+      for (let m = 1; m <= 12; m++) {
+        const daysInMonth = new Date(Math.abs(y), m, 0).getDate();
+        for (let dd = 1; dd <= daysInMonth; dd += dIv) {
+          const yf = yearFrac(y, m, dd);
+          if (yf < visMin - 0.02 || yf > visMax + 0.02) continue;
+          const x = yearToX(yf);
+          if (x < 15 || x > svgW - 10) continue;
+          const isFM = dd === 1 && m === 1, isFirst = dd === 1;
+          h += `<line x1="${x}" y1="${isFM ? 0 : isFirst ? AY - 14 : AY - 7}" x2="${x}" y2="${AY + 5}" stroke="${bg.c1}" stroke-width="${isFM ? .9 : isFirst ? .5 : .25}" opacity="${isFM ? .38 : isFirst ? .2 : .1}"/>`;
+          h += `<circle cx="${x}" cy="${AY}" r="${isFM ? 3.5 : isFirst ? 2.5 : 1.5}" fill="${currentEra.color}" opacity="${isFM ? .55 : isFirst ? .38 : .22}"/>`;
+          const lbl = isFM ? String(y) : isFirst ? MN[m] : String(dd);
+          h += `<text x="${x}" y="${AY + 20}" text-anchor="middle" font-size="${isFM ? 10 : isFirst ? 9.5 : 9}" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${lbl}</text>`;
         }
       }
     }
   }
 
   /* Marqueur aujourd'hui */
-  if(currentEra.key==='xxi'||currentEra.key==='all'){
-    const tx=yearToX(yearFrac(TODAY_Y,TODAY_M,TODAY_D));
-    if(tx>=20&&tx<=svgW-20){
-      h+=`<line x1="${tx}" y1="0" x2="${tx}" y2="${H}" stroke="${currentEra.color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".5"/>`;
-      const lx=Math.min(tx+4,svgW-72);
-      h+=`<rect x="${lx}" y="5" width="66" height="16" rx="8" fill="${currentEra.color}" opacity=".14"/>`;
-      h+=`<text x="${lx+33}" y="17" text-anchor="middle" font-size="9.5" fill="${currentEra.color}" font-family="'DM Sans',sans-serif" font-weight="500">Aujourd'hui</text>`;
+  if (currentEra.key === 'xxi' || currentEra.key === 'all') {
+    const tx = yearToX(yearFrac(TODAY_Y, TODAY_M, TODAY_D));
+    if (tx >= 20 && tx <= svgW - 20) {
+      h += `<line x1="${tx}" y1="0" x2="${tx}" y2="${H}" stroke="${currentEra.color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".5"/>`;
+      const lx = Math.min(tx + 4, svgW - 72);
+      h += `<rect x="${lx}" y="5" width="66" height="16" rx="8" fill="${currentEra.color}" opacity=".14"/>`;
+      h += `<text x="${lx + 33}" y="17" text-anchor="middle" font-size="9.5" fill="${currentEra.color}" font-family="'DM Sans',sans-serif" font-weight="500">Aujourd'hui</text>`;
     }
   }
 
-  /* Placement des événements */
-  const visible=eraEvents().sort((a,b)=>a.y-b.y);
-  const raw=[];
-  const rowLast={};
-  visible.forEach((ev,i)=>{
-    const px=yearToX(yearFrac(ev.y,ev.m,ev.d));
-    /* Cherche une ligne libre */
-    let row=i%2===0?-1:1;
-    for(let r=1;r<=8;r++){
-      const candidates=[-r,r];
-      for(const c of candidates){
-        if(!rowLast[c]||px-rowLast[c]>95){row=c;goto:{break goto;}; }
+  /* ── Placement des événements ── */
+  const visible = eraEvents().sort((a, b) => a.y - b.y);
+  const raw = [];
+  const rowLast = {};
+
+  visible.forEach((ev, i) => {
+    const px = yearToX(yearFrac(ev.y, ev.m, ev.d));
+    // Cherche une rangée libre en alternant haut/bas
+    let row = i % 2 === 0 ? -1 : 1;
+    let found = false;
+    for (let depth = 1; depth <= 8 && !found; depth++) {
+      for (const r of [-depth, depth]) {
+        if (!rowLast[r] || px - rowLast[r] > 95) {
+          row = r;
+          found = true;
+          break;
+        }
       }
     }
-    rowLast[row]=px;
-    raw.push({...ev,row,px});
+    rowLast[row] = px;
+    raw.push({ ...ev, row, px });
   });
 
-  /* Barres de période (sous tout le reste) */
-  raw.forEach(ev=>{
-    if(!ev.ye||ev.ye===ev.y)return;
-    const x1=Math.max(0,yearToX(ev.y));
-    const x2=Math.min(svgW,yearToX(ev.ye));
-    if(x2<0||x1>svgW)return;
-    const c=(CATS[ev.cat]||CATS.autre).c;
-    const above=ev.row<0, depth=Math.abs(ev.row);
-    const barY=above?AY-(48+depth*36)-10:AY+(48+depth*36)+4;
-    h+=`<rect x="${x1}" y="${barY}" width="${Math.max(1,x2-x1)}" height="6" rx="3" fill="${c}" opacity=".17"/>`;
-    if(x1>=0)h+=`<line x1="${x1}" y1="${AY}" x2="${x1}" y2="${barY+3}" stroke="${c}" stroke-width=".7" opacity=".28"/>`;
-    if(x2<=svgW)h+=`<line x1="${x2}" y1="${AY}" x2="${x2}" y2="${barY+3}" stroke="${c}" stroke-width=".7" opacity=".28"/>`;
+  /* Calcul de la longueur de tige — STRICTEMENT bornée */
+  function stemLen(row) {
+    const depth = Math.abs(row);
+    const above = row < 0;
+    const maxLen = above ? AY - 50 : H - AY - 50;
+    return Math.max(0, Math.min(32 + depth * 22, maxLen));
+  }
+
+  /* Barres de période */
+  raw.forEach(ev => {
+    if (!ev.ye || ev.ye === ev.y) return;
+    const x1 = Math.max(0, yearToX(ev.y));
+    const x2 = Math.min(svgW, yearToX(ev.ye));
+    if (x2 < 0 || x1 > svgW) return;
+    const c = (CATS[ev.cat] || CATS.autre).c;
+    const above = ev.row < 0;
+    const sl = stemLen(ev.row);
+    if (sl < 5) return;
+    const barY = above ? AY - sl - 5 : AY + sl + 4;
+    if (barY < 4 || barY > H - 6) return;
+    h += `<rect x="${x1}" y="${barY}" width="${Math.max(1, x2 - x1)}" height="5" rx="2.5" fill="${c}" opacity=".17"/>`;
+    if (x1 >= 0) h += `<line x1="${x1}" y1="${AY}" x2="${x1}" y2="${barY + 2}" stroke="${c}" stroke-width=".7" opacity=".25"/>`;
+    if (x2 <= svgW) h += `<line x1="${x2}" y1="${AY}" x2="${x2}" y2="${barY + 2}" stroke="${c}" stroke-width=".7" opacity=".25"/>`;
   });
 
   /* Cluster (3+ seulement) */
-  const clusters=clusterEv(raw);
-  const singles=new Set(clusters.filter(g=>g.length===1).flatMap(g=>g.map(e=>e.id)));
+  const clusters = clusterEv(raw);
+  const singles  = new Set(clusters.filter(g => g.length === 1).flatMap(g => g.map(e => e.id)));
 
-  /* Stems + dots ✅ CORRIGÉ */
-raw.filter(ev=>singles.has(ev.id)).forEach(ev=>{
-  const px=ev.px;
-  if(px<-80||px>svgW+80)return;
-  const c=(CATS[ev.cat]||CATS.autre).c;
-  const above=ev.row<0, depth=Math.abs(ev.row);
-  const stemLength=38+depth*28; // ✅ Réduit et corrigé
-  const lY=above?AY-stemLength:AY+stemLength;
-  const by=above?lY-36:lY; // ✅ Hauteur corrigée
-  
-  h+=`<circle cx="${px}" cy="${AY}" r="6" fill="${c}" opacity=".15" data-id="${ev.id}"/>`;
-  h+=`<circle cx="${px}" cy="${AY}" r="${activeId===ev.id?5:3.8}" fill="${c}" stroke="var(--paper2)" stroke-width="1.3" style="cursor:pointer" data-id="${ev.id}"/>`;
-  
-  // ✅ Tige en 2 parties : axe + stem court
-  h+=`<line x1="${px}" y1="${AY+(above?-3:3)}" x2="${px}" y2="${above?(AY-3):(AY+3)}" stroke="${c}" stroke-width="1.8" opacity=".5"/>`;
-  h+=`<line x1="${px}" y1="${above?(AY-3):(AY+3)}" x2="${px}" y2="${by}" stroke="${c}" stroke-width="1" stroke-dasharray="2 2" opacity=".4"/>`;
-});
-    h+=`<circle cx="${px}" cy="${AY}" r="7" fill="${c}" opacity=".17" data-id="${ev.id}"/>`;
-    h+=`<circle cx="${px}" cy="${AY}" r="${activeId===ev.id?5.5:4}" fill="${c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-id="${ev.id}"/>`;
-    h+=`<line x1="${px}" y1="${AY+(above?-5:5)}" x2="${px}" y2="${above?by+42:by}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity=".38"/>`;
+  /* Stems + dots */
+  raw.filter(ev => singles.has(ev.id)).forEach(ev => {
+    const px = ev.px;
+    if (px < -80 || px > svgW + 80) return;
+    const c = (CATS[ev.cat] || CATS.autre).c;
+    const above = ev.row < 0;
+    const sl = stemLen(ev.row);
+    if (sl < 5) return;
+    const tipY = above ? AY - sl : AY + sl;
+    // Vérifier que la carte rentrera dans le SVG
+    const cardTop = above ? tipY - 38 : tipY;
+    const cardBot = above ? tipY : tipY + 38;
+    if (cardTop < 4 || cardBot > H - 4) return;
+    h += `<circle cx="${px}" cy="${AY}" r="5.5" fill="${c}" opacity=".15" data-id="${ev.id}"/>`;
+    h += `<circle cx="${px}" cy="${AY}" r="${activeId === ev.id ? 4.5 : 3.5}" fill="${c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-id="${ev.id}"/>`;
+    h += `<line x1="${px}" y1="${AY + (above ? -3 : 3)}" x2="${px}" y2="${above ? tipY : tipY}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity=".35"/>`;
   });
 
   /* Cartes événements */
-  raw.filter(ev=>singles.has(ev.id)).forEach(ev=>{h+=buildCard(ev);});
+  raw.filter(ev => singles.has(ev.id)).forEach(ev => { h += buildCard(ev); });
 
-  svgEl.setAttribute('height',H);
-  svgEl.innerHTML=h;
-  svgEl.querySelectorAll('[data-id]').forEach(el=>{
-    const id=parseInt(el.dataset.id);
-    el.addEventListener('click',e=>{e.stopPropagation();openCard(id,e);});
-    el.addEventListener('mousemove',e=>showTip(e,id));
-    el.addEventListener('mouseleave',()=>{tipEl.style.display='none';});
+  svgEl.setAttribute('height', H);
+  svgEl.innerHTML = h;
+  svgEl.querySelectorAll('[data-id]').forEach(el => {
+    const id = parseInt(el.dataset.id);
+    el.addEventListener('click', e => { e.stopPropagation(); openCard(id, e); });
+    el.addEventListener('mousemove', e => showTip(e, id));
+    el.addEventListener('mouseleave', () => { tipEl.style.display = 'none'; });
   });
   clearClusters();
-  clusters.filter(g=>g.length>=3).forEach(g=>buildClusterOv(g));
+  clusters.filter(g => g.length >= 3).forEach(g => buildClusterOv(g));
   renderLegend();
   buildEraStrip();
 }
 
-/* ── Placement des événements: algo propre ── */
-function clusterEv(placed){
-  const sorted=[...placed].sort((a,b)=>a.px-b.px);
-  const clusters=[],used=new Set();
-  for(let i=0;i<sorted.length;i++){
-    if(used.has(i))continue;
-    const grp=[sorted[i]];used.add(i);
-    for(let j=i+1;j<sorted.length;j++){
-      if(used.has(j))continue;
-      if(sorted[j].px-sorted[i].px<70){grp.push(sorted[j]);used.add(j);}
+function buildCard(ev) {
+  const cat = CATS[ev.cat] || CATS.autre, c = cat.c;
+  const px = ev.px;
+  if (px < -80 || px > svgW + 80) return '';
+  const above = ev.row < 0;
+  const sl = Math.abs(ev.row) < 1 ? 35 : (() => {
+    const depth = Math.abs(ev.row);
+    const maxLen = above ? AY - 50 : H - AY - 50;
+    return Math.max(0, Math.min(32 + depth * 22, maxLen));
+  })();
+  if (sl < 5) return '';
+  const tipY = above ? AY - sl : AY + sl;
+  const label = ev.title.length > 25 ? ev.title.slice(0, 24) + '…' : ev.title;
+  const bw = Math.min(label.length * 7 + 32, 190);
+  const bh = 38;
+  const bx = Math.max(6, Math.min(px - bw / 2, svgW - bw - 6));
+  const by = above ? tipY - bh : tipY;
+  if (by < 3 || by + bh > H - 3) return '';
+  const isHL = ev.id === hlId;
+  let s = '';
+  if (ev.id === activeId || isHL)
+    s += `<rect x="${bx - 4}" y="${by - 4}" width="${bw + 8}" height="${bh + 8}" rx="12" fill="${c}" opacity="${isHL ? .2 : .12}"/>`;
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="9" fill="var(--paper)" stroke="${c}" stroke-width="${activeId === ev.id ? 1.75 : .75}" style="cursor:pointer" data-id="${ev.id}"/>`;
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="4" rx="4" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
+  s += `<rect x="${bx}" y="${by + 2}" width="${bw}" height="2" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
+  if (ev.ye && ev.ye !== ev.y)
+    s += `<rect x="${bx + bw - 12}" y="${by + 8}" width="6" height="6" rx="2" fill="${c}" opacity=".35" style="pointer-events:none"/>`;
+  s += `<text x="${bx + 8}" y="${by + 18}" font-size="11" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
+  s += `<text x="${bx + 8}" y="${by + 30}" font-size="9" fill="${c}" opacity=".65" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
+  return s;
+}
+
+/* ── Clusters ── */
+function clusterEv(placed) {
+  const sorted = [...placed].sort((a, b) => a.px - b.px);
+  const clusters = [], used = new Set();
+  for (let i = 0; i < sorted.length; i++) {
+    if (used.has(i)) continue;
+    const grp = [sorted[i]]; used.add(i);
+    for (let j = i + 1; j < sorted.length; j++) {
+      if (used.has(j)) continue;
+      if (sorted[j].px - sorted[i].px < 68) { grp.push(sorted[j]); used.add(j); }
     }
-    if(grp.length>=3)clusters.push(grp);
-    else grp.forEach(ev=>clusters.push([ev]));
+    if (grp.length >= 3) clusters.push(grp);
+    else grp.forEach(ev => clusters.push([ev]));
   }
   return clusters;
 }
 
-function buildCard(ev){
-  const cat=CATS[ev.cat]||CATS.autre, c=cat.c;
-  const px=ev.px;
-  if(px<-80||px>svgW+80)return'';
-  const above=ev.row<0, depth=Math.abs(ev.row), sl=48+depth*36;
-  const lY=above?AY-sl:AY+sl;
-  const label=ev.title.length>25?ev.title.slice(0,24)+'…':ev.title;
-  const bw=Math.min(label.length*7.2+30,192);
-  const bh=36, bx=Math.max(8,Math.min(px-bw/2,svgW-bw-8)); // ✅ Réduit
-  const by=above?lY-bh:lY;
-  const isHL=ev.id===hlId;
-  let s='';
-  if(ev.id===activeId||isHL)
-    s+=`<rect x="${bx-5}" y="${by-5}" width="${bw+10}" height="${bh+10}" rx="13" fill="${c}" opacity="${isHL?.2:.13}"/>`;
-  s+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="10" fill="var(--paper)" stroke="${c}" stroke-width="${activeId===ev.id?1.75:.75}" style="cursor:pointer" data-id="${ev.id}"/>`;
-  s+=`<rect x="${bx}" y="${by}" width="${bw}" height="5" rx="5" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
-  s+=`<rect x="${bx}" y="${by+3}" width="${bw}" height="3" fill="${c}" opacity=".85" style="pointer-events:none"/>`;
-  if(ev.ye&&ev.ye!==ev.y)
-    s+=`<rect x="${bx+bw-13}" y="${by+9}" width="7" height="7" rx="2" fill="${c}" opacity=".38" style="pointer-events:none"/>`;
-  s+=`<text x="${bx+9}" y="${by+20}" font-size="11.5" font-weight="500" fill="${c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-id="${ev.id}">${label}</text>`;
-  s+=`<text x="${bx+9}" y="${by+33}" font-size="9.5" fill="${c}" opacity=".68" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
-  return s;
-}
+function clearClusters() { document.querySelectorAll('.cluster-ov').forEach(e => e.remove()); }
 
-/* ── Cluster overlays ── */
-function clearClusters(){document.querySelectorAll('.cluster-ov').forEach(e=>e.remove());}
-function buildClusterOv(grp){
-  const avgX=grp.reduce((s,e)=>s+e.px,0)/grp.length;
-  if(avgX<-30||avgX>svgW+30)return;
-  const catC={};grp.forEach(e=>{catC[e.cat]=(catC[e.cat]||0)+1;});
-  const dc=Object.entries(catC).sort((a,b)=>b[1]-a[1])[0][0];
-  const c=(CATS[dc]||CATS.autre).c;
-  const sz=window.innerWidth<640?Math.min(58+grp.length*4,86):Math.min(50+grp.length*4,76);
-  const div=document.createElement('div');
-  div.className='cluster-ov';
-  div.style.cssText=`position:absolute;left:${avgX}px;top:${AY}px;transform:translate(-50%,-50%);
+function buildClusterOv(grp) {
+  const avgX = grp.reduce((s, e) => s + e.px, 0) / grp.length;
+  if (avgX < -30 || avgX > svgW + 30) return;
+  const catC = {}; grp.forEach(e => { catC[e.cat] = (catC[e.cat] || 0) + 1; });
+  const dc = Object.entries(catC).sort((a, b) => b[1] - a[1])[0][0];
+  const c = (CATS[dc] || CATS.autre).c;
+  const sz = window.innerWidth < 640 ? Math.min(56 + grp.length * 4, 82) : Math.min(48 + grp.length * 4, 74);
+  const div = document.createElement('div');
+  div.className = 'cluster-ov';
+  div.style.cssText = `position:absolute;left:${avgX}px;top:${AY}px;transform:translate(-50%,-50%);
     width:${sz}px;height:${sz}px;border-radius:50%;background:var(--paper);
     border:2.5px solid ${c};display:flex;flex-direction:column;align-items:center;justify-content:center;
-    cursor:pointer;transition:transform .15s;box-shadow:0 2px 14px ${c}30;font-family:var(--fb);z-index:10`;
-  div.innerHTML=`<span style="font-size:${sz>62?16:13}px;font-weight:600;color:${c};line-height:1">${grp.length}</span>
+    cursor:pointer;transition:transform .15s;box-shadow:0 2px 12px ${c}30;font-family:var(--fb);z-index:10`;
+  div.innerHTML = `<span style="font-size:${sz > 60 ? 15 : 13}px;font-weight:600;color:${c};line-height:1">${grp.length}</span>
     <span style="font-size:9px;color:${c};opacity:.7;margin-top:2px">évts</span>`;
-  div.addEventListener('click',e=>{e.stopPropagation();openClusterList(grp,e);});
-  div.addEventListener('mouseenter',()=>div.style.transform='translate(-50%,-50%) scale(1.1)');
-  div.addEventListener('mouseleave',()=>div.style.transform='translate(-50%,-50%)');
-  wrap.style.position='relative';
+  div.addEventListener('click', e => { e.stopPropagation(); openClusterList(grp, e); });
+  div.addEventListener('mouseenter', () => div.style.transform = 'translate(-50%,-50%) scale(1.1)');
+  div.addEventListener('mouseleave', () => div.style.transform = 'translate(-50%,-50%)');
+  wrap.style.position = 'relative';
   wrap.appendChild(div);
 }
 
-function openClusterList(grp,e){
+function openClusterList(grp, e) {
   closeCard();
-  document.getElementById('cl-title-span').textContent=grp.length+' événements groupés';
-  document.getElementById('cl-items').innerHTML=grp.sort((a,b)=>a.y-b.y).map(ev=>{
-    const cat=CATS[ev.cat]||CATS.autre;
-    return`<div class="cl-item" onclick="zoomToEv(${ev.id})">
+  document.getElementById('cl-title-span').textContent = grp.length + ' événements groupés';
+  document.getElementById('cl-items').innerHTML = grp.sort((a, b) => a.y - b.y).map(ev => {
+    const cat = CATS[ev.cat] || CATS.autre;
+    return `<div class="cl-item" onclick="zoomToEv(${ev.id})">
       <div class="cl-dot" style="background:${cat.c}"></div>
       <div><div class="cl-name">${ev.title}</div>
       <div class="cl-yr">${fmtDate(ev)} · ${cat.e} ${cat.l}</div></div>
     </div>`;
   }).join('');
-  clList.style.display='block';
-  if(window.innerWidth<640){
-    clList.style.cssText='display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:var(--rxl) var(--rxl) 0 0;z-index:260';
+  clList.style.display = 'block';
+  if (window.innerWidth < 640) {
+    clList.style.cssText = 'display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:var(--rxl) var(--rxl) 0 0;z-index:260';
   } else {
-    const vw=window.innerWidth,vh=window.innerHeight;
-    clList.style.cssText=`display:block;position:fixed;z-index:260;width:300px;left:${Math.min(e.clientX+10,vw-310)}px;top:${Math.min(e.clientY-40,vh-380)}px`;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    clList.style.cssText = `display:block;position:fixed;z-index:260;width:300px;left:${Math.min(e.clientX + 10, vw - 310)}px;top:${Math.min(e.clientY - 40, vh - 380)}px`;
   }
 }
-function closeClusterList(){clList.style.display='none';}
-function zoomToEv(id){
+function closeClusterList() { clList.style.display = 'none'; }
+
+function zoomToEv(id) {
   closeClusterList();
-  const ev=events.find(e=>e.id===id);if(!ev)return;
-  const{minY}=getRange();
-  scale=defScale()*7;
-  offsetX=(svgW/2)-80-(yearFrac(ev.y,ev.m,ev.d)-minY)*scale;
-  render();updZoom();hlId=id;
-  setTimeout(()=>{hlId=null;render();},2200);
+  const ev = events.find(e => e.id === id); if (!ev) return;
+  const { minY } = getRange();
+  scale = defScale() * 7;
+  offsetX = (svgW / 2) - 80 - (yearFrac(ev.y, ev.m, ev.d) - minY) * scale;
+  render(); updZoom(); hlId = id;
+  setTimeout(() => { hlId = null; render(); }, 2200);
 }
 
 /* ── Tooltip ── */
-function showTip(e,id){
-  const ev=events.find(x=>x.id===id);if(!ev)return;
-  const cat=CATS[ev.cat]||CATS.autre;
-  tipEl.style.display='block';
-  tipEl.style.left=(e.clientX+16)+'px';tipEl.style.top=(e.clientY-22)+'px';
-  tipEl.innerHTML=`<strong>${ev.title}</strong>
+function showTip(e, id) {
+  const ev = events.find(x => x.id === id); if (!ev) return;
+  const cat = CATS[ev.cat] || CATS.autre;
+  tipEl.style.display = 'block';
+  tipEl.style.left = (e.clientX + 16) + 'px';
+  tipEl.style.top  = (e.clientY - 22) + 'px';
+  tipEl.innerHTML = `<strong>${ev.title}</strong>
     <div class="ty" style="color:${cat.c}">${fmtDate(ev)} · ${cat.e} ${cat.l}</div>
-    ${ev.desc?`<div class="td">${ev.desc.slice(0,100)}${ev.desc.length>100?'…':''}</div>`:''}`;
+    ${ev.desc ? `<div class="td">${ev.desc.slice(0, 100)}${ev.desc.length > 100 ? '…' : ''}</div>` : ''}`;
 }
 
 /* ── Card popup ── */
-function openCard(id,e){
-  const ev=events.find(x=>x.id===id);if(!ev)return;
-  const cat=CATS[ev.cat]||CATS.autre;
-  const endS=fmtDateEnd(ev);
-  document.getElementById('cp-img-w').innerHTML=ev.img
-    ?`<img class="cp-img" src="${ev.img}" alt="${ev.title}" loading="lazy"
-        onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:80px;display:flex;align-items:center;justify-content:center;font-size:42px;background:${cat.bg}\\'>${cat.e}</div>'">`
-    :`<div style="width:100%;height:72px;display:flex;align-items:center;justify-content:center;font-size:42px;background:${cat.bg}">${cat.e}</div>`;
-  document.getElementById('cp-stripe').style.cssText=`height:5px;background:linear-gradient(90deg,${cat.c},${cat.c}66)`;
-  const ce=document.getElementById('cp-cat');
-  ce.textContent=`${cat.e} ${cat.l}`;ce.style.background=cat.bg;ce.style.color=cat.c;
-  document.getElementById('cp-dates').innerHTML=endS
-    ?`<strong style="color:${cat.c}">${fmtDate(ev)}</strong><br>→ ${endS}`:fmtDate(ev);
-  document.getElementById('cp-title').textContent=ev.title;
-  const pbw=document.getElementById('cp-period-wrap');
-  if(ev.ye&&ev.ye!==ev.y&&currentEra){
-    const span=ev.ye-ev.y, eraSpan=eraToY()-currentEra.from;
-    const pct=Math.min(100,Math.round(span/eraSpan*100));
-    pbw.style.display='block';
-    document.getElementById('cp-period-label').textContent=`Durée : ${span} an${span>1?'s':''} (${pct}% de l'époque)`;
-    document.getElementById('cp-period-fill').style.cssText=`width:${pct}%;background:${cat.c}`;
-  } else pbw.style.display='none';
-  document.getElementById('cp-desc').textContent=ev.desc||'Aucune description.';
-  document.getElementById('cp-edit').onclick=()=>{closeCard();openEdit(id);};
-  document.getElementById('cp-edit').style.cssText=`background:linear-gradient(135deg,${cat.c},${cat.c}bb);color:#fff;flex:1;min-width:70px;font-family:var(--fb);font-size:12px;font-weight:500;padding:8px;border-radius:100px;cursor:pointer;border:none`;
-  document.getElementById('cp-wiki').href=wikiUrl(ev);
-  cpop.style.display='block';
-  if(window.innerWidth<640){
-    cpop.style.cssText='display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;z-index:250';
+function openCard(id, e) {
+  const ev = events.find(x => x.id === id); if (!ev) return;
+  const cat = CATS[ev.cat] || CATS.autre;
+  const endS = fmtDateEnd(ev);
+  document.getElementById('cp-img-w').innerHTML = ev.img
+    ? `<img class="cp-img" src="${ev.img}" alt="${ev.title}" loading="lazy"
+        onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:72px;display:flex;align-items:center;justify-content:center;font-size:40px;background:${cat.bg}\\'>${cat.e}</div>'">`
+    : `<div style="width:100%;height:72px;display:flex;align-items:center;justify-content:center;font-size:40px;background:${cat.bg}">${cat.e}</div>`;
+  document.getElementById('cp-stripe').style.cssText = `height:5px;background:linear-gradient(90deg,${cat.c},${cat.c}66)`;
+  const ce = document.getElementById('cp-cat');
+  ce.textContent = `${cat.e} ${cat.l}`; ce.style.background = cat.bg; ce.style.color = cat.c;
+  document.getElementById('cp-dates').innerHTML = endS
+    ? `<strong style="color:${cat.c}">${fmtDate(ev)}</strong><br>→ ${endS}` : fmtDate(ev);
+  document.getElementById('cp-title').textContent = ev.title;
+  const pbw = document.getElementById('cp-period-wrap');
+  if (ev.ye && ev.ye !== ev.y && currentEra) {
+    const span = ev.ye - ev.y, eraSpan = eraToY() - currentEra.from;
+    const pct = Math.min(100, Math.round(span / eraSpan * 100));
+    pbw.style.display = 'block';
+    document.getElementById('cp-period-label').textContent = `Durée : ${span} an${span > 1 ? 's' : ''} (${pct}% de l'époque)`;
+    document.getElementById('cp-period-fill').style.cssText = `width:${pct}%;background:${cat.c}`;
+  } else pbw.style.display = 'none';
+  document.getElementById('cp-desc').textContent = ev.desc || 'Aucune description.';
+  document.getElementById('cp-edit').onclick = () => { closeCard(); openEdit(id); };
+  document.getElementById('cp-edit').style.cssText = `background:linear-gradient(135deg,${cat.c},${cat.c}bb);color:#fff;flex:1;min-width:70px;font-family:var(--fb);font-size:12px;font-weight:500;padding:8px;border-radius:100px;cursor:pointer;border:none`;
+  document.getElementById('cp-wiki').href = wikiUrl(ev);
+  cpop.style.display = 'block';
+  if (window.innerWidth < 640) {
+    cpop.style.cssText = 'display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;z-index:250';
   } else {
-    const vw=window.innerWidth, vh=window.innerHeight;
-    cpop.style.cssText=`display:block;position:fixed;border-radius:var(--rxl);width:min(350px,90vw);z-index:250;
-      top:${Math.min(e.clientY-60,vh-520)}px;left:${Math.min(e.clientX+16,vw-366)}px`;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    cpop.style.cssText = `display:block;position:fixed;border-radius:var(--rxl);width:min(350px,90vw);z-index:250;top:${Math.min(e.clientY - 60, vh - 520)}px;left:${Math.min(e.clientX + 16, vw - 366)}px`;
   }
-  activeId=id;render();
+  activeId = id; render();
 }
-function closeCard(){cpop.style.display='none';activeId=null;render();}
-document.addEventListener('click',e=>{
-  if(!cpop.contains(e.target)&&!e.target.dataset.id)closeCard();
-  if(clList.style.display!=='none'&&!clList.contains(e.target)&&!e.target.closest('.cluster-ov'))closeClusterList();
+function closeCard() { cpop.style.display = 'none'; activeId = null; render(); }
+document.addEventListener('click', e => {
+  if (!cpop.contains(e.target) && !e.target.dataset.id) closeCard();
+  if (clList.style.display !== 'none' && !clList.contains(e.target) && !e.target.closest('.cluster-ov')) closeClusterList();
 });
 
 /* ── Legend ── */
-function renderLegend(){
-  document.getElementById('legend').innerHTML=Object.entries(CATS).map(([k,v])=>{
-    const on=!hiddenCats.has(k);
-    return`<div class="leg-item" style="background:${on?v.bg:'var(--paper2)'};color:${on?v.c:'var(--ink3)'};border-color:${on?v.c:'var(--paper4)'};opacity:${on?1:.45}" onclick="toggleCat('${k}')">${v.e} ${v.l}</div>`;
+function renderLegend() {
+  document.getElementById('legend').innerHTML = Object.entries(CATS).map(([k, v]) => {
+    const on = !hiddenCats.has(k);
+    return `<div class="leg-item" style="background:${on ? v.bg : 'var(--paper2)'};color:${on ? v.c : 'var(--ink3)'};border-color:${on ? v.c : 'var(--paper4)'};opacity:${on ? 1 : .45}" onclick="toggleCat('${k}')">${v.e} ${v.l}</div>`;
   }).join('');
 }
-function toggleCat(k){hiddenCats.has(k)?hiddenCats.delete(k):hiddenCats.add(k);render();buildEraStrip();}
+function toggleCat(k) { hiddenCats.has(k) ? hiddenCats.delete(k) : hiddenCats.add(k); render(); buildEraStrip(); }
 
 /* ── Search ── */
-function hl(str,q){
-  if(!q)return str;
-  return String(str).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,'gi'),'<mark>$1</mark>');
+function hl(str, q) {
+  if (!q) return str;
+  return String(str).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<mark>$1</mark>');
 }
-function onSearch(q){
-  document.getElementById('scl').classList.toggle('on',q.length>0);
-  const res=document.getElementById('sres');
-  if(!q.trim()){res.classList.remove('open');hlId=null;render();return;}
-  const ql=q.toLowerCase(),yn=parseInt(q);
-  const matched=events.filter(ev=>
-    ev.title.toLowerCase().includes(ql)||(ev.desc||'').toLowerCase().includes(ql)||
-    (ev.wiki||'').toLowerCase().includes(ql)||
-    (CATS[ev.cat]?CATS[ev.cat].l.toLowerCase().includes(ql):false)||
-    String(Math.abs(ev.y)).includes(q)||
-    (!isNaN(yn)&&Math.abs(ev.y-yn)<30)
-  ).sort((a,b)=>!isNaN(yn)?Math.abs(a.y-yn)-Math.abs(b.y-yn):a.y-b.y);
-  if(!matched.length){res.innerHTML=`<div class="sr-empty">Aucun résultat pour « ${q} »</div>`;res.classList.add('open');return;}
-  res.innerHTML=matched.slice(0,10).map(ev=>{
-    const cat=CATS[ev.cat]||CATS.autre;
-    const dm=(ev.desc||'').toLowerCase().includes(ql);
-    let ds='';
-    if(dm){
-      const i=(ev.desc||'').toLowerCase().indexOf(ql);
-      const s=Math.max(0,i-30);
-      ds=`<div class="sri-desc">${hl((s>0?'…':''+(ev.desc||'').slice(s,i+ql.length+50)+'…'),q)}</div>`;
-    }
-    const endS=fmtDateEnd(ev);
-    return`<div class="sri" onclick="goToEv(${ev.id})">
+function onSearch(q) {
+  document.getElementById('scl').classList.toggle('on', q.length > 0);
+  const res = document.getElementById('sres');
+  if (!q.trim()) { res.classList.remove('open'); hlId = null; render(); return; }
+  const ql = q.toLowerCase(), yn = parseInt(q);
+  const matched = events.filter(ev =>
+    ev.title.toLowerCase().includes(ql) ||
+    (ev.desc || '').toLowerCase().includes(ql) ||
+    (ev.wiki || '').toLowerCase().includes(ql) ||
+    (CATS[ev.cat] ? CATS[ev.cat].l.toLowerCase().includes(ql) : false) ||
+    String(Math.abs(ev.y)).includes(q) ||
+    (!isNaN(yn) && Math.abs(ev.y - yn) < 30)
+  ).sort((a, b) => !isNaN(yn) ? Math.abs(a.y - yn) - Math.abs(b.y - yn) : a.y - b.y);
+  if (!matched.length) {
+    res.innerHTML = `<div class="sr-empty">Aucun résultat pour « ${q} »</div>`;
+    res.classList.add('open'); return;
+  }
+  res.innerHTML = matched.slice(0, 10).map(ev => {
+    const cat = CATS[ev.cat] || CATS.autre;
+    const endS = fmtDateEnd(ev);
+    return `<div class="sri" onclick="goToEv(${ev.id})">
       <div class="sri-dot" style="background:${cat.c}"></div>
       <div style="min-width:0">
-        <div class="sri-title">${hl(ev.title,q)}</div>
-        <div class="sri-meta">${fmtDate(ev)}${endS?' → '+endS:''} · ${cat.e} ${cat.l}</div>
-        ${ds}
+        <div class="sri-title">${hl(ev.title, q)}</div>
+        <div class="sri-meta">${fmtDate(ev)}${endS ? ' → ' + endS : ''} · ${cat.e} ${cat.l}</div>
       </div>
     </div>`;
   }).join('');
   res.classList.add('open');
 }
-function clearSearch(){
-  document.getElementById('si').value='';
+function clearSearch() {
+  document.getElementById('si').value = '';
   document.getElementById('sres').classList.remove('open');
   document.getElementById('scl').classList.remove('on');
-  hlId=null;render();
+  hlId = null; render();
 }
-function goToEv(id){
-  const ev=events.find(e=>e.id===id);if(!ev)return;
+function goToEv(id) {
+  const ev = events.find(e => e.id === id); if (!ev) return;
   document.getElementById('sres').classList.remove('open');
-  const era=ERAS.find(er=>er.key!=='all'&&midY(ev)>=er.from&&midY(ev)<(er.key==='xxi'?TODAY_Y:er.to));
-  if(era&&(!currentEra||currentEra.key!==era.key))selectEra(era.key);
-  hlId=id;
-  setTimeout(()=>{
-    const{minY}=getRange();scale=defScale()*7;
-    offsetX=(svgW/2)-80-(yearFrac(ev.y,ev.m,ev.d)-minY)*scale;
-    render();updZoom();
-    setTimeout(()=>{hlId=null;render();},2500);
-  },200);
+  const era = ERAS.find(er => er.key !== 'all' && midY(ev) >= er.from && midY(ev) < (er.key === 'xxi' ? TODAY_Y : er.to));
+  if (era && (!currentEra || currentEra.key !== era.key)) selectEra(era.key);
+  hlId = id;
+  setTimeout(() => {
+    const { minY } = getRange();
+    scale = defScale() * 7;
+    offsetX = (svgW / 2) - 80 - (yearFrac(ev.y, ev.m, ev.d) - minY) * scale;
+    render(); updZoom();
+    setTimeout(() => { hlId = null; render(); }, 2500);
+  }, 200);
 }
 
 /* ── Image ── */
-function applyImgUrl(){
-  const url=document.getElementById('f-img-url').value.trim();
-  if(!url)return;
-  document.getElementById('ipr').style.display='block';
-  document.getElementById('iprel').src=url;
+function applyImgUrl() {
+  const url = document.getElementById('f-img-url').value.trim();
+  if (!url) return;
+  document.getElementById('ipr').style.display = 'block';
+  document.getElementById('iprel').src = url;
 }
-function removeImg(){
-  document.getElementById('ipr').style.display='none';
-  document.getElementById('iprel').src='';
-  document.getElementById('f-img-url').value='';
-}
-
-/* ── Cat picker ── */
-function buildCatPick(sel){
-  document.getElementById('cpick').innerHTML=Object.entries(CATS).map(([k,v])=>
-    `<div class="csw${k===sel?' sel':''}" style="background:${v.bg};color:${v.c};border-color:${k===sel?v.c:'transparent'}" onclick="pickCat('${k}',this)">${v.e} ${v.l}</div>`
-  ).join('');
-  document.getElementById('fc').value=sel||Object.keys(CATS)[0]||'autre';
-}
-function pickCat(k,el){
-  document.getElementById('fc').value=k;
-  document.querySelectorAll('.csw').forEach(s=>{s.classList.remove('sel');s.style.borderColor='transparent';});
-  el.classList.add('sel');el.style.borderColor=CATS[k].c;
+function removeImg() {
+  document.getElementById('ipr').style.display = 'none';
+  document.getElementById('iprel').src = '';
+  document.getElementById('f-img-url').value = '';
 }
 
 /* ── Modal ── */
-function resetForm(){
-  ['ft','fy','fm','fd2','fye','fme','fde','fdesc','fwiki','f-img-url'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
+function resetForm() {
+  ['ft','fy','fm','fd2','fye','fme','fde','fdesc','fwiki','f-img-url'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
   });
   removeImg();
 }
-function openAdd(){
-  editId=null;resetForm();
-  document.getElementById('mtitle').textContent='Nouvel événement';
-  if(currentEra){
-    const mid=Math.round((currentEra.from+Math.min(eraToY(),TODAY_Y))/2);
-    document.getElementById('fy').value=mid;
+function openAdd() {
+  editId = null; resetForm();
+  document.getElementById('mtitle').textContent = 'Nouvel événement';
+  if (currentEra) {
+    const mid = Math.round((currentEra.from + Math.min(eraToY(), TODAY_Y)) / 2);
+    document.getElementById('fy').value = mid;
   }
   buildCatPick('autre');
-  document.getElementById('bdel').style.display='none';
+  document.getElementById('bdel').style.display = 'none';
   document.getElementById('mbg').classList.add('open');
-  setTimeout(()=>document.getElementById('ft').focus(),80);
+  setTimeout(() => document.getElementById('ft').focus(), 80);
 }
-function openEdit(id){
-  const ev=events.find(e=>e.id===id);if(!ev)return;
-  editId=id;resetForm();
-  document.getElementById('mtitle').textContent="Modifier l'événement";
-  document.getElementById('ft').value=ev.title||'';
-  document.getElementById('fy').value=ev.y||'';
-  document.getElementById('fm').value=ev.m||'';
-  document.getElementById('fd2').value=ev.d||'';
-  document.getElementById('fye').value=(ev.ye&&ev.ye!==ev.y)?ev.ye:'';
-  document.getElementById('fme').value=ev.me||'';
-  document.getElementById('fde').value=ev.de||'';
-  document.getElementById('fdesc').value=ev.desc||'';
-  document.getElementById('fwiki').value=ev.wiki||'';
-  if(ev.img){document.getElementById('f-img-url').value=ev.img;document.getElementById('ipr').style.display='block';document.getElementById('iprel').src=ev.img;}
-  buildCatPick(ev.cat||'autre');
-  document.getElementById('bdel').style.display='inline-block';
+function openEdit(id) {
+  const ev = events.find(e => e.id === id); if (!ev) return;
+  editId = id; resetForm();
+  document.getElementById('mtitle').textContent = "Modifier l'événement";
+  document.getElementById('ft').value = ev.title || '';
+  document.getElementById('fy').value = ev.y || '';
+  document.getElementById('fm').value = ev.m || '';
+  document.getElementById('fd2').value = ev.d || '';
+  document.getElementById('fye').value = (ev.ye && ev.ye !== ev.y) ? ev.ye : '';
+  document.getElementById('fme').value = ev.me || '';
+  document.getElementById('fde').value = ev.de || '';
+  document.getElementById('fdesc').value = ev.desc || '';
+  document.getElementById('fwiki').value = ev.wiki || '';
+  if (ev.img) {
+    document.getElementById('f-img-url').value = ev.img;
+    document.getElementById('ipr').style.display = 'block';
+    document.getElementById('iprel').src = ev.img;
+  }
+  buildCatPick(ev.cat || 'autre');
+  document.getElementById('bdel').style.display = 'inline-block';
   document.getElementById('mbg').classList.add('open');
 }
-function closeMod(){document.getElementById('mbg').classList.remove('open');}
+function closeMod() { document.getElementById('mbg').classList.remove('open'); }
 
-function saveEv(){
-  const title=(document.getElementById('ft').value||'').trim();
-  const yv=(document.getElementById('fy').value||'').trim();
-  if(!title){
-    document.getElementById('ft').style.borderColor='#f03060';
-    document.getElementById('ft').focus();return;
-  }
-  if(!yv){
-    document.getElementById('fy').style.borderColor='#f03060';
-    document.getElementById('fy').focus();return;
-  }
-  const y=parseInt(yv);
-  if(isNaN(y)){
-    document.getElementById('fy').style.borderColor='#f03060';
-    document.getElementById('fy').focus();return;
-  }
-  document.getElementById('ft').style.borderColor='';
-  document.getElementById('fy').style.borderColor='';
-  const mRaw=document.getElementById('fm').value;const m=mRaw?parseInt(mRaw):undefined;
-  const dRaw=document.getElementById('fd2').value;const d=dRaw?parseInt(dRaw):undefined;
-  const yeRaw=(document.getElementById('fye').value||'').trim();const ye=yeRaw?parseInt(yeRaw):y;
-  const meRaw=document.getElementById('fme').value;const me=meRaw?parseInt(meRaw):undefined;
-  const deRaw=document.getElementById('fde').value;const de=deRaw?parseInt(deRaw):undefined;
-  const desc=document.getElementById('fdesc').value.trim();
-  const cat=document.getElementById('fc').value||'autre';
-  const wiki=document.getElementById('fwiki').value.trim();
-  const img=document.getElementById('f-img-url').value.trim();
-  const obj={id:editId||nextId,title,y,ye,cat,desc,wiki,img,updatedAt:Date.now()};
-  if(m)obj.m=m;if(d)obj.d=d;if(me)obj.me=me;if(de)obj.de=de;
-  if(editId){const i=events.findIndex(e=>e.id===editId);if(i>=0)events[i]=obj;}
-  else{nextId++;events.push(obj);}
-  saveSt();closeMod();
-  const mid=Math.round((y+ye)/2);
-  const era=ERAS.find(er=>er.key!=='all'&&mid>=er.from&&mid<(er.key==='xxi'?TODAY_Y:er.to));
-  if(era&&(!currentEra||currentEra.key!==era.key))selectEra(era.key);
-  else{render();updZoom();}
-  setTimeout(()=>{hlId=obj.id;render();setTimeout(()=>{hlId=null;render();},2000);},300);
+function saveEv() {
+  const title = (document.getElementById('ft').value || '').trim();
+  const yv    = (document.getElementById('fy').value  || '').trim();
+  if (!title) { document.getElementById('ft').style.borderColor = '#f03060'; document.getElementById('ft').focus(); return; }
+  if (!yv)    { document.getElementById('fy').style.borderColor = '#f03060'; document.getElementById('fy').focus(); return; }
+  const y = parseInt(yv);
+  if (isNaN(y)) { document.getElementById('fy').style.borderColor = '#f03060'; return; }
+  document.getElementById('ft').style.borderColor = '';
+  document.getElementById('fy').style.borderColor = '';
+  const mRaw  = document.getElementById('fm').value;   const m  = mRaw  ? parseInt(mRaw)  : undefined;
+  const dRaw  = document.getElementById('fd2').value;  const d  = dRaw  ? parseInt(dRaw)  : undefined;
+  const yeRaw = (document.getElementById('fye').value || '').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
+  const meRaw = document.getElementById('fme').value;  const me = meRaw ? parseInt(meRaw) : undefined;
+  const deRaw = document.getElementById('fde').value;  const de = deRaw ? parseInt(deRaw) : undefined;
+  const desc  = document.getElementById('fdesc').value.trim();
+  const cat   = document.getElementById('fc').value || 'autre';
+  const wiki  = document.getElementById('fwiki').value.trim();
+  const img   = document.getElementById('f-img-url').value.trim();
+  const obj   = { id: editId || nextId, title, y, ye, cat, desc, wiki, img, updatedAt: Date.now() };
+  if (m)  obj.m  = m;  if (d)  obj.d  = d;
+  if (me) obj.me = me; if (de) obj.de = de;
+  if (editId) { const i = events.findIndex(e => e.id === editId); if (i >= 0) events[i] = obj; }
+  else        { nextId++; events.push(obj); }
+  saveSt(); closeMod();
+  const mid = Math.round((y + ye) / 2);
+  const era = ERAS.find(er => er.key !== 'all' && mid >= er.from && mid < (er.key === 'xxi' ? TODAY_Y : er.to));
+  if (era && (!currentEra || currentEra.key !== era.key)) selectEra(era.key);
+  else { render(); updZoom(); }
+  setTimeout(() => { hlId = obj.id; render(); setTimeout(() => { hlId = null; render(); }, 2000); }, 300);
 }
-function deleteEv(){
-  if(!editId||!confirm('Supprimer cet événement ?'))return;
-  if(window.__firebaseDelete)window.__firebaseDelete(editId);
-  events=events.filter(e=>e.id!==editId);
-  saveSt();closeMod();render();updZoom();
+function deleteEv() {
+  if (!editId || !confirm('Supprimer cet événement ?')) return;
+  if (window.__firebaseDelete) window.__firebaseDelete(editId);
+  events = events.filter(e => e.id !== editId);
+  saveSt(); closeMod(); render(); updZoom();
 }
-document.getElementById('mbg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMod();});
+document.getElementById('mbg').addEventListener('click', e => { if (e.target === e.currentTarget) closeMod(); });
 
-/* ── Mobile navigation ── */
-function panLeft(){offsetX+=svgW*0.4;render();}
-function panRight(){offsetX-=svgW*0.4;render();}
+/* ── Mobile nav ── */
+function panLeft()  { offsetX += svgW * 0.4; render(); }
+function panRight() { offsetX -= svgW * 0.4; render(); }
 
 /* ── Drag souris ── */
-wrap.addEventListener('mousedown',e=>{
-  if(e.target.dataset.id||e.target.closest('.cluster-ov'))return;
-  dragging=true;dsx=e.clientX;dsox=offsetX;wrap.classList.add('dragging');
+wrap.addEventListener('mousedown', e => {
+  if (e.target.dataset.id || e.target.closest('.cluster-ov')) return;
+  dragging = true; dsx = e.clientX; dsox = offsetX; wrap.classList.add('dragging');
 });
-window.addEventListener('mousemove',e=>{if(!dragging)return;offsetX=dsox+(e.clientX-dsx);render();});
-window.addEventListener('mouseup',()=>{dragging=false;wrap.classList.remove('dragging');});
+window.addEventListener('mousemove', e => { if (!dragging) return; offsetX = dsox + (e.clientX - dsx); render(); });
+window.addEventListener('mouseup',   () => { dragging = false; wrap.classList.remove('dragging'); });
 
 /* ── Molette ── */
-wrap.addEventListener('wheel',e=>{
+wrap.addEventListener('wheel', e => {
   e.preventDefault();
-  const f=e.deltaY<0?1.18:1/1.18;
-  const mx=e.clientX-wrap.getBoundingClientRect().left;
-  const yearAtMouse=xToYear(mx);
-  scale*=f;
-  const ds=defScale();if(scale<ds*0.95)scale=ds;
-  offsetX=mx-80-(yearAtMouse-getRange().minY)*scale;
-  render();updZoom();
-},{passive:false});
+  const f = e.deltaY < 0 ? 1.18 : 1 / 1.18;
+  const mx = e.clientX - wrap.getBoundingClientRect().left;
+  const yAtMouse = xToYear(mx);
+  scale *= f;
+  const ds = defScale(); if (scale < ds * 0.98) scale = ds;
+  offsetX = mx - 80 - (yAtMouse - getRange().minY) * scale;
+  render(); updZoom();
+}, { passive: false });
 
 /* ── Touch (glisser + pincer) ── */
-let ltx=null, ltd=null, ltcx=null;
-wrap.addEventListener('touchstart',e=>{
-  if(e.touches.length===2){
-    ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    ltcx=(e.touches[0].clientX+e.touches[1].clientX)/2-wrap.getBoundingClientRect().left;
-    ltx=null;
-  } else {
-    ltx=e.touches[0].clientX;ltd=null;
-  }
-},{passive:true});
-wrap.addEventListener('touchmove',e=>{
-  if(e.touches.length===2&&ltd!==null){
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    const cx=(e.touches[0].clientX+e.touches[1].clientX)/2-wrap.getBoundingClientRect().left;
-    const yearAtCenter=xToYear(ltcx);
-    scale*=d/ltd;
-    const ds=defScale();if(scale<ds*0.95)scale=ds;
-    ltd=d;ltcx=cx;
-    offsetX=cx-80-(yearAtCenter-getRange().minY)*scale;
-    render();updZoom();
-  } else if(ltx!==null&&e.touches.length===1){
-    offsetX+=e.touches[0].clientX-ltx;
-    ltx=e.touches[0].clientX;
+let ltx = null, ltd = null, ltcx = null;
+wrap.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    ltd  = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    ltcx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - wrap.getBoundingClientRect().left;
+    ltx  = null;
+  } else { ltx = e.touches[0].clientX; ltd = null; }
+}, { passive: true });
+wrap.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && ltd !== null) {
+    const d   = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    const cx  = (e.touches[0].clientX + e.touches[1].clientX) / 2 - wrap.getBoundingClientRect().left;
+    const yAC = xToYear(ltcx);
+    scale *= d / ltd;
+    const ds = defScale(); if (scale < ds * 0.98) scale = ds;
+    ltd = d; ltcx = cx;
+    offsetX = cx - 80 - (yAC - getRange().minY) * scale;
+    render(); updZoom();
+  } else if (ltx !== null && e.touches.length === 1) {
+    offsetX += e.touches[0].clientX - ltx;
+    ltx = e.touches[0].clientX;
     render();
   }
-},{passive:true});
-wrap.addEventListener('touchend',()=>{ltx=null;ltd=null;ltcx=null;});
+}, { passive: true });
+wrap.addEventListener('touchend', () => { ltx = null; ltd = null; ltcx = null; });
 
 /* ── Keyboard ── */
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeMod();closeCard();closeClusterList();clearSearch();}
-  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();document.getElementById('si').focus();}
-  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'&&document.getElementById('mbg').classList.contains('open'))saveEv();
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeMod(); closeCard(); closeClusterList(); clearSearch(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('si').focus(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && document.getElementById('mbg').classList.contains('open')) saveEv();
 });
-document.addEventListener('click',e=>{
-  if(!document.getElementById('sres').contains(e.target)&&e.target!==document.getElementById('si'))
+document.addEventListener('click', e => {
+  if (!document.getElementById('sres').contains(e.target) && e.target !== document.getElementById('si'))
     document.getElementById('sres').classList.remove('open');
 });
-window.addEventListener('resize',()=>{if(currentEra)resetView();});
+window.addEventListener('resize', () => { if (currentEra) resetView(); });
