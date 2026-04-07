@@ -413,13 +413,23 @@ function render(){
   const clusters=clusterEv(raw);
   const singles=new Set(clusters.filter(g=>g.length===1).flatMap(g=>g.map(e=>e.id)));
 
-  /* Stems + dots */
-  raw.filter(ev=>singles.has(ev.id)).forEach(ev=>{
-    const px=ev.px;
-    if(px<-80||px>svgW+80)return;
-    const c=(CATS[ev.cat]||CATS.autre).c;
-    const above=ev.row<0, depth=Math.abs(ev.row), sl=48+depth*36;
-    const lY=above?AY-sl:AY+sl, by=above?lY-42:lY;
+  /* Stems + dots ✅ CORRIGÉ */
+raw.filter(ev=>singles.has(ev.id)).forEach(ev=>{
+  const px=ev.px;
+  if(px<-80||px>svgW+80)return;
+  const c=(CATS[ev.cat]||CATS.autre).c;
+  const above=ev.row<0, depth=Math.abs(ev.row);
+  const stemLength=38+depth*28; // ✅ Réduit et corrigé
+  const lY=above?AY-stemLength:AY+stemLength;
+  const by=above?lY-36:lY; // ✅ Hauteur corrigée
+  
+  h+=`<circle cx="${px}" cy="${AY}" r="6" fill="${c}" opacity=".15" data-id="${ev.id}"/>`;
+  h+=`<circle cx="${px}" cy="${AY}" r="${activeId===ev.id?5:3.8}" fill="${c}" stroke="var(--paper2)" stroke-width="1.3" style="cursor:pointer" data-id="${ev.id}"/>`;
+  
+  // ✅ Tige en 2 parties : axe + stem court
+  h+=`<line x1="${px}" y1="${AY+(above?-3:3)}" x2="${px}" y2="${above?(AY-3):(AY+3)}" stroke="${c}" stroke-width="1.8" opacity=".5"/>`;
+  h+=`<line x1="${px}" y1="${above?(AY-3):(AY+3)}" x2="${px}" y2="${by}" stroke="${c}" stroke-width="1" stroke-dasharray="2 2" opacity=".4"/>`;
+});
     h+=`<circle cx="${px}" cy="${AY}" r="7" fill="${c}" opacity=".17" data-id="${ev.id}"/>`;
     h+=`<circle cx="${px}" cy="${AY}" r="${activeId===ev.id?5.5:4}" fill="${c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-id="${ev.id}"/>`;
     h+=`<line x1="${px}" y1="${AY+(above?-5:5)}" x2="${px}" y2="${above?by+42:by}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3" opacity=".38"/>`;
@@ -467,7 +477,7 @@ function buildCard(ev){
   const lY=above?AY-sl:AY+sl;
   const label=ev.title.length>25?ev.title.slice(0,24)+'…':ev.title;
   const bw=Math.min(label.length*7.2+30,192);
-  const bh=42, bx=Math.max(4,Math.min(px-bw/2,svgW-bw-4));
+  const bh=36, bx=Math.max(8,Math.min(px-bw/2,svgW-bw-8)); // ✅ Réduit
   const by=above?lY-bh:lY;
   const isHL=ev.id===hlId;
   let s='';
