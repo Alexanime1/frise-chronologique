@@ -28,6 +28,13 @@
     <div class="sep"></div>
     <button class="btn" onclick="manualSync()" title="Synchroniser">🔄</button>
     <span class="sync-status" id="sync-status"></span>
+    <div class="sep"></div>
+    <div class="theme-picker" title="Changer de thème">
+      <button class="theme-btn active" data-t="light"    onclick="setTheme('light')"    title="Clair"></button>
+      <button class="theme-btn"        data-t="dark"     onclick="setTheme('dark')"     title="Sombre"></button>
+      <button class="theme-btn"        data-t="sepia"    onclick="setTheme('sepia')"    title="Sépia"></button>
+      <button class="theme-btn"        data-t="parchment" onclick="setTheme('parchment')" title="Parchemin"></button>
+    </div>
   </div>
 
   <div class="searchbox">
@@ -88,7 +95,7 @@
     </div>
   </div>
 
-  <footer>Frise synchronisée entre appareils via Firebase · <span id="ev-count"></span></footer>
+  <footer>200 événements historiques · Synchronisé via Firebase · <span id="ev-count"></span></footer>
 </div>
 
 <div id="tip"></div>
@@ -269,5 +276,20 @@ window.manualSync = function() {
 window.addEventListener('load', initFirebase);
 </script>
 <script src="script.js"></script>
+<script>
+/* ── Gestion des thèmes ── */
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t === 'light' ? '' : t);
+  localStorage.setItem('frise_theme', t);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.t === t);
+  });
+}
+// Restaurer le thème sauvegardé
+(function(){
+  const saved = localStorage.getItem('frise_theme') || 'light';
+  setTheme(saved);
+})();
+</script>
 </body>
 </html>
