@@ -8,7 +8,7 @@
     "autre":     {"c":"#a855f7","bg":"rgba(168,85,247,.13)","l":"Autre","e":"✦"}
   },
   "events": [
-    {"id":1,"y":-300000,"title":"Maîtrise du feu","wiki":"Maîtrise du feu par les hominidés","desc":"L'Homo erectus contrôle le feu. Révolution pour la cuisine, le chauffage et la protection.","cat":"science","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lascaux_painting.jpg/400px-Lascaux_painting.jpg"},
+    {"id":1,"y":-400000,"title":"Domestication du feu","wiki":"domestication du feu","desc":"L'Homo erectus contrôle le feu. Révolution pour la cuisine, le chauffage et la protection.","cat":"science","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lascaux_painting.jpg/400px-Lascaux_painting.jpg"},
     {"id":2,"y":-40000,"ye":-10000,"title":"Art pariétal","wiki":"Art pariétal","desc":"Peintures de Chauvet (~37 000 av. J.-C.) et Lascaux (~17 000). Premières œuvres d'art connues.","cat":"art","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lascaux_painting.jpg/400px-Lascaux_painting.jpg"},
     {"id":3,"y":-10000,"ye":-4000,"title":"Révolution néolithique","wiki":"Révolution néolithique","desc":"Agriculture, élevage, sédentarisation. Les humains cessent d'être chasseurs-cueilleurs.","cat":"science","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Stonehenge2007_07_30.jpg/400px-Stonehenge2007_07_30.jpg"},
     {"id":4,"y":-5000,"ye":-1500,"title":"Mégalithes & Stonehenge","wiki":"Mégalithe","desc":"Stonehenge (Angleterre), alignements de Carnac (Bretagne). Monuments astronomiques européens.","cat":"autre","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Stonehenge2007_07_30.jpg/400px-Stonehenge2007_07_30.jpg"},
