@@ -133,11 +133,11 @@ function updateEvCount() {
   if (ec) ec.textContent = events.length + ' événements';
 }
 
-/* ── Chargement JSONbin ── */
-fetch('https://api.jsonbin.io/v3/b/69d37e5e856a682189037fc7/latest')
+/* ── Chargement data.json depuis GitHub (toujours à jour) ── */
+fetch('https://raw.githubusercontent.com/Alexanime1/frise-chronologique/main/data.json')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(d => {
-    const data = d.record || d;
+    const data = d.record || d; // raw GitHub = direct, JSONbin = .record
     if (!data.events || !Array.isArray(data.events) || data.events.length === 0) throw new Error('no events');
     startApp(data.events, data.categories);
   })
@@ -702,6 +702,10 @@ function openCard(id, e) {
   document.getElementById('cp-edit').onclick = () => { closeCard(); openEdit(id); };
   document.getElementById('cp-edit').style.cssText = `background:linear-gradient(135deg,${cat.c},${cat.c}bb);color:#fff;flex:1;min-width:70px;font-family:var(--fb);font-size:12px;font-weight:500;padding:8px;border-radius:100px;cursor:pointer;border:none`;
   document.getElementById('cp-wiki').href = wikiUrl(ev);
+  const sfBtn = document.getElementById('cp-subfrise');
+  if (sfBtn) {
+    sfBtn.onclick = () => { closeCard(); openSubFrise(id); };
+  }
   cpop.style.display = 'block';
   if (window.innerWidth < 640) {
     cpop.style.cssText = 'display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;z-index:250';
@@ -998,3 +1002,188 @@ document.addEventListener('click', e => {
     document.getElementById('region-results').style.display = 'none';
 });
 window.addEventListener('resize', () => { if (currentEra) resetView(); });
+
+/* ═══════════════════════════════════════════════
+   SOUS-FRISES — mini-timeline dans un événement
+   ═══════════════════════════════════════════════ */
+
+let subFriseParentId = null; // ID de l'événement parent ouvert
+
+/* Ouvre la sous-frise d'un événement parent */
+function openSubFrise(parentId) {
+  const parent = events.find(e => e.id === parentId);
+  if (!parent) return;
+  subFriseParentId = parentId;
+
+  const modal = document.getElementById('subfrise-modal');
+  const cat = CATS[parent.cat] || CATS.autre;
+
+  // Titre
+  document.getElementById('sf-title').textContent = parent.title;
+  document.getElementById('sf-badge').textContent = fmtDate(parent) + (parent.ye && parent.ye !== parent.y ? ' → ' + fmtY(parent.ye) : '');
+  document.getElementById('sf-badge').style.cssText = `background:${cat.bg};color:${cat.c};font-size:10.5px;padding:3px 10px;border-radius:100px;font-family:var(--fb);font-weight:500`;
+
+  renderSubFrise(parentId);
+  modal.classList.add('open');
+}
+
+function closeSubFrise() {
+  document.getElementById('subfrise-modal').classList.remove('open');
+  subFriseParentId = null;
+}
+
+/* Récupère les sous-événements d'un parent */
+function getSubEvents(parentId) {
+  return events.filter(e => e.parentId === parentId).sort((a, b) => a.y - b.y);
+}
+
+/* Rend la mini-frise SVG + la liste */
+function renderSubFrise(parentId) {
+  const parent = events.find(e => e.id === parentId);
+  if (!parent) return;
+  const subEvs = getSubEvents(parentId);
+  const cat = CATS[parent.cat] || CATS.autre;
+
+  // Mini SVG timeline
+  const svgW = Math.min(860, window.innerWidth - 60);
+  const svgH = 120;
+  const axisY = 60;
+  const fromY = parent.y, toY = parent.ye && parent.ye !== parent.y ? parent.ye : parent.y + 1;
+  const span = toY - fromY || 1;
+  const pad = span * 0.05;
+  const minY = fromY - pad, maxY = toY + pad;
+  const yToX = y => 50 + (y - minY) / (maxY - minY) * (svgW - 100);
+
+  let svg = `<svg width="${svgW}" height="${svgH}" style="display:block;width:100%">`;
+
+  // Fond léger
+  svg += `<rect x="0" y="0" width="${svgW}" height="${svgH}" rx="8" fill="${cat.bg}" opacity=".4"/>`;
+
+  // Axe
+  svg += `<line x1="30" y1="${axisY}" x2="${svgW-30}" y2="${axisY}" stroke="${cat.c}" stroke-width="2" opacity=".4"/>`;
+
+  // Bornes
+  const x1 = yToX(fromY), x2 = yToX(toY);
+  svg += `<text x="${x1}" y="${axisY+20}" text-anchor="middle" font-size="10" fill="${cat.c}" font-family="'DM Sans',sans-serif">${fmtY(fromY)}</text>`;
+  svg += `<circle cx="${x1}" cy="${axisY}" r="5" fill="${cat.c}" opacity=".6"/>`;
+  if (toY !== fromY) {
+    svg += `<text x="${x2}" y="${axisY+20}" text-anchor="middle" font-size="10" fill="${cat.c}" font-family="'DM Sans',sans-serif">${fmtY(toY)}</text>`;
+    svg += `<circle cx="${x2}" cy="${axisY}" r="5" fill="${cat.c}" opacity=".6"/>`;
+  }
+
+  // Ticks intermédiaires
+  const iv = pickSubFriseIv(span);
+  const st = Math.ceil(fromY / iv) * iv;
+  for (let y = st; y < toY; y += iv) {
+    const x = yToX(y);
+    if (x < 35 || x > svgW - 35) continue;
+    svg += `<line x1="${x}" y1="${axisY-8}" x2="${x}" y2="${axisY+8}" stroke="${cat.c}" stroke-width=".7" opacity=".3"/>`;
+    svg += `<text x="${x}" y="${axisY+20}" text-anchor="middle" font-size="9" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${y < 0 ? Math.abs(y) + ' av.' : y}</text>`;
+  }
+
+  // Sous-événements sur la mini-frise
+  subEvs.forEach((ev, i) => {
+    const x = yToX(yearFrac(ev.y, ev.m, ev.d));
+    if (x < 20 || x > svgW - 20) return;
+    const evCat = CATS[ev.cat] || CATS.autre;
+    const above = i % 2 === 0;
+    const tipY = above ? axisY - 28 : axisY + 28;
+    svg += `<circle cx="${x}" cy="${axisY}" r="5" fill="${evCat.c}" stroke="var(--paper)" stroke-width="1.5"/>`;
+    svg += `<line x1="${x}" y1="${axisY}" x2="${x}" y2="${tipY}" stroke="${evCat.c}" stroke-width="1" stroke-dasharray="2 2" opacity=".5"/>`;
+    const label = ev.title.length > 18 ? ev.title.slice(0, 17) + '…' : ev.title;
+    svg += `<text x="${x}" y="${above ? tipY - 5 : tipY + 13}" text-anchor="middle" font-size="9" fill="${evCat.c}" font-family="'DM Sans',sans-serif">${label}</text>`;
+  });
+
+  svg += '</svg>';
+  document.getElementById('sf-svg-wrap').innerHTML = svg;
+
+  // Liste des sous-événements
+  const listEl = document.getElementById('sf-events');
+  if (subEvs.length === 0) {
+    listEl.innerHTML = `<div style="padding:1rem;text-align:center;color:var(--ink3);font-size:13px">
+      Aucun sous-événement encore. Ajoutez-en un ci-dessous !
+    </div>`;
+  } else {
+    listEl.innerHTML = subEvs.map(ev => {
+      const evCat = CATS[ev.cat] || CATS.autre;
+      return `<div class="subfrise-ev-item" onclick="openCard(${ev.id},{clientX:200,clientY:200})">
+        <div class="subfrise-ev-dot" style="background:${evCat.c}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="subfrise-ev-title">${ev.title} <span style="color:#f59e0b">${favorites.has(ev.id)?'★':''}</span></div>
+          <div class="subfrise-ev-date">${fmtDate(ev)}${fmtDateEnd(ev)?' → '+fmtDateEnd(ev):''} · ${evCat.e} ${evCat.l}</div>
+          ${ev.desc ? `<div class="subfrise-ev-desc">${ev.desc}</div>` : ''}
+        </div>
+        <button onclick="event.stopPropagation();deleteSubEv(${ev.id})" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;padding:2px 6px;border-radius:50%;flex-shrink:0" title="Supprimer">✕</button>
+      </div>`;
+    }).join('');
+  }
+}
+
+function pickSubFriseIv(span) {
+  for (const iv of [1,2,5,10,25,50,100,200,500,1000]) {
+    if (span / iv <= 8) return iv;
+  }
+  return 1000;
+}
+
+/* Ajoute un sous-événement rapide */
+function addSubEventQuick() {
+  const parent = events.find(e => e.id === subFriseParentId);
+  if (!parent) return;
+  closeSubFrise();
+  // Ouvrir le formulaire pré-rempli pour un sous-événement
+  openAdd();
+  // Pré-remplir la date au milieu de l'événement parent
+  const midYr = Math.round((parent.y + (parent.ye || parent.y)) / 2);
+  document.getElementById('fy').value = midYr;
+  document.getElementById('fc').value = parent.cat;
+  buildCatPick(parent.cat);
+  // Stocker l'ID parent pour la sauvegarde
+  document.getElementById('mbg').dataset.parentId = parent.id;
+}
+
+/* Ouvre le formulaire complet pour un sous-événement */
+function openAddSubEvent() {
+  addSubEventQuick();
+}
+
+/* Supprime un sous-événement */
+function deleteSubEv(id) {
+  if (!confirm('Supprimer ce sous-événement ?')) return;
+  if (window.__firebaseDelete) window.__firebaseDelete(id);
+  favorites.delete(id); saveFavs();
+  events = events.filter(e => e.id !== id);
+  saveSt();
+  renderSubFrise(subFriseParentId);
+  render(); buildEraStrip(); updateEvCount();
+}
+
+/* Patch saveEv pour gérer le parentId */
+const _origSaveEv = saveEv;
+// On surcharge saveEv pour injecter parentId si besoin
+window.addEventListener('load', () => {
+  const origSave = document.getElementById('mbg').querySelector('.bsave');
+  if (origSave) return; // déjà patché
+});
+
+// Intercepter la sauvegarde pour ajouter parentId
+function saveEvWithParent() {
+  const parentId = document.getElementById('mbg').dataset.parentId;
+  saveEv(); // appel original
+  // Si on vient de créer un event (editId était null), on lui met le parentId
+  if (!editId && parentId) {
+    const newEv = events[events.length - 1];
+    if (newEv) {
+      newEv.parentId = parseInt(parentId);
+      saveSt();
+    }
+    delete document.getElementById('mbg').dataset.parentId;
+    // Réouvrir la sous-frise
+    setTimeout(() => openSubFrise(parseInt(parentId)), 300);
+  }
+}
+
+/* Fermeture de la sous-frise */
+document.getElementById('subfrise-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSubFrise();
+});
