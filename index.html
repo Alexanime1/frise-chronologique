@@ -118,6 +118,7 @@
     <div class="cp-acts">
       <button id="cp-fav" onclick="">☆ Favori</button>
       <button class="cp-edit" id="cp-edit">✏️ Modifier</button>
+      <button id="cp-subfrise" onclick="" style="font-family:var(--fb);font-size:11.5px;padding:8px 10px;border-radius:100px;cursor:pointer;background:transparent;color:var(--cu);border:1px solid var(--cu)">🔍 Sous-frise</button>
       <a class="cp-wiki" id="cp-wiki" href="#" target="_blank" rel="noopener">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20M2 12h20"/></svg>
         Wikipedia
@@ -190,7 +191,7 @@
     <div class="mbtns">
       <button class="bdel" id="bdel" onclick="deleteEv()" style="display:none">🗑</button>
       <button class="bcanc" onclick="closeMod()">Annuler</button>
-      <button class="bsave" onclick="saveEv()">Enregistrer</button>
+      <button class="bsave" onclick="saveEvWithParent()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -275,6 +276,25 @@ window.manualSync = function() {
 // Démarrage Firebase après chargement de la page
 window.addEventListener('load', initFirebase);
 </script>
+<!-- SOUS-FRISE MODAL -->
+<div id="subfrise-modal" class="subfrise-modal">
+  <div class="subfrise-box">
+    <div class="subfrise-header">
+      <div class="subfrise-title">
+        🔍 <span id="sf-title">Événement</span>
+        <span id="sf-badge"></span>
+      </div>
+      <button onclick="closeSubFrise()" style="background:none;border:1px solid var(--paper3);border-radius:100px;padding:5px 12px;cursor:pointer;font-family:var(--fb);font-size:12px;color:var(--ink3)">✕ Fermer</button>
+    </div>
+    <div class="subfrise-svg-wrap" id="sf-svg-wrap"></div>
+    <div class="subfrise-events" id="sf-events"></div>
+    <div class="subfrise-add">
+      <span style="font-size:13px;color:var(--ink3);flex-shrink:0">Ajouter un sous-événement :</span>
+      <button class="btn primary" onclick="openAddSubEvent()" style="flex-shrink:0">＋ Ajouter</button>
+    </div>
+  </div>
+</div>
+
 <script src="script.js"></script>
 <script>
 /* ── Gestion des thèmes ── */
@@ -285,7 +305,7 @@ function setTheme(t) {
     btn.classList.toggle('active', btn.dataset.t === t);
   });
 }
-// Restaurer le thème sauvegardé
+// Restaurer le thème sauvegardé au démarrage (avant le rendu)
 (function(){
   const saved = localStorage.getItem('frise_theme') || 'light';
   setTheme(saved);
