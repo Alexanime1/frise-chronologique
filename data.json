@@ -123,7 +123,8 @@
       "wiki": "Jeux olympiques antiques",
       "desc": "Jeux panhelléniques à Olympie. Trêve sacrée entre cités grecques en l'honneur de Zeus.",
       "cat": "sport",
-      "img": ""
+      "img": "",
+      "parentId": 168
     },
     {
       "id": 10,
@@ -309,7 +310,8 @@
       "wiki": "Première croisade",
       "desc": "Appel du pape Urbain II à Clermont. Les croisés prennent Jérusalem le 15 juillet 1099.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 173
     },
     {
       "id": 29,
@@ -381,7 +383,8 @@
       "wiki": "Jeanne d'Arc",
       "desc": "La Pucelle d'Orléans lève le siège le 8 mai 1429. Tournant de la Guerre de Cent Ans.",
       "cat": "guerre",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Joan_of_arc_miniature_graded.jpg/300px-Joan_of_arc_miniature_graded.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Joan_of_arc_miniature_graded.jpg/300px-Joan_of_arc_miniature_graded.jpg",
+      "parentId": 33
     },
     {
       "id": 36,
@@ -392,7 +395,8 @@
       "wiki": "Procès de Jeanne d'Arc",
       "desc": "Condamnée par un tribunal pro-anglais, Jeanne est brûlée vive le 30 mai 1431.",
       "cat": "guerre",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Joan_of_arc_miniature_graded.jpg/300px-Joan_of_arc_miniature_graded.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Joan_of_arc_miniature_graded.jpg/300px-Joan_of_arc_miniature_graded.jpg",
+      "parentId": 33
     },
     {
       "id": 37,
@@ -403,7 +407,8 @@
       "wiki": "Chute de Constantinople",
       "desc": "Mehmed II prend Constantinople le 29 mai. Fin de Byzance, début de l'ère ottomane.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 33
     },
     {
       "id": 38,
@@ -557,7 +562,8 @@
       "wiki": "Château de Versailles",
       "desc": "Louis XIV transforme le pavillon de chasse en palais monumental. Symbole de l'absolutisme.",
       "cat": "art",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Palace_of_Versailles%2C_2008.jpg/400px-Palace_of_Versailles%2C_2008.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Palace_of_Versailles%2C_2008.jpg/400px-Palace_of_Versailles%2C_2008.jpg",
+      "parentId": 51
     },
     {
       "id": 53,
@@ -607,7 +613,8 @@
       "wiki": "Prise de la Bastille",
       "desc": "Le peuple prend la Bastille le 14 juillet 1789. Symbole de la Révolution française.",
       "cat": "politique",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Anonymous_-_Prise_de_la_Bastille.jpg/400px-Anonymous_-_Prise_de_la_Bastille.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Anonymous_-_Prise_de_la_Bastille.jpg/400px-Anonymous_-_Prise_de_la_Bastille.jpg",
+      "parentId": 58
     },
     {
       "id": 58,
@@ -628,7 +635,8 @@
       "wiki": "Louis XVI",
       "desc": "Louis XVI guillotiné le 21 janvier 1793. La monarchie française prend fin pour la première fois.",
       "cat": "politique",
-      "img": ""
+      "img": "",
+      "parentId": 58
     },
     {
       "id": 60,
@@ -657,7 +665,8 @@
       "wiki": "Campagne de Russie",
       "desc": "La Grande Armée envahit la Russie mais recule dévastée par l'hiver. 400 000 soldats meurent.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 60
     },
     {
       "id": 63,
@@ -668,7 +677,8 @@
       "wiki": "Bataille de Waterloo",
       "desc": "Napoléon vaincu par Wellington le 18 juin. Exil définitif à Sainte-Hélène.",
       "cat": "guerre",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Battle_of_Waterloo_1815.PNG/400px-Battle_of_Waterloo_1815.PNG"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Battle_of_Waterloo_1815.PNG/400px-Battle_of_Waterloo_1815.PNG",
+      "parentId": 60
     },
     {
       "id": 64,
@@ -902,7 +912,8 @@
       "wiki": "Bataille de Verdun",
       "desc": "Du 21 février au 18 décembre 1916. 300 000 morts. Symbole de l'horreur des tranchées.",
       "cat": "guerre",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Trench_warfare_-_used_to_illustrate_%22If_ye_break_faith%22.jpg/400px-Trench_warfare_-_used_to_illustrate_%22If_ye_break_faith%22.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Trench_warfare_-_used_to_illustrate_%22If_ye_break_faith%22.jpg/400px-Trench_warfare_-_used_to_illustrate_%22If_ye_break_faith%22.jpg",
+      "parentId": 84
     },
     {
       "id": 86,
@@ -913,7 +924,8 @@
       "wiki": "Révolution russe",
       "desc": "Les bolchéviques prennent le pouvoir le 7 novembre. Naissance de l'URSS, premier État communiste.",
       "cat": "politique",
-      "img": ""
+      "img": "",
+      "parentId": 84
     },
     {
       "id": 87,
@@ -924,7 +936,8 @@
       "wiki": "Armistice du 11 novembre 1918",
       "desc": "L'armistice est signé à 11h le 11 novembre dans la forêt de Compiègne. Fin de la WW1.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 84
     },
     {
       "id": 88,
@@ -946,7 +959,8 @@
       "wiki": "Nazisme",
       "desc": "Hitler prend le pouvoir le 30 janvier 1933. Le nazisme mène à la Shoah et à la Seconde Guerre mondiale.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 91
     },
     {
       "id": 90,
@@ -981,7 +995,8 @@
       "wiki": "Appel du 18 juin",
       "desc": "De Gaulle lance son appel depuis la BBC le 18 juin 1940. Naissance de la France Libre.",
       "cat": "politique",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/De_Gaulle-OWI.jpg/300px-De_Gaulle-OWI.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/De_Gaulle-OWI.jpg/300px-De_Gaulle-OWI.jpg",
+      "parentId": 91
     },
     {
       "id": 93,
@@ -992,7 +1007,8 @@
       "wiki": "Débarquement en Normandie",
       "desc": "Le 6 juin 1944, 150 000 soldats alliés débarquent sur les plages normandes. Tournant de la guerre.",
       "cat": "guerre",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Into_the_Jaws_of_Death_23-0455M_edit.jpg/400px-Into_the_Jaws_of_Death_23-0455M_edit.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Into_the_Jaws_of_Death_23-0455M_edit.jpg/400px-Into_the_Jaws_of_Death_23-0455M_edit.jpg",
+      "parentId": 91
     },
     {
       "id": 94,
@@ -1003,7 +1019,8 @@
       "wiki": "Droit de vote des femmes en France",
       "desc": "L'ordonnance du 21 avril 1944 accorde le droit de vote aux femmes françaises.",
       "cat": "politique",
-      "img": ""
+      "img": "",
+      "parentId": 91
     },
     {
       "id": 95,
@@ -1014,7 +1031,8 @@
       "wiki": "Bombardements atomiques d'Hiroshima et Nagasaki",
       "desc": "La bombe atomique est larguée sur Hiroshima le 6 août 1945. 80 000 morts instantanément.",
       "cat": "guerre",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Atomic_bombing_of_Japan.jpg/400px-Atomic_bombing_of_Japan.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Atomic_bombing_of_Japan.jpg/400px-Atomic_bombing_of_Japan.jpg",
+      "parentId": 91
     },
     {
       "id": 96,
@@ -1025,7 +1043,8 @@
       "wiki": "Bombardement atomique de Nagasaki",
       "desc": "Deuxième bombe larguée sur Nagasaki le 9 août 1945. 40 000 morts. Le Japon capitule.",
       "cat": "guerre",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Atomic_bombing_of_Japan.jpg/400px-Atomic_bombing_of_Japan.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Atomic_bombing_of_Japan.jpg/400px-Atomic_bombing_of_Japan.jpg",
+      "parentId": 91
     },
     {
       "id": 97,
@@ -1036,7 +1055,8 @@
       "wiki": "Organisation des Nations unies",
       "desc": "L'ONU est fondée le 26 juin 1945 à San Francisco pour maintenir la paix mondiale.",
       "cat": "politique",
-      "img": ""
+      "img": "",
+      "parentId": 91
     },
     {
       "id": 98,
@@ -1100,7 +1120,8 @@
       "wiki": "Guerre d'Algérie",
       "desc": "De 1954 à 1962. Fin par les accords d'Évian. L'Algérie indépendante le 5 juillet 1962.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 193
     },
     {
       "id": 104,
@@ -1144,7 +1165,8 @@
       "wiki": "Youri Gagarine",
       "desc": "Le 12 avril 1961, Gagarine est le premier humain dans l'espace. Son vol dure 108 minutes.",
       "cat": "science",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Yuri_Gagarin_%281961%29_-_Restoration.jpg/300px-Yuri_Gagarin_%281961%29_-_Restoration.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Yuri_Gagarin_%281961%29_-_Restoration.jpg/300px-Yuri_Gagarin_%281961%29_-_Restoration.jpg",
+      "parentId": 106
     },
     {
       "id": 108,
@@ -1207,7 +1229,8 @@
       "wiki": "Apollo 11",
       "desc": "Neil Armstrong marche sur la Lune le 21 juillet à 02h56 UTC. 600 millions de téléspectateurs.",
       "cat": "science",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Aldrin_Apollo_11_original.jpg/300px-Aldrin_Apollo_11_original.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Aldrin_Apollo_11_original.jpg/300px-Aldrin_Apollo_11_original.jpg",
+      "parentId": 106
     },
     {
       "id": 114,
@@ -1317,7 +1340,8 @@
       "wiki": "Chute du mur de Berlin",
       "desc": "Le mur de Berlin tombe le 9 novembre 1989. Symbole de la fin de la Guerre froide.",
       "cat": "politique",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/De_muur_van_Berlijn.jpg/400px-De_muur_van_Berlijn.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/De_muur_van_Berlijn.jpg/400px-De_muur_van_Berlijn.jpg",
+      "parentId": 108
     },
     {
       "id": 124,
@@ -1339,7 +1363,8 @@
       "wiki": "Télescope spatial Hubble",
       "desc": "Hubble est lancé le 24 avril 1990. Il révolutionnera notre vision de l'univers pendant 30 ans.",
       "cat": "science",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HST-SM4.jpeg/400px-HST-SM4.jpeg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HST-SM4.jpeg/400px-HST-SM4.jpeg",
+      "parentId": 106
     },
     {
       "id": 126,
@@ -1350,7 +1375,8 @@
       "wiki": "Dissolution de l'Union soviétique",
       "desc": "Gorbatchev démissionne le 25 décembre 1991. L'URSS se dissout en 15 États.",
       "cat": "politique",
-      "img": ""
+      "img": "",
+      "parentId": 108
     },
     {
       "id": 127,
@@ -1526,7 +1552,8 @@
       "wiki": "Mort d'Oussama ben Laden",
       "desc": "Oussama Ben Laden est tué par les forces spéciales américaines au Pakistan le 2 mai 2011.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 133
     },
     {
       "id": 143,
@@ -1636,7 +1663,8 @@
       "wiki": "Retrait du Royaume-Uni de l'Union européenne",
       "desc": "Le Royaume-Uni quitte officiellement l'UE le 31 janvier 2020 à 23h.",
       "cat": "politique",
-      "img": ""
+      "img": "",
+      "parentId": 147
     },
     {
       "id": 153,
@@ -1690,7 +1718,8 @@
       "wiki": "Invasion de l'Irak en 2003",
       "desc": "Les États-Unis et le Royaume-Uni envahissent l'Irak le 20 mars 2003. Saddam Hussein renversé.",
       "cat": "guerre",
-      "img": ""
+      "img": "",
+      "parentId": 133
     },
     {
       "id": 158,
@@ -1723,7 +1752,8 @@
       "wiki": "Voyager 1",
       "desc": "Voyager 1 est lancé le 5 septembre 1977. Il est aujourd'hui l'objet humain le plus lointain.",
       "cat": "science",
-      "img": ""
+      "img": "",
+      "parentId": 106
     },
     {
       "id": 161,
@@ -1735,7 +1765,8 @@
       "wiki": "Station spatiale internationale",
       "desc": "L'ISS est construite entre 1998 et 2011. Symbole de la coopération spatiale internationale.",
       "cat": "science",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HST-SM4.jpeg/400px-HST-SM4.jpeg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HST-SM4.jpeg/400px-HST-SM4.jpeg",
+      "parentId": 106
     },
     {
       "id": 162,
@@ -1749,7 +1780,8 @@
       "wiki": "Jeux olympiques d'été de 2016",
       "desc": "Premiers Jeux Olympiques organisés en Amérique du Sud. Le Brésil accueille 11 000 athlètes.",
       "cat": "sport",
-      "img": ""
+      "img": "",
+      "parentId": 78
     },
     {
       "id": 163,
@@ -1783,7 +1815,8 @@
       "wiki": "Jeux olympiques d'été de 2024",
       "desc": "Paris accueille les JO du 26 juillet au 11 août 2024. 16 médailles d'or pour la France.",
       "cat": "sport",
-      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/2024_Summer_Olympics_Opening_Ceremony_Eiffel_Tower.jpg/400px-2024_Summer_Olympics_Opening_Ceremony_Eiffel_Tower.jpg"
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/2024_Summer_Olympics_Opening_Ceremony_Eiffel_Tower.jpg/400px-2024_Summer_Olympics_Opening_Ceremony_Eiffel_Tower.jpg",
+      "parentId": 78
     },
     {
       "id": 166,
@@ -1857,7 +1890,8 @@
       "desc": "Scipion l'Africain bat Hannibal en Afrique du Nord. Rome domine désormais la Méditerranée occidentale.",
       "cat": "guerre",
       "img": "",
-      "region": "Afrique du Nord"
+      "region": "Afrique du Nord",
+      "parentId": 171
     },
     {
       "id": 173,
@@ -1879,7 +1913,8 @@
       "desc": "La Troisième Croisade voit s'affronter Richard Ier d'Angleterre et Saladin. Elle aboutit à un accord permettant aux chrétiens de visiter Jérusalem.",
       "cat": "guerre",
       "img": "",
-      "region": "Moyen-Orient"
+      "region": "Moyen-Orient",
+      "parentId": 173
     },
     {
       "id": 175,
@@ -1891,7 +1926,8 @@
       "desc": "Hulagu Khan détruit Bagdad et tue le calife abbasside. Fin de l'âge d'or islamique. Des milliers de manuscrits jetés dans le Tigre.",
       "cat": "guerre",
       "img": "",
-      "region": "Irak"
+      "region": "Irak",
+      "parentId": 173
     },
     {
       "id": 176,
