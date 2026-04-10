@@ -1004,186 +1004,305 @@ document.addEventListener('click', e => {
 window.addEventListener('resize', () => { if (currentEra) resetView(); });
 
 /* ═══════════════════════════════════════════════
-   SOUS-FRISES — mini-timeline dans un événement
+   SOUS-FRISES INLINE — affichée sous la frise principale
    ═══════════════════════════════════════════════ */
 
-let subFriseParentId = null; // ID de l'événement parent ouvert
+/* ── État de la sous-frise ── */
+let sfParentId = null;
+let sfScale = 1, sfOffsetX = 0, sfW = 900;
+const SF_H = 220;
+const SF_AY = 110;
+let sfDragging = false, sfDsx = 0, sfDsox = 0;
+let sfLtx = null, sfLtd = null, sfLtcx = null;
+let sfActiveId = null;
 
-/* Ouvre la sous-frise d'un événement parent */
+const sfWrap = document.getElementById('sf-wrap');
+const sfSvgEl = document.getElementById('sf-svg');
+
+/* ── Ouvre la sous-frise inline sous la frise principale ── */
 function openSubFrise(parentId) {
   const parent = events.find(e => e.id === parentId);
   if (!parent) return;
-  subFriseParentId = parentId;
-
-  const modal = document.getElementById('subfrise-modal');
+  sfParentId = parentId;
   const cat = CATS[parent.cat] || CATS.autre;
 
-  // Titre
-  document.getElementById('sf-title').textContent = parent.title;
-  document.getElementById('sf-badge').textContent = fmtDate(parent) + (parent.ye && parent.ye !== parent.y ? ' → ' + fmtY(parent.ye) : '');
-  document.getElementById('sf-badge').style.cssText = `background:${cat.bg};color:${cat.c};font-size:10.5px;padding:3px 10px;border-radius:100px;font-family:var(--fb);font-weight:500`;
+  // Badge titre
+  const badge = document.getElementById('sf-inline-badge');
+  badge.textContent = `${cat.e} ${fmtDate(parent)}${parent.ye && parent.ye !== parent.y ? ' → ' + fmtY(parent.ye) : ''}`;
+  badge.style.cssText = `background:${cat.bg};color:${cat.c};font-size:10px;padding:3px 10px;border-radius:100px;font-family:var(--fb);font-weight:500;flex-shrink:0`;
+  document.getElementById('sf-inline-name').textContent = parent.title;
 
-  renderSubFrise(parentId);
-  modal.classList.add('open');
+  // Reset vue
+  sfScale = 1; sfOffsetX = 0;
+  const sfEl = document.getElementById('sf-inline');
+  sfEl.style.display = 'block';
+  setTimeout(() => { sfResetView(); sfEl.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 50);
 }
 
-function closeSubFrise() {
-  document.getElementById('subfrise-modal').classList.remove('open');
-  subFriseParentId = null;
+function closeInlineSubFrise() {
+  document.getElementById('sf-inline').style.display = 'none';
+  sfParentId = null;
+  sfActiveId = null;
 }
 
-/* Récupère les sous-événements d'un parent */
+/* ── Récupère les sous-événements ── */
 function getSubEvents(parentId) {
   return events.filter(e => e.parentId === parentId).sort((a, b) => a.y - b.y);
 }
 
-/* Rend la mini-frise SVG + la liste */
-function renderSubFrise(parentId) {
-  const parent = events.find(e => e.id === parentId);
+/* ── Range de la sous-frise ── */
+function sfGetRange() {
+  const parent = events.find(e => e.id === sfParentId);
+  if (!parent) return { minY: 0, maxY: 10 };
+  const fromY = parent.y;
+  const toY = parent.ye && parent.ye !== parent.y ? parent.ye : parent.y + 1;
+  const span = Math.max(1, toY - fromY);
+  const pad = span * 0.06;
+  return { minY: fromY - pad, maxY: toY + pad };
+}
+function sfYearToX(y) { const { minY } = sfGetRange(); return 60 + (y - minY) * sfScale + sfOffsetX; }
+function sfXToYear(x) { const { minY } = sfGetRange(); return (x - 60 - sfOffsetX) / sfScale + minY; }
+function sfDefScale() {
+  const { minY, maxY } = sfGetRange();
+  sfW = (sfWrap.clientWidth || window.innerWidth - 20);
+  return Math.max(0.0001, (sfW - 120) / Math.max(1, maxY - minY));
+}
+function sfResetView() {
+  sfW = sfWrap.clientWidth || window.innerWidth - 20;
+  sfScale = sfDefScale(); sfOffsetX = 0;
+  renderSubFrise(); sfUpdZoom();
+}
+function sfZoom(dir) {
+  const midX = sfW / 2;
+  const yAtMid = sfXToYear(midX);
+  sfScale *= dir > 0 ? 1.5 : 1 / 1.5;
+  const ds = sfDefScale(); if (sfScale < ds * 0.98) sfScale = ds;
+  sfOffsetX = midX - 60 - (yAtMid - sfGetRange().minY) * sfScale;
+  renderSubFrise(); sfUpdZoom();
+}
+function sfUpdZoom() {
+  const p = Math.round(sfScale / sfDefScale() * 100) + '%';
+  ['sf-zlbl','sf-zlbl2'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p; });
+}
+function sfPanLeft()  { sfOffsetX += sfW * 0.4; renderSubFrise(); }
+function sfPanRight() { sfOffsetX -= sfW * 0.4; renderSubFrise(); }
+
+function pickSfIv(span) {
+  for (const iv of [1,2,5,10,25,50,100,200,500,1000,2000,5000,10000,50000,100000])
+    if (span / iv <= 12) return iv;
+  return 100000;
+}
+
+/* ── Render de la sous-frise ── */
+function renderSubFrise() {
+  if (!sfParentId) return;
+  const parent = events.find(e => e.id === sfParentId);
   if (!parent) return;
-  const subEvs = getSubEvents(parentId);
   const cat = CATS[parent.cat] || CATS.autre;
+  const subEvs = getSubEvents(sfParentId);
+  sfW = sfWrap.clientWidth || window.innerWidth - 20;
+  if (sfW < 10) return;
 
-  // Mini SVG timeline
-  const svgW = Math.min(860, window.innerWidth - 60);
-  const svgH = 120;
-  const axisY = 60;
-  const fromY = parent.y, toY = parent.ye && parent.ye !== parent.y ? parent.ye : parent.y + 1;
-  const span = toY - fromY || 1;
-  const pad = span * 0.05;
-  const minY = fromY - pad, maxY = toY + pad;
-  const yToX = y => 50 + (y - minY) / (maxY - minY) * (svgW - 100);
+  sfSvgEl.setAttribute('width', sfW);
+  sfSvgEl.setAttribute('height', SF_H);
 
-  let svg = `<svg width="${svgW}" height="${svgH}" style="display:block;width:100%">`;
+  const { minY, maxY } = sfGetRange();
+  const { visMin: sfVisMin, visMax: sfVisMax } = { visMin: Math.max(minY, sfXToYear(0)), visMax: Math.min(maxY, sfXToYear(sfW)) };
+  const sfVisSpan = sfVisMax - sfVisMin;
+  const bg = ERA_BG[currentEra ? currentEra.key : 'xx'] || ERA_BG.xx;
+  let h = '';
 
-  // Fond léger
-  svg += `<rect x="0" y="0" width="${svgW}" height="${svgH}" rx="8" fill="${cat.bg}" opacity=".4"/>`;
+  /* Fond coloré avec la couleur de la catégorie */
+  h += `<defs>
+    <linearGradient id="sf-bgv" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${cat.c}" stop-opacity=".07"/>
+      <stop offset="100%" stop-color="${cat.c}" stop-opacity=".02"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="${sfW}" height="${SF_H}" fill="url(#sf-bgv)"/>`;
 
-  // Axe
-  svg += `<line x1="30" y1="${axisY}" x2="${svgW-30}" y2="${axisY}" stroke="${cat.c}" stroke-width="2" opacity=".4"/>`;
+  /* Axe */
+  h += `<line x1="0" y1="${SF_AY}" x2="${sfW}" y2="${SF_AY}" stroke="${cat.c}" stroke-width="2" opacity=".35"/>`;
 
-  // Bornes
-  const x1 = yToX(fromY), x2 = yToX(toY);
-  svg += `<text x="${x1}" y="${axisY+20}" text-anchor="middle" font-size="10" fill="${cat.c}" font-family="'DM Sans',sans-serif">${fmtY(fromY)}</text>`;
-  svg += `<circle cx="${x1}" cy="${axisY}" r="5" fill="${cat.c}" opacity=".6"/>`;
-  if (toY !== fromY) {
-    svg += `<text x="${x2}" y="${axisY+20}" text-anchor="middle" font-size="10" fill="${cat.c}" font-family="'DM Sans',sans-serif">${fmtY(toY)}</text>`;
-    svg += `<circle cx="${x2}" cy="${axisY}" r="5" fill="${cat.c}" opacity=".6"/>`;
+  /* Bornes du parent */
+  const px1 = sfYearToX(parent.y);
+  const px2 = parent.ye && parent.ye !== parent.y ? sfYearToX(parent.ye) : sfYearToX(parent.y);
+  if (px1 >= 0 && px1 <= sfW) {
+    h += `<circle cx="${px1}" cy="${SF_AY}" r="6" fill="${cat.c}" opacity=".8"/>`;
+    h += `<text x="${px1}" y="${SF_AY+20}" text-anchor="middle" font-size="10" fill="${cat.c}" font-family="'DM Sans',sans-serif" font-weight="600">${fmtY(parent.y)}</text>`;
+  }
+  if (parent.ye && parent.ye !== parent.y && px2 >= 0 && px2 <= sfW) {
+    h += `<circle cx="${px2}" cy="${SF_AY}" r="6" fill="${cat.c}" opacity=".8"/>`;
+    h += `<text x="${px2}" y="${SF_AY+20}" text-anchor="middle" font-size="10" fill="${cat.c}" font-family="'DM Sans',sans-serif" font-weight="600">${fmtY(parent.ye)}</text>`;
+    if (px1 >= 0 && px2 >= 0) h += `<rect x="${Math.max(0,px1)}" y="${SF_AY-2}" width="${Math.max(0,Math.min(sfW,px2)-Math.max(0,px1))}" height="4" fill="${cat.c}" opacity=".2"/>`;
   }
 
-  // Ticks intermédiaires
-  const iv = pickSubFriseIv(span);
-  const st = Math.ceil(fromY / iv) * iv;
-  for (let y = st; y < toY; y += iv) {
-    const x = yToX(y);
-    if (x < 35 || x > svgW - 35) continue;
-    svg += `<line x1="${x}" y1="${axisY-8}" x2="${x}" y2="${axisY+8}" stroke="${cat.c}" stroke-width=".7" opacity=".3"/>`;
-    svg += `<text x="${x}" y="${axisY+20}" text-anchor="middle" font-size="9" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${y < 0 ? Math.abs(y) + ' av.' : y}</text>`;
+  /* Ticks adaptatifs */
+  const iv = pickSfIv(sfVisSpan);
+  const st = Math.floor(sfVisMin / iv) * iv;
+  for (let y = st; y <= sfVisMax; y += iv) {
+    if (y < minY || y > maxY) continue;
+    const x = sfYearToX(y);
+    if (x < 30 || x > sfW - 10) continue;
+    h += `<line x1="${x}" y1="${SF_AY-8}" x2="${x}" y2="${SF_AY+8}" stroke="${cat.c}" stroke-width=".6" opacity=".3"/>`;
+    h += `<text x="${x}" y="${SF_AY+20}" text-anchor="middle" font-size="9" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${y < 0 ? Math.abs(y) + ' av.' : y}</text>`;
   }
 
-  // Sous-événements sur la mini-frise
+  /* Placement des sous-événements */
+  const raw = [];
+  const rowLast = {};
   subEvs.forEach((ev, i) => {
-    const x = yToX(yearFrac(ev.y, ev.m, ev.d));
-    if (x < 20 || x > svgW - 20) return;
-    const evCat = CATS[ev.cat] || CATS.autre;
-    const above = i % 2 === 0;
-    const tipY = above ? axisY - 28 : axisY + 28;
-    svg += `<circle cx="${x}" cy="${axisY}" r="5" fill="${evCat.c}" stroke="var(--paper)" stroke-width="1.5"/>`;
-    svg += `<line x1="${x}" y1="${axisY}" x2="${x}" y2="${tipY}" stroke="${evCat.c}" stroke-width="1" stroke-dasharray="2 2" opacity=".5"/>`;
-    const label = ev.title.length > 18 ? ev.title.slice(0, 17) + '…' : ev.title;
-    svg += `<text x="${x}" y="${above ? tipY - 5 : tipY + 13}" text-anchor="middle" font-size="9" fill="${evCat.c}" font-family="'DM Sans',sans-serif">${label}</text>`;
+    const px = sfYearToX(yearFrac(ev.y, ev.m, ev.d));
+    let row = i % 2 === 0 ? -1 : 1;
+    let found = false;
+    for (let depth = 1; depth <= 6 && !found; depth++) {
+      for (const r of [-depth, depth]) {
+        if (!rowLast[r] || px - rowLast[r] > 80) { row = r; found = true; break; }
+      }
+    }
+    rowLast[row] = px;
+    raw.push({ ...ev, row, px });
   });
 
-  svg += '</svg>';
-  document.getElementById('sf-svg-wrap').innerHTML = svg;
+  /* Tige et carte pour chaque sous-événement */
+  raw.forEach(ev => {
+    const px = ev.px;
+    if (px < -60 || px > sfW + 60) return;
+    const evCat = CATS[ev.cat] || CATS.autre;
+    const above = ev.row < 0;
+    const depth = Math.abs(ev.row);
+    const maxSl = above ? SF_AY - 46 : SF_H - SF_AY - 46;
+    const sl = Math.max(0, Math.min(28 + depth * 18, maxSl));
+    if (sl < 5) return;
+    const tipY = above ? SF_AY - sl : SF_AY + sl;
+    const by = above ? tipY - 36 : tipY;
+    if (by < 3 || by + 36 > SF_H - 3) return;
 
-  // Liste des sous-événements
-  const listEl = document.getElementById('sf-events');
+    const isFav = favorites.has(ev.id);
+    const isActive = ev.id === sfActiveId;
+    const label = ev.title.length > 22 ? ev.title.slice(0, 21) + '…' : ev.title;
+    const bw = Math.min(label.length * 6.8 + 28, 180);
+    const bx = Math.max(4, Math.min(px - bw / 2, sfW - bw - 4));
+
+    // Halo si actif
+    if (isActive) h += `<rect x="${bx-4}" y="${by-4}" width="${bw+8}" height="44" rx="12" fill="${evCat.c}" opacity=".15"/>`;
+
+    // Dot
+    h += `<circle cx="${px}" cy="${SF_AY}" r="5" fill="${evCat.c}" opacity=".17" data-sfid="${ev.id}"/>`;
+    h += `<circle cx="${px}" cy="${SF_AY}" r="3.5" fill="${evCat.c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-sfid="${ev.id}"/>`;
+    if (isFav) h += `<text x="${px+5}" y="${SF_AY-4}" font-size="8" fill="#f59e0b" style="pointer-events:none">★</text>`;
+
+    // Tige
+    h += `<line x1="${px}" y1="${SF_AY+(above?-3:3)}" x2="${px}" y2="${tipY}" stroke="${evCat.c}" stroke-width=".9" stroke-dasharray="2 2.5" opacity=".4"/>`;
+
+    // Carte
+    h += `<rect x="${bx}" y="${by}" width="${bw}" height="36" rx="8" fill="var(--paper)" stroke="${evCat.c}" stroke-width="${isActive?1.75:.7}" style="cursor:pointer" data-sfid="${ev.id}"/>`;
+    h += `<rect x="${bx}" y="${by}" width="${bw}" height="4" rx="4" fill="${evCat.c}" opacity=".8" style="pointer-events:none"/>`;
+    if (isFav) h += `<text x="${bx+bw-8}" y="${by+29}" font-size="8" fill="#f59e0b" text-anchor="middle" style="pointer-events:none">★</text>`;
+    h += `<text x="${bx+8}" y="${by+17}" font-size="10.5" font-weight="500" fill="${evCat.c}" font-family="'Playfair Display',serif" style="cursor:pointer" data-sfid="${ev.id}">${label}</text>`;
+    h += `<text x="${bx+8}" y="${by+28}" font-size="9" fill="${evCat.c}" opacity=".65" font-family="'DM Sans',sans-serif" data-sfid="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
+  });
+
+  /* Message si vide */
   if (subEvs.length === 0) {
-    listEl.innerHTML = `<div style="padding:1rem;text-align:center;color:var(--ink3);font-size:13px">
-      Aucun sous-événement encore. Ajoutez-en un ci-dessous !
-    </div>`;
-  } else {
-    listEl.innerHTML = subEvs.map(ev => {
-      const evCat = CATS[ev.cat] || CATS.autre;
-      return `<div class="subfrise-ev-item" onclick="openCard(${ev.id},{clientX:200,clientY:200})">
-        <div class="subfrise-ev-dot" style="background:${evCat.c}"></div>
-        <div style="flex:1;min-width:0">
-          <div class="subfrise-ev-title">${ev.title} <span style="color:#f59e0b">${favorites.has(ev.id)?'★':''}</span></div>
-          <div class="subfrise-ev-date">${fmtDate(ev)}${fmtDateEnd(ev)?' → '+fmtDateEnd(ev):''} · ${evCat.e} ${evCat.l}</div>
-          ${ev.desc ? `<div class="subfrise-ev-desc">${ev.desc}</div>` : ''}
-        </div>
-        <button onclick="event.stopPropagation();deleteSubEv(${ev.id})" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;padding:2px 6px;border-radius:50%;flex-shrink:0" title="Supprimer">✕</button>
-      </div>`;
-    }).join('');
+    h += `<text x="${sfW/2}" y="${SF_AY-15}" text-anchor="middle" font-size="13" fill="${cat.c}" opacity=".5" font-family="'DM Sans',sans-serif">Aucun sous-événement — cliquez ＋ pour en ajouter</text>`;
   }
+
+  sfSvgEl.innerHTML = h;
+  sfSvgEl.querySelectorAll('[data-sfid]').forEach(el => {
+    const id = parseInt(el.dataset.sfid);
+    el.addEventListener('click', e => { e.stopPropagation(); sfOpenCard(id, e); });
+  });
+  clearSubClusters();
 }
 
-function pickSubFriseIv(span) {
-  for (const iv of [1,2,5,10,25,50,100,200,500,1000]) {
-    if (span / iv <= 8) return iv;
-  }
-  return 1000;
+/* Ouvre la fiche d'un sous-événement */
+function sfOpenCard(id, e) {
+  sfActiveId = id;
+  renderSubFrise();
+  // Réutilise la popup principale
+  openCard(id, e);
 }
 
-/* Ajoute un sous-événement rapide */
-function addSubEventQuick() {
-  const parent = events.find(e => e.id === subFriseParentId);
+function clearSubClusters() {
+  document.querySelectorAll('.sf-cluster-ov').forEach(e => e.remove());
+}
+
+/* ── Drag et zoom de la sous-frise ── */
+sfWrap.addEventListener('mousedown', e => {
+  if (e.target.dataset.sfid) return;
+  sfDragging = true; sfDsx = e.clientX; sfDsox = sfOffsetX; sfWrap.classList.add('dragging');
+});
+window.addEventListener('mousemove', e => {
+  if (!sfDragging) return;
+  sfOffsetX = sfDsox + (e.clientX - sfDsx); renderSubFrise();
+});
+window.addEventListener('mouseup', () => { sfDragging = false; sfWrap.classList.remove('dragging'); });
+
+sfWrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f = e.deltaY < 0 ? 1.18 : 1/1.18;
+  const mx = e.clientX - sfWrap.getBoundingClientRect().left;
+  const yAM = sfXToYear(mx);
+  sfScale *= f;
+  const ds = sfDefScale(); if (sfScale < ds * 0.98) sfScale = ds;
+  sfOffsetX = mx - 60 - (yAM - sfGetRange().minY) * sfScale;
+  renderSubFrise(); sfUpdZoom();
+}, { passive: false });
+
+sfWrap.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    sfLtd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    sfLtcx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - sfWrap.getBoundingClientRect().left;
+    sfLtx = null;
+  } else { sfLtx = e.touches[0].clientX; sfLtd = null; }
+}, { passive: true });
+
+sfWrap.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && sfLtd !== null) {
+    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - sfWrap.getBoundingClientRect().left;
+    const yAC = sfXToYear(sfLtcx);
+    sfScale *= d / sfLtd;
+    const ds = sfDefScale(); if (sfScale < ds * 0.98) sfScale = ds;
+    sfLtd = d; sfLtcx = cx;
+    sfOffsetX = cx - 60 - (yAC - sfGetRange().minY) * sfScale;
+    renderSubFrise(); sfUpdZoom();
+  } else if (sfLtx !== null && e.touches.length === 1) {
+    sfOffsetX += e.touches[0].clientX - sfLtx; sfLtx = e.touches[0].clientX; renderSubFrise();
+  }
+}, { passive: true });
+sfWrap.addEventListener('touchend', () => { sfLtx = null; sfLtd = null; sfLtcx = null; });
+
+window.addEventListener('resize', () => { if (sfParentId) renderSubFrise(); });
+
+/* ── Ajout de sous-événement ── */
+function openAddSubEvent() {
+  const parent = events.find(e => e.id === sfParentId);
   if (!parent) return;
-  closeSubFrise();
-  // Ouvrir le formulaire pré-rempli pour un sous-événement
+  const sfEl = document.getElementById('sf-inline');
   openAdd();
-  // Pré-remplir la date au milieu de l'événement parent
   const midYr = Math.round((parent.y + (parent.ye || parent.y)) / 2);
   document.getElementById('fy').value = midYr;
   document.getElementById('fc').value = parent.cat;
   buildCatPick(parent.cat);
-  // Stocker l'ID parent pour la sauvegarde
   document.getElementById('mbg').dataset.parentId = parent.id;
 }
 
-/* Ouvre le formulaire complet pour un sous-événement */
-function openAddSubEvent() {
-  addSubEventQuick();
-}
-
-/* Supprime un sous-événement */
-function deleteSubEv(id) {
-  if (!confirm('Supprimer ce sous-événement ?')) return;
-  if (window.__firebaseDelete) window.__firebaseDelete(id);
-  favorites.delete(id); saveFavs();
-  events = events.filter(e => e.id !== id);
-  saveSt();
-  renderSubFrise(subFriseParentId);
-  render(); buildEraStrip(); updateEvCount();
-}
-
-/* Patch saveEv pour gérer le parentId */
-const _origSaveEv = saveEv;
-// On surcharge saveEv pour injecter parentId si besoin
-window.addEventListener('load', () => {
-  const origSave = document.getElementById('mbg').querySelector('.bsave');
-  if (origSave) return; // déjà patché
-});
-
-// Intercepter la sauvegarde pour ajouter parentId
 function saveEvWithParent() {
   const parentId = document.getElementById('mbg').dataset.parentId;
-  saveEv(); // appel original
-  // Si on vient de créer un event (editId était null), on lui met le parentId
-  if (!editId && parentId) {
-    const newEv = events[events.length - 1];
+  const wasEdit = !!editId;
+  saveEv();
+  if (!wasEdit && parentId) {
+    const newEv = [...events].reverse().find(e => !e.parentId && e.updatedAt);
     if (newEv) {
       newEv.parentId = parseInt(parentId);
       saveSt();
     }
     delete document.getElementById('mbg').dataset.parentId;
-    // Réouvrir la sous-frise
-    setTimeout(() => openSubFrise(parseInt(parentId)), 300);
+    setTimeout(() => {
+      if (sfParentId === parseInt(parentId)) renderSubFrise();
+      else openSubFrise(parseInt(parentId));
+    }, 400);
   }
 }
-
-/* Fermeture de la sous-frise */
-document.getElementById('subfrise-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeSubFrise();
-});
