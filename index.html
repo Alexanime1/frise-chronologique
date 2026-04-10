@@ -71,6 +71,7 @@
   </div>
 
   <div id="tl-outer">
+    <!-- FRISE PRINCIPALE -->
     <div class="tl-header">
       <div class="tl-era-badge">
         <div class="tl-era-dot" id="tl-dot"></div>
@@ -84,18 +85,48 @@
       </div>
     </div>
     <div id="tl-wrap"><svg id="tl-svg" height="340"></svg></div>
+    <!-- Navigation mobile frise principale -->
     <div class="tl-mobile-nav">
-      <button onclick="panLeft()">← Préc.</button>
+      <button class="nav-btn" onclick="panLeft()">← Préc.</button>
       <div class="nav-zoom">
-        <button onclick="zoom(-1)" style="width:38px">−</button>
+        <button class="nav-btn" onclick="zoom(-1)" style="width:38px">−</button>
         <span class="zoom-lbl" id="zlbl3" style="min-width:42px;text-align:center">100%</span>
-        <button onclick="zoom(1)" style="width:38px">+</button>
+        <button class="nav-btn" onclick="zoom(1)" style="width:38px">+</button>
       </div>
-      <button onclick="panRight()">Suiv. →</button>
+      <button class="nav-btn" onclick="panRight()">Suiv. →</button>
+    </div>
+
+    <!-- SOUS-FRISE INLINE — apparaît sous la frise principale quand on clique 🔍 -->
+    <div id="sf-inline" style="display:none">
+      <div class="sf-inline-header">
+        <div class="sf-inline-title">
+          <span id="sf-inline-badge"></span>
+          <span id="sf-inline-name"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button class="btn" onclick="sfZoom(-1)" style="padding:5px 9px">−</button>
+          <span class="zoom-lbl" id="sf-zlbl" style="min-width:32px;text-align:center">100%</span>
+          <button class="btn" onclick="sfZoom(1)" style="padding:5px 9px">+</button>
+          <button class="btn" onclick="openAddSubEvent()" title="Ajouter un sous-événement">＋</button>
+          <button class="tl-close" onclick="closeInlineSubFrise()">✕</button>
+        </div>
+      </div>
+      <!-- Canvas de la sous-frise -->
+      <div id="sf-wrap" style="position:relative;touch-action:none;cursor:grab"><svg id="sf-svg" height="220"></svg></div>
+      <!-- Navigation mobile sous-frise -->
+      <div class="tl-mobile-nav">
+        <button class="nav-btn" onclick="sfPanLeft()">← Préc.</button>
+        <div class="nav-zoom">
+          <button class="nav-btn" onclick="sfZoom(-1)" style="width:38px">−</button>
+          <span class="zoom-lbl" id="sf-zlbl2" style="min-width:42px;text-align:center">100%</span>
+          <button class="nav-btn" onclick="sfZoom(1)" style="width:38px">+</button>
+        </div>
+        <button class="nav-btn" onclick="sfPanRight()">Suiv. →</button>
+      </div>
     </div>
   </div>
 
-  <footer>200 événements historiques · Synchronisé via Firebase · <span id="ev-count"></span></footer>
+  <footer>300 événements historiques · Sous-frises interactives · <span id="ev-count"></span></footer>
 </div>
 
 <div id="tip"></div>
@@ -276,25 +307,6 @@ window.manualSync = function() {
 // Démarrage Firebase après chargement de la page
 window.addEventListener('load', initFirebase);
 </script>
-<!-- SOUS-FRISE MODAL -->
-<div id="subfrise-modal" class="subfrise-modal">
-  <div class="subfrise-box">
-    <div class="subfrise-header">
-      <div class="subfrise-title">
-        🔍 <span id="sf-title">Événement</span>
-        <span id="sf-badge"></span>
-      </div>
-      <button onclick="closeSubFrise()" style="background:none;border:1px solid var(--paper3);border-radius:100px;padding:5px 12px;cursor:pointer;font-family:var(--fb);font-size:12px;color:var(--ink3)">✕ Fermer</button>
-    </div>
-    <div class="subfrise-svg-wrap" id="sf-svg-wrap"></div>
-    <div class="subfrise-events" id="sf-events"></div>
-    <div class="subfrise-add">
-      <span style="font-size:13px;color:var(--ink3);flex-shrink:0">Ajouter un sous-événement :</span>
-      <button class="btn primary" onclick="openAddSubEvent()" style="flex-shrink:0">＋ Ajouter</button>
-    </div>
-  </div>
-</div>
-
 <script src="script.js"></script>
 <script>
 /* ── Gestion des thèmes ── */
