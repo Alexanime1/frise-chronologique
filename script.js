@@ -202,7 +202,10 @@ function fmtDateEnd(ev) {
   if (ev.me) s += MN[ev.me] + ' ';
   return s + fmtY(ev.ye);
 }
-function midY(ev) { return (ev.ye && ev.ye !== ev.y) ? (ev.y + ev.ye) / 2 : ev.y; }
+function midY(ev) {
+  const ye = ev.ye && ev.ye !== ev.y ? Math.min(ev.ye, TODAY_Y) : ev.y;
+  return (ev.ye && ev.ye !== ev.y) ? (ev.y + ye) / 2 : ev.y;
+}
 function yearFrac(y, m, d) {
   if (!m) return y;
   const days = new Date(Math.abs(y), m, 0).getDate();
@@ -875,6 +878,7 @@ function openAdd() {
     const mid = Math.round((currentEra.from + Math.min(eraToY(), TODAY_Y)) / 2);
     document.getElementById('fy').value = mid;
   }
+// Pré-remplir "Date de fin" avec aujourd'hui si besoin (optionnel, bouton rapide)
   buildCatPick('autre');
   document.getElementById('bdel').style.display = 'none';
   document.getElementById('mbg').classList.add('open');
@@ -902,9 +906,28 @@ function openEdit(id) {
 function closeMod() { document.getElementById('mbg').classList.remove('open'); }
 
 function saveEv() {
+ function saveEv() {
   const title = (document.getElementById('ft').value || '').trim();
   const yv    = (document.getElementById('fy').value || '').trim();
   if (!title) { document.getElementById('ft').style.borderColor='#f03060'; document.getElementById('ft').focus(); return; }
+  if (!yv)    { document.getElementById('fy').style.borderColor='#f03060'; document.getElementById('fy').focus(); return; }
+  const y = parseInt(yv);
+  if (isNaN(y)) { document.getElementById('fy').style.borderColor='#f03060'; return; }
+
+  const mRaw = document.getElementById('fm').value; const m = mRaw ? parseInt(mRaw) : undefined;
+  const dRaw = document.getElementById('fd2').value; const d = dRaw ? parseInt(dRaw) : undefined;
+
+  // ── Vérification doublon ──
+  const dupes = findDuplicates(title, y, m, d, editId);
+  if (dupes.length > 0) {
+    const names = dupes.slice(0,3).map(e => `• ${e.title} (${fmtY(e.y)})`).join('\n');
+    const ok = confirm(`⚠️ Événement similaire déjà existant :\n\n${names}\n\nVoulez-vous quand même l'enregistrer ?`);
+    if (!ok) return;
+  }
+
+  document.getElementById('ft').style.borderColor = '';
+  document.getElementById('fy').style.borderColor = '';
+  // ... suite normale
   if (!yv)    { document.getElementById('fy').style.borderColor='#f03060'; document.getElementById('fy').focus(); return; }
   const y = parseInt(yv);
   if (isNaN(y)) { document.getElementById('fy').style.borderColor='#f03060'; return; }
@@ -912,7 +935,13 @@ function saveEv() {
   document.getElementById('fy').style.borderColor = '';
   const mRaw = document.getElementById('fm').value;   const m  = mRaw  ? parseInt(mRaw)  : undefined;
   const dRaw = document.getElementById('fd2').value;  const d  = dRaw  ? parseInt(dRaw)  : undefined;
-  const yeRaw = (document.getElementById('fye').value||'').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
+  // AVANT
+const yeRaw = (document.getElementById('fye').value||'').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
+
+// APRÈS
+const yeRaw = (document.getElementById('fye').value||'').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
+// Si l'event est "en cours" (ex: ye = année future), on limite à aujourd'hui à l'affichage
+// Rien à changer ici, mais dans midY() :
   const meRaw = document.getElementById('fme').value; const me = meRaw ? parseInt(meRaw) : undefined;
   const deRaw = document.getElementById('fde').value; const de = deRaw ? parseInt(deRaw) : undefined;
   const desc   = document.getElementById('fdesc').value.trim();
@@ -931,6 +960,32 @@ function saveEv() {
   if (era && (!currentEra || currentEra.key !== era.key)) selectEra(era.key);
   else { render(); updZoom(); }
   setTimeout(() => { hlId = obj.id; render(); setTimeout(() => { hlId = null; render(); }, 2000); }, 300);
+}
+/* ── Détection de doublons ── */
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i ? j ? 0 : i : j));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function findDuplicates(title, y, m, d, excludeId) {
+  const tl = title.toLowerCase().trim();
+  return events.filter(ev => {
+    if (ev.id === excludeId) return false;
+    const evTl = (ev.title || '').toLowerCase().trim();
+    // Même titre exact ou très similaire
+    const dist = levenshtein(tl, evTl);
+    const maxLen = Math.max(tl.length, evTl.length);
+    const similar = dist / maxLen < 0.3; // moins de 30% de différence
+    // Même année (et même mois si renseigné)
+    const sameYear = ev.y === y;
+    const sameMonth = !m || !ev.m || ev.m === m;
+    const sameDay = !d || !ev.d || ev.d === d;
+    return similar || (sameYear && sameMonth && sameDay && evTl.includes(tl.slice(0,5)));
+  });
 }
 function deleteEv() {
   if (!editId || !confirm('Supprimer cet événement ?')) return;
@@ -1287,6 +1342,17 @@ function openAddSubEvent() {
   document.getElementById('fc').value = parent.cat;
   buildCatPick(parent.cat);
   document.getElementById('mbg').dataset.parentId = parent.id;
+}
+function shareApp() {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: 'Ma Frise Chronologique', text: '500 événements historiques interactifs !', url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector('[onclick="shareApp()"]');
+      if (btn) { btn.textContent = '✓ Copié !'; setTimeout(() => btn.textContent = '🔗 Partager', 2000); }
+    });
+  }
 }
 
 function saveEvWithParent() {
