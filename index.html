@@ -14,11 +14,6 @@
 <meta name="robots" content="index, follow"/>
 <link rel="canonical" href="https://alexanime1.github.io/frise-chronologique/"/>
 <title>Ma Frise Chronologique — 500 événements historiques interactifs</title>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover"/>
-<meta name="theme-color" content="#f6f0e6"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<title>Ma Frise Chronologique</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
 </head>
@@ -40,14 +35,14 @@
     <button class="btn primary" onclick="openAdd()">＋ Ajouter</button>
     <div class="sep"></div>
     <button class="btn" onclick="manualSync()" title="Synchroniser">🔄</button>
-    <div class="sep"></div>
-<button class="btn" onclick="shareApp()" title="Partager le site">🔗 Partager</button>
     <span class="sync-status" id="sync-status"></span>
     <div class="sep"></div>
+    <button class="btn" onclick="shareApp()" title="Partager le site">🔗 Partager</button>
+    <div class="sep"></div>
     <div class="theme-picker" title="Changer de thème">
-      <button class="theme-btn active" data-t="light"    onclick="setTheme('light')"    title="Clair"></button>
-      <button class="theme-btn"        data-t="dark"     onclick="setTheme('dark')"     title="Sombre"></button>
-      <button class="theme-btn"        data-t="sepia"    onclick="setTheme('sepia')"    title="Sépia"></button>
+      <button class="theme-btn active" data-t="light"     onclick="setTheme('light')"     title="Clair"></button>
+      <button class="theme-btn"        data-t="dark"      onclick="setTheme('dark')"      title="Sombre"></button>
+      <button class="theme-btn"        data-t="sepia"     onclick="setTheme('sepia')"     title="Sépia"></button>
       <button class="theme-btn"        data-t="parchment" onclick="setTheme('parchment')" title="Parchemin"></button>
     </div>
   </div>
@@ -61,7 +56,6 @@
 
   <div class="legend" id="legend"></div>
 
-  <!-- Filtre Favoris + Filtre Région -->
   <div class="filter-bar">
     <button class="btn" id="fav-filter-btn" onclick="toggleFavsFilter()" style="gap:4px">☆ Favoris</button>
     <div class="region-search-wrap">
@@ -86,7 +80,6 @@
   </div>
 
   <div id="tl-outer">
-    <!-- FRISE PRINCIPALE -->
     <div class="tl-header">
       <div class="tl-era-badge">
         <div class="tl-era-dot" id="tl-dot"></div>
@@ -100,7 +93,6 @@
       </div>
     </div>
     <div id="tl-wrap"><svg id="tl-svg" height="340"></svg></div>
-    <!-- Navigation mobile frise principale -->
     <div class="tl-mobile-nav">
       <button class="nav-btn" onclick="panLeft()">← Préc.</button>
       <div class="nav-zoom">
@@ -111,7 +103,6 @@
       <button class="nav-btn" onclick="panRight()">Suiv. →</button>
     </div>
 
-    <!-- SOUS-FRISE INLINE — apparaît sous la frise principale quand on clique 🔍 -->
     <div id="sf-inline" style="display:none">
       <div class="sf-inline-header">
         <div class="sf-inline-title">
@@ -126,9 +117,7 @@
           <button class="tl-close" onclick="closeInlineSubFrise()">✕</button>
         </div>
       </div>
-      <!-- Canvas de la sous-frise -->
       <div id="sf-wrap" style="position:relative;touch-action:none;cursor:grab"><svg id="sf-svg" height="220"></svg></div>
-      <!-- Navigation mobile sous-frise -->
       <div class="tl-mobile-nav">
         <button class="nav-btn" onclick="sfPanLeft()">← Préc.</button>
         <div class="nav-zoom">
@@ -141,7 +130,7 @@
     </div>
   </div>
 
-  <footer>300 événements historiques · Sous-frises interactives · <span id="ev-count"></span></footer>
+  <footer>500 événements historiques · Sous-frises interactives · <span id="ev-count"></span></footer>
 </div>
 
 <div id="tip"></div>
@@ -207,7 +196,7 @@
           <select id="fme"><option value="">Mois</option><option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option><option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option><option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option><option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option></select>
           <input id="fde" type="number" min="1" max="31" placeholder="Jour"/>
         </div>
-        <div class="fr-hint">Vide = événement ponctuel</div>
+        <div class="fr-hint">Laisser vide = événement ponctuel · Mettre l'année en cours = "jusqu'à aujourd'hui"</div>
       </div>
       <div class="fr s2"><label>Catégorie</label><div class="cat-pick" id="cpick"></div><input type="hidden" id="fc" value="autre"/></div>
       <div class="fr s2"><label>Description</label><textarea id="fdesc" placeholder="Décrivez cet événement…"></textarea></div>
@@ -247,7 +236,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, setDoc, deleteDoc, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ✅ CONFIG COMPLÈTE avec vos vraies valeurs
 const firebaseConfig = {
   apiKey: "AIzaSyCLVkOkURM2lFWw7d0QlSxfxdCCTyxTGxk",
   authDomain: "frise-chronologique-535d1.firebaseapp.com",
@@ -273,8 +261,6 @@ async function initFirebase() {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     setSt('Connexion…', null);
-
-    // Écoute temps réel : dès qu'un appareil ajoute un événement, tous les autres le reçoivent
     onSnapshot(collection(db, 'events'), snap => {
       const remote = [];
       snap.forEach(d => remote.push(d.data()));
@@ -292,11 +278,9 @@ async function initFirebase() {
   }
 }
 
-// Sauvegarde chaque événement individuellement dans Firestore
 window.__firebaseSave = async function(evArr) {
   if (!db) return;
   try {
-    // On sauvegarde seulement les événements récents (updatedAt dans les dernières 5s)
     const recent = evArr.filter(ev => ev.updatedAt && Date.now() - ev.updatedAt < 5000);
     for (const ev of recent) {
       await setDoc(doc(db, 'events', String(ev.id)), ev);
@@ -315,16 +299,13 @@ window.__firebaseDelete = async function(id) {
 
 window.manualSync = function() {
   setSt('Synchronisation en cours…', null);
-  // onSnapshot s'occupe de tout, juste afficher le statut
   setTimeout(() => setSt('Synchronisé ✓', true), 1000);
 };
 
-// Démarrage Firebase après chargement de la page
 window.addEventListener('load', initFirebase);
 </script>
 <script src="script.js"></script>
 <script>
-/* ── Gestion des thèmes ── */
 function setTheme(t) {
   document.documentElement.setAttribute('data-theme', t === 'light' ? '' : t);
   localStorage.setItem('frise_theme', t);
@@ -332,7 +313,6 @@ function setTheme(t) {
     btn.classList.toggle('active', btn.dataset.t === t);
   });
 }
-// Restaurer le thème sauvegardé au démarrage (avant le rendu)
 (function(){
   const saved = localStorage.getItem('frise_theme') || 'light';
   setTheme(saved);
