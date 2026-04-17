@@ -42,7 +42,7 @@ const CONTINENTS = {
   'Afrique':       ['Égypte','Algérie','Rwanda','Maroc','Tunisie','Afrique du Sud','Mali','Éthiopie','Libye','Soudan','Congo','Mozambique','Zimbabwe'],
   'Moyen-Orient':  ['Israël','Palestine','Arabie','Arabie Saoudite','Irak','Iran','Syrie','Liban','Jordanie','Yémen','Koweït','Turquie','Ottoman','Suez'],
   'Océanie':       ['Australie','Nouvelle-Zélande','Polynésie','Pacifique'],
-  'Monde entier':  ['Monde','mondial','mondial','universel','ONU','international','Europe','Occident','Alliés'],
+  'Monde entier':  ['Monde','mondial','universel','ONU','international','Europe','Occident','Alliés'],
 };
 
 /* ── Storage ── */
@@ -51,46 +51,23 @@ function loadLocal() { try { const s = localStorage.getItem(SK); return s ? JSON
 function saveLocal() { try { localStorage.setItem(SK, JSON.stringify(events)); } catch(e) {} }
 
 /* ── État global ── */
-let events = [];        // tous les événements (base + ajoutés)
-let baseIds = new Set();// IDs des événements de base (depuis JSONbin)
+let events = [];
+let baseIds = new Set();
 let nextId = 1;
 let favorites = new Set(JSON.parse(localStorage.getItem('frise_favs') || '[]'));
 
 function saveFavs() { localStorage.setItem('frise_favs', JSON.stringify([...favorites])); }
 
-/* ─────────────────────────────────────────────────────────────
-   CORRECTION DU BUG PRINCIPAL :
-   
-   Avant : startApp prenait les données locales si elles existaient,
-   ignorant les events de base. Résultat : les 166 events JSONbin
-   disparaissaient si l'user avait ajouté 1 event.
-   
-   Fix : on fusionne toujours les events de base AVEC les events locaux.
-   La règle : event de base = id dans baseIds. Event ajouté = id absent de baseIds.
-   On garde TOUJOURS les deux.
-   ──────────────────────────────────────────────────────────── */
 function startApp(defaults, cats) {
   if (cats) CATS = cats;
-
-  // Mémoriser les IDs de base
   baseIds = new Set(defaults.map(e => e.id));
-
-  // Charger les events sauvegardés localement
   const saved = loadLocal() || [];
-
-  // Séparer : events ajoutés par l'utilisateur (pas dans baseIds)
   const userAdded = saved.filter(e => !baseIds.has(e.id));
-
-  // Fusionner : base + ajouts utilisateur
-  // Pour les events de base : prendre la version locale si elle a été modifiée (updatedAt > 0)
   const merged = defaults.map(base => {
     const localVersion = saved.find(e => e.id === base.id);
     return (localVersion && (localVersion.updatedAt || 0) > 0) ? localVersion : base;
   });
-
-  // Ajouter les events créés par l'utilisateur
   userAdded.forEach(ev => merged.push(ev));
-
   events = merged;
   nextId = Math.max(...events.map(e => e.id), 0) + 1;
   saveLocal();
@@ -100,21 +77,14 @@ function startApp(defaults, cats) {
   updateEvCount();
 }
 
-/* Merge depuis Firebase (temps réel) */
 window.__mergeRemote = function(remote) {
   if (!remote || remote.length === 0) return;
   let changed = false;
   remote.forEach(r => {
     if (!r || !r.id) return;
     const loc = events.find(e => e.id === r.id);
-    if (!loc) {
-      // Nouvel event ajouté depuis un autre appareil
-      events.push(r);
-      changed = true;
-    } else if ((r.updatedAt || 0) > (loc.updatedAt || 0)) {
-      Object.assign(loc, r);
-      changed = true;
-    }
+    if (!loc) { events.push(r); changed = true; }
+    else if ((r.updatedAt || 0) > (loc.updatedAt || 0)) { Object.assign(loc, r); changed = true; }
   });
   if (changed) {
     saveLocal();
@@ -133,17 +103,16 @@ function updateEvCount() {
   if (ec) ec.textContent = events.length + ' événements';
 }
 
-/* ── Chargement data.json depuis GitHub (toujours à jour) ── */
+/* ── Chargement data.json depuis GitHub ── */
 fetch('https://raw.githubusercontent.com/Alexanime1/frise-chronologique/main/data.json')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(d => {
-    const data = d.record || d; // raw GitHub = direct, JSONbin = .record
+    const data = d.record || d;
     if (!data.events || !Array.isArray(data.events) || data.events.length === 0) throw new Error('no events');
     startApp(data.events, data.categories);
   })
   .catch(err => {
-    console.warn('JSONbin indisponible:', err.message);
-    // Fallback : utiliser uniquement les données locales
+    console.warn('Données indisponibles:', err.message);
     const saved = loadLocal();
     events = saved && saved.length > 0 ? saved : [];
     nextId = Math.max(...events.map(e => e.id), 0) + 1;
@@ -164,8 +133,8 @@ let editId = null, activeId = null, hlId = null;
 let currentEra = null;
 let dragging = false, dsx = 0, dsox = 0;
 let hiddenCats = new Set();
-let activeRegion = null;   // filtre pays/région actif
-let showOnlyFavs = false;  // filtre favoris
+let activeRegion = null;
+let showOnlyFavs = false;
 
 const svgEl  = document.getElementById('tl-svg');
 const wrap   = document.getElementById('tl-wrap');
@@ -203,8 +172,9 @@ function fmtDateEnd(ev) {
   return s + fmtY(ev.ye);
 }
 function midY(ev) {
-  const ye = ev.ye && ev.ye !== ev.y ? Math.min(ev.ye, TODAY_Y) : ev.y;
-  return (ev.ye && ev.ye !== ev.y) ? (ev.y + ye) / 2 : ev.y;
+  if (!ev.ye || ev.ye === ev.y) return ev.y;
+  const ye = Math.min(ev.ye, TODAY_Y);
+  return (ev.y + ye) / 2;
 }
 function yearFrac(y, m, d) {
   if (!m) return y;
@@ -213,22 +183,12 @@ function yearFrac(y, m, d) {
 }
 function wikiUrl(ev) { return 'https://fr.wikipedia.org/wiki/' + encodeURIComponent((ev.wiki || ev.title).replace(/ /g, '_')); }
 
-/* ── Filtre région : détecte le continent d'un événement depuis titre/desc/région ── */
-function getEventContinent(ev) {
-  const text = ((ev.title || '') + ' ' + (ev.desc || '') + ' ' + (ev.region || '')).toLowerCase();
-  for (const [continent, keywords] of Object.entries(CONTINENTS)) {
-    if (keywords.some(k => text.includes(k.toLowerCase()))) return continent;
-  }
-  return null;
-}
-
+/* ── Filtre région ── */
 function eventMatchesRegion(ev) {
   if (!activeRegion) return true;
   const text = ((ev.title || '') + ' ' + (ev.desc || '') + ' ' + (ev.region || '')).toLowerCase();
   const q = activeRegion.toLowerCase();
-  // Recherche directe dans le texte
   if (text.includes(q)) return true;
-  // Recherche dans le continent
   const continent = CONTINENTS[activeRegion];
   if (continent) return continent.some(k => text.includes(k.toLowerCase()));
   return false;
@@ -326,13 +286,7 @@ function updZoom() {
   ['zlbl','zlbl2','zlbl3'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p; });
 }
 
-/* ── Ticks adaptatifs CORRIGÉS ──
-   Logique claire basée sur le span visible en années :
-   > 200 ans  → intervalles de 5/10/25/50/100/200/500…ans (jamais de mois)
-   10-200 ans → années individuelles
-   2-10 ans   → mois
-   < 2 ans    → jours
-*/
+/* ── Ticks adaptatifs ── */
 function getVisibleRange() {
   const { minY, maxY } = getRange();
   return { visMin: Math.max(minY, xToYear(0)), visMax: Math.min(maxY, xToYear(svgW)) };
@@ -341,14 +295,12 @@ function getVisibleRange() {
 function getTickMode() {
   const { visMin, visMax } = getVisibleRange();
   const span = visMax - visMin;
-  if (span < 2)   return 'days';
-  if (span < 10)  return 'months';
+  if (span < 2)  return 'days';
+  if (span < 10) return 'months';
   return 'years';
 }
 
 function pickYearIv(span) {
-  // Ne jamais afficher des intervalles inférieurs à 1 an en mode 'years'
-  // Choisit l'intervalle qui donne 6-14 ticks visibles
   for (const iv of [1,2,5,10,25,50,100,200,500,1000,2000,5000,10000,50000,100000]) {
     if (span / iv <= 14) return iv;
   }
@@ -398,7 +350,7 @@ function render() {
 
   h += `<line x1="0" y1="${AY}" x2="${svgW}" y2="${AY}" stroke="${currentEra.color}" stroke-width="2" opacity=".3"/>`;
 
-  /* ── Ticks ── */
+  /* Ticks */
   if (mode === 'years') {
     const iv = pickYearIv(visSpan);
     const st = Math.floor(visMin / iv) * iv;
@@ -430,7 +382,6 @@ function render() {
       }
     }
   } else {
-    // Days
     const startY = Math.max(Math.floor(visMin), currentEra.from);
     const endY   = Math.min(Math.ceil(visMax) + 1, eraToY());
     const totalDays = visSpan * 365;
@@ -463,7 +414,7 @@ function render() {
     }
   }
 
-  /* ── Placement événements ── */
+  /* Placement événements */
   const visible = eraEvents().sort((a, b) => a.y - b.y);
   const raw = []; const rowLast = {};
   visible.forEach((ev, i) => {
@@ -479,7 +430,6 @@ function render() {
     raw.push({ ...ev, row, px });
   });
 
-  /* Longueur de tige bornée */
   function stemLen(row) {
     const depth = Math.abs(row);
     const above = row < 0;
@@ -527,7 +477,7 @@ function render() {
   });
 
   /* Cartes */
-  raw.filter(ev => singles.has(ev.id)).forEach(ev => { h += buildCard(ev); });
+  raw.filter(ev => singles.has(ev.id)).forEach(ev => { h += buildCard(ev, stemLen); });
 
   svgEl.setAttribute('height', H);
   svgEl.innerHTML = h;
@@ -543,12 +493,12 @@ function render() {
   buildEraStrip();
 }
 
-function buildCard(ev) {
+function buildCard(ev, stemLen) {
   const cat = CATS[ev.cat] || CATS.autre, c = cat.c;
   const px = ev.px;
   if (px < -80 || px > svgW + 80) return '';
   const above = ev.row < 0;
-  const sl = stemLen2(ev.row);
+  const sl = stemLen(ev.row);
   if (sl < 5) return '';
   const tipY = above ? AY - sl : AY + sl;
   const label = ev.title.length > 25 ? ev.title.slice(0, 24) + '…' : ev.title;
@@ -573,14 +523,6 @@ function buildCard(ev) {
   s += `<text x="${bx+8}" y="${by+30}" font-size="9" fill="${c}" opacity=".65" font-family="'DM Sans',sans-serif" data-id="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
   return s;
 }
-
-// Fonction helper pour buildCard (evite la closure)
-function stemLen2(row) {
-  const depth = Math.abs(row), above = row < 0;
-  const maxLen = above ? AY - 50 : H - AY - 50;
-  return Math.max(0, Math.min(30 + depth * 20, maxLen));
-}
-function stemLen(row) { return stemLen2(row); }
 
 /* ── Clusters ── */
 function clusterEv(placed) {
@@ -682,7 +624,6 @@ function openCard(id, e) {
     ? `<strong style="color:${cat.c}">${fmtDate(ev)}</strong><br>→ ${endS}` : fmtDate(ev);
   document.getElementById('cp-title').textContent = ev.title;
   if (ev.region) {
-    document.getElementById('cp-title').textContent = ev.title;
     document.getElementById('cp-region').textContent = '📍 ' + ev.region;
     document.getElementById('cp-region').style.display = 'block';
   } else {
@@ -697,7 +638,6 @@ function openCard(id, e) {
     document.getElementById('cp-period-fill').style.cssText = `width:${pct}%;background:${cat.c}`;
   } else pbw.style.display = 'none';
   document.getElementById('cp-desc').textContent = ev.desc || 'Aucune description.';
-  // Bouton favori
   const fbtn = document.getElementById('cp-fav');
   fbtn.textContent = isFav ? '★ Favori' : '☆ Favori';
   fbtn.style.cssText = `background:${isFav?'#f59e0b':'transparent'};color:${isFav?'#fff':'#f59e0b'};border:1.5px solid #f59e0b;border-radius:100px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:var(--fb)`;
@@ -706,9 +646,7 @@ function openCard(id, e) {
   document.getElementById('cp-edit').style.cssText = `background:linear-gradient(135deg,${cat.c},${cat.c}bb);color:#fff;flex:1;min-width:70px;font-family:var(--fb);font-size:12px;font-weight:500;padding:8px;border-radius:100px;cursor:pointer;border:none`;
   document.getElementById('cp-wiki').href = wikiUrl(ev);
   const sfBtn = document.getElementById('cp-subfrise');
-  if (sfBtn) {
-    sfBtn.onclick = () => { closeCard(); openSubFrise(id); };
-  }
+  if (sfBtn) sfBtn.onclick = () => { closeCard(); openSubFrise(id); };
   cpop.style.display = 'block';
   if (window.innerWidth < 640) {
     cpop.style.cssText = 'display:block;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;z-index:250';
@@ -729,7 +667,6 @@ function toggleFav(id) {
   if (favorites.has(id)) favorites.delete(id);
   else favorites.add(id);
   saveFavs();
-  // Mettre à jour le bouton dans la popup sans la fermer
   const fbtn = document.getElementById('cp-fav');
   if (fbtn) {
     const isFav = favorites.has(id);
@@ -765,13 +702,11 @@ function onRegionSearch(q) {
   const res = document.getElementById('region-results');
   if (!q.trim()) { res.style.display = 'none'; return; }
   const ql = q.toLowerCase();
-  // Cherche dans les continents et dans les pays/mots-clés
   const matches = new Set();
   Object.entries(CONTINENTS).forEach(([continent, keywords]) => {
     if (continent.toLowerCase().includes(ql)) matches.add(continent);
     keywords.forEach(k => { if (k.toLowerCase().includes(ql)) matches.add(k); });
   });
-  // Aussi chercher directement dans les champs région des événements
   events.forEach(ev => {
     if (ev.region && ev.region.toLowerCase().includes(ql)) matches.add(ev.region);
   });
@@ -864,103 +799,6 @@ function removeImg() {
   document.getElementById('f-img-url').value = '';
 }
 
-/* ── Modal ── */
-function resetForm() {
-  ['ft','fy','fm','fd2','fye','fme','fde','fdesc','fwiki','f-img-url','f-region'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  removeImg();
-}
-function openAdd() {
-  editId = null; resetForm();
-  document.getElementById('mtitle').textContent = 'Nouvel événement';
-  if (currentEra) {
-    const mid = Math.round((currentEra.from + Math.min(eraToY(), TODAY_Y)) / 2);
-    document.getElementById('fy').value = mid;
-  }
-// Pré-remplir "Date de fin" avec aujourd'hui si besoin (optionnel, bouton rapide)
-  buildCatPick('autre');
-  document.getElementById('bdel').style.display = 'none';
-  document.getElementById('mbg').classList.add('open');
-  setTimeout(() => document.getElementById('ft').focus(), 80);
-}
-function openEdit(id) {
-  const ev = events.find(e => e.id === id); if (!ev) return;
-  editId = id; resetForm();
-  document.getElementById('mtitle').textContent = "Modifier l'événement";
-  document.getElementById('ft').value = ev.title || '';
-  document.getElementById('fy').value = ev.y || '';
-  document.getElementById('fm').value = ev.m || '';
-  document.getElementById('fd2').value = ev.d || '';
-  document.getElementById('fye').value = (ev.ye && ev.ye !== ev.y) ? ev.ye : '';
-  document.getElementById('fme').value = ev.me || '';
-  document.getElementById('fde').value = ev.de || '';
-  document.getElementById('fdesc').value = ev.desc || '';
-  document.getElementById('fwiki').value = ev.wiki || '';
-  document.getElementById('f-region').value = ev.region || '';
-  if (ev.img) { document.getElementById('f-img-url').value = ev.img; document.getElementById('ipr').style.display = 'block'; document.getElementById('iprel').src = ev.img; }
-  buildCatPick(ev.cat || 'autre');
-  document.getElementById('bdel').style.display = 'inline-block';
-  document.getElementById('mbg').classList.add('open');
-}
-function closeMod() { document.getElementById('mbg').classList.remove('open'); }
-
-function saveEv() {
- function saveEv() {
-  const title = (document.getElementById('ft').value || '').trim();
-  const yv    = (document.getElementById('fy').value || '').trim();
-  if (!title) { document.getElementById('ft').style.borderColor='#f03060'; document.getElementById('ft').focus(); return; }
-  if (!yv)    { document.getElementById('fy').style.borderColor='#f03060'; document.getElementById('fy').focus(); return; }
-  const y = parseInt(yv);
-  if (isNaN(y)) { document.getElementById('fy').style.borderColor='#f03060'; return; }
-
-  const mRaw = document.getElementById('fm').value; const m = mRaw ? parseInt(mRaw) : undefined;
-  const dRaw = document.getElementById('fd2').value; const d = dRaw ? parseInt(dRaw) : undefined;
-
-  // ── Vérification doublon ──
-  const dupes = findDuplicates(title, y, m, d, editId);
-  if (dupes.length > 0) {
-    const names = dupes.slice(0,3).map(e => `• ${e.title} (${fmtY(e.y)})`).join('\n');
-    const ok = confirm(`⚠️ Événement similaire déjà existant :\n\n${names}\n\nVoulez-vous quand même l'enregistrer ?`);
-    if (!ok) return;
-  }
-
-  document.getElementById('ft').style.borderColor = '';
-  document.getElementById('fy').style.borderColor = '';
-  // ... suite normale
-  if (!yv)    { document.getElementById('fy').style.borderColor='#f03060'; document.getElementById('fy').focus(); return; }
-  const y = parseInt(yv);
-  if (isNaN(y)) { document.getElementById('fy').style.borderColor='#f03060'; return; }
-  document.getElementById('ft').style.borderColor = '';
-  document.getElementById('fy').style.borderColor = '';
-  const mRaw = document.getElementById('fm').value;   const m  = mRaw  ? parseInt(mRaw)  : undefined;
-  const dRaw = document.getElementById('fd2').value;  const d  = dRaw  ? parseInt(dRaw)  : undefined;
-  // AVANT
-const yeRaw = (document.getElementById('fye').value||'').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
-
-// APRÈS
-const yeRaw = (document.getElementById('fye').value||'').trim(); const ye = yeRaw ? parseInt(yeRaw) : y;
-// Si l'event est "en cours" (ex: ye = année future), on limite à aujourd'hui à l'affichage
-// Rien à changer ici, mais dans midY() :
-  const meRaw = document.getElementById('fme').value; const me = meRaw ? parseInt(meRaw) : undefined;
-  const deRaw = document.getElementById('fde').value; const de = deRaw ? parseInt(deRaw) : undefined;
-  const desc   = document.getElementById('fdesc').value.trim();
-  const cat    = document.getElementById('fc').value || 'autre';
-  const wiki   = document.getElementById('fwiki').value.trim();
-  const img    = document.getElementById('f-img-url').value.trim();
-  const region = document.getElementById('f-region').value.trim();
-  const obj    = { id: editId || nextId, title, y, ye, cat, desc, wiki, img, region, updatedAt: Date.now() };
-  if (m)  obj.m  = m;  if (d)  obj.d  = d;
-  if (me) obj.me = me; if (de) obj.de = de;
-  if (editId) { const i = events.findIndex(e => e.id === editId); if (i >= 0) events[i] = obj; }
-  else { nextId++; events.push(obj); }
-  saveSt(); closeMod(); updateEvCount();
-  const mid = Math.round((y + ye) / 2);
-  const era = ERAS.find(er => er.key !== 'all' && mid >= er.from && mid < (er.key === 'xxi' ? TODAY_Y : er.to));
-  if (era && (!currentEra || currentEra.key !== era.key)) selectEra(era.key);
-  else { render(); updZoom(); }
-  setTimeout(() => { hlId = obj.id; render(); setTimeout(() => { hlId = null; render(); }, 2000); }, 300);
-}
 /* ── Détection de doublons ── */
 function levenshtein(a, b) {
   const m = a.length, n = b.length;
@@ -976,17 +814,111 @@ function findDuplicates(title, y, m, d, excludeId) {
   return events.filter(ev => {
     if (ev.id === excludeId) return false;
     const evTl = (ev.title || '').toLowerCase().trim();
-    // Même titre exact ou très similaire
     const dist = levenshtein(tl, evTl);
     const maxLen = Math.max(tl.length, evTl.length);
-    const similar = dist / maxLen < 0.3; // moins de 30% de différence
-    // Même année (et même mois si renseigné)
+    const similar = maxLen > 0 && dist / maxLen < 0.3;
     const sameYear = ev.y === y;
     const sameMonth = !m || !ev.m || ev.m === m;
     const sameDay = !d || !ev.d || ev.d === d;
-    return similar || (sameYear && sameMonth && sameDay && evTl.includes(tl.slice(0,5)));
+    return similar || (sameYear && sameMonth && sameDay && tl.length >= 5 && evTl.includes(tl.slice(0, 5)));
   });
 }
+
+/* ── Modal ── */
+function resetForm() {
+  ['ft','fy','fm','fd2','fye','fme','fde','fdesc','fwiki','f-img-url','f-region'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  removeImg();
+}
+
+function openAdd() {
+  editId = null; resetForm();
+  document.getElementById('mtitle').textContent = 'Nouvel événement';
+  if (currentEra) {
+    const mid = Math.round((currentEra.from + Math.min(eraToY(), TODAY_Y)) / 2);
+    document.getElementById('fy').value = mid;
+  }
+  buildCatPick('autre');
+  document.getElementById('bdel').style.display = 'none';
+  document.getElementById('mbg').classList.add('open');
+  setTimeout(() => document.getElementById('ft').focus(), 80);
+}
+
+function openEdit(id) {
+  const ev = events.find(e => e.id === id); if (!ev) return;
+  editId = id; resetForm();
+  document.getElementById('mtitle').textContent = "Modifier l'événement";
+  document.getElementById('ft').value = ev.title || '';
+  document.getElementById('fy').value = ev.y || '';
+  document.getElementById('fm').value = ev.m || '';
+  document.getElementById('fd2').value = ev.d || '';
+  document.getElementById('fye').value = (ev.ye && ev.ye !== ev.y) ? ev.ye : '';
+  document.getElementById('fme').value = ev.me || '';
+  document.getElementById('fde').value = ev.de || '';
+  document.getElementById('fdesc').value = ev.desc || '';
+  document.getElementById('fwiki').value = ev.wiki || '';
+  document.getElementById('f-region').value = ev.region || '';
+  if (ev.img) {
+    document.getElementById('f-img-url').value = ev.img;
+    document.getElementById('ipr').style.display = 'block';
+    document.getElementById('iprel').src = ev.img;
+  }
+  buildCatPick(ev.cat || 'autre');
+  document.getElementById('bdel').style.display = 'inline-block';
+  document.getElementById('mbg').classList.add('open');
+}
+
+function closeMod() { document.getElementById('mbg').classList.remove('open'); }
+
+function saveEv() {
+  const title = (document.getElementById('ft').value || '').trim();
+  const yv    = (document.getElementById('fy').value || '').trim();
+  if (!title) { document.getElementById('ft').style.borderColor = '#f03060'; document.getElementById('ft').focus(); return; }
+  if (!yv)    { document.getElementById('fy').style.borderColor = '#f03060'; document.getElementById('fy').focus(); return; }
+  const y = parseInt(yv);
+  if (isNaN(y)) { document.getElementById('fy').style.borderColor = '#f03060'; return; }
+
+  const mRaw = document.getElementById('fm').value;  const m  = mRaw  ? parseInt(mRaw)  : undefined;
+  const dRaw = document.getElementById('fd2').value; const d  = dRaw  ? parseInt(dRaw)  : undefined;
+
+  /* Vérification doublon */
+  const dupes = findDuplicates(title, y, m, d, editId);
+  if (dupes.length > 0) {
+    const names = dupes.slice(0, 3).map(e => `• ${e.title} (${fmtY(e.y)})`).join('\n');
+    const ok = confirm(`⚠️ Événement similaire déjà existant :\n\n${names}\n\nVoulez-vous quand même l'enregistrer ?`);
+    if (!ok) return;
+  }
+
+  document.getElementById('ft').style.borderColor = '';
+  document.getElementById('fy').style.borderColor = '';
+
+  const yeRaw = (document.getElementById('fye').value || '').trim();
+  const ye  = yeRaw ? parseInt(yeRaw) : y;
+  const meRaw = document.getElementById('fme').value; const me = meRaw ? parseInt(meRaw) : undefined;
+  const deRaw = document.getElementById('fde').value; const de = deRaw ? parseInt(deRaw) : undefined;
+  const desc   = document.getElementById('fdesc').value.trim();
+  const cat    = document.getElementById('fc').value || 'autre';
+  const wiki   = document.getElementById('fwiki').value.trim();
+  const img    = document.getElementById('f-img-url').value.trim();
+  const region = document.getElementById('f-region').value.trim();
+
+  const obj = { id: editId || nextId, title, y, ye, cat, desc, wiki, img, region, updatedAt: Date.now() };
+  if (m)  obj.m  = m;  if (d)  obj.d  = d;
+  if (me) obj.me = me; if (de) obj.de = de;
+
+  if (editId) { const i = events.findIndex(e => e.id === editId); if (i >= 0) events[i] = obj; }
+  else { nextId++; events.push(obj); }
+
+  saveSt(); closeMod(); updateEvCount();
+
+  const mid = Math.round((y + ye) / 2);
+  const era = ERAS.find(er => er.key !== 'all' && mid >= er.from && mid < (er.key === 'xxi' ? TODAY_Y : er.to));
+  if (era && (!currentEra || currentEra.key !== era.key)) selectEra(era.key);
+  else { render(); updZoom(); }
+  setTimeout(() => { hlId = obj.id; render(); setTimeout(() => { hlId = null; render(); }, 2000); }, 300);
+}
+
 function deleteEv() {
   if (!editId || !confirm('Supprimer cet événement ?')) return;
   if (window.__firebaseDelete) window.__firebaseDelete(editId);
@@ -994,7 +926,21 @@ function deleteEv() {
   events = events.filter(e => e.id !== editId);
   saveSt(); closeMod(); render(); updZoom(); updateEvCount();
 }
+
 document.getElementById('mbg').addEventListener('click', e => { if (e.target === e.currentTarget) closeMod(); });
+
+/* ── Partager ── */
+function shareApp() {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: 'Ma Frise Chronologique', text: '500 événements historiques interactifs !', url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector('[onclick="shareApp()"]');
+      if (btn) { btn.textContent = '✓ Copié !'; setTimeout(() => btn.textContent = '🔗 Partager', 2000); }
+    });
+  }
+}
 
 /* ── Mobile nav ── */
 function panLeft()  { offsetX += svgW * 0.4; render(); }
@@ -1059,10 +1005,9 @@ document.addEventListener('click', e => {
 window.addEventListener('resize', () => { if (currentEra) resetView(); });
 
 /* ═══════════════════════════════════════════════
-   SOUS-FRISES INLINE — affichée sous la frise principale
+   SOUS-FRISES INLINE
    ═══════════════════════════════════════════════ */
 
-/* ── État de la sous-frise ── */
 let sfParentId = null;
 let sfScale = 1, sfOffsetX = 0, sfW = 900;
 const SF_H = 220;
@@ -1071,23 +1016,18 @@ let sfDragging = false, sfDsx = 0, sfDsox = 0;
 let sfLtx = null, sfLtd = null, sfLtcx = null;
 let sfActiveId = null;
 
-const sfWrap = document.getElementById('sf-wrap');
+const sfWrap  = document.getElementById('sf-wrap');
 const sfSvgEl = document.getElementById('sf-svg');
 
-/* ── Ouvre la sous-frise inline sous la frise principale ── */
 function openSubFrise(parentId) {
   const parent = events.find(e => e.id === parentId);
   if (!parent) return;
   sfParentId = parentId;
   const cat = CATS[parent.cat] || CATS.autre;
-
-  // Badge titre
   const badge = document.getElementById('sf-inline-badge');
   badge.textContent = `${cat.e} ${fmtDate(parent)}${parent.ye && parent.ye !== parent.y ? ' → ' + fmtY(parent.ye) : ''}`;
   badge.style.cssText = `background:${cat.bg};color:${cat.c};font-size:10px;padding:3px 10px;border-radius:100px;font-family:var(--fb);font-weight:500;flex-shrink:0`;
   document.getElementById('sf-inline-name').textContent = parent.title;
-
-  // Reset vue
   sfScale = 1; sfOffsetX = 0;
   const sfEl = document.getElementById('sf-inline');
   sfEl.style.display = 'block';
@@ -1100,12 +1040,10 @@ function closeInlineSubFrise() {
   sfActiveId = null;
 }
 
-/* ── Récupère les sous-événements ── */
 function getSubEvents(parentId) {
   return events.filter(e => e.parentId === parentId).sort((a, b) => a.y - b.y);
 }
 
-/* ── Range de la sous-frise ── */
 function sfGetRange() {
   const parent = events.find(e => e.id === sfParentId);
   if (!parent) return { minY: 0, maxY: 10 };
@@ -1148,7 +1086,6 @@ function pickSfIv(span) {
   return 100000;
 }
 
-/* ── Render de la sous-frise ── */
 function renderSubFrise() {
   if (!sfParentId) return;
   const parent = events.find(e => e.id === sfParentId);
@@ -1162,12 +1099,11 @@ function renderSubFrise() {
   sfSvgEl.setAttribute('height', SF_H);
 
   const { minY, maxY } = sfGetRange();
-  const { visMin: sfVisMin, visMax: sfVisMax } = { visMin: Math.max(minY, sfXToYear(0)), visMax: Math.min(maxY, sfXToYear(sfW)) };
+  const sfVisMin = Math.max(minY, sfXToYear(0));
+  const sfVisMax = Math.min(maxY, sfXToYear(sfW));
   const sfVisSpan = sfVisMax - sfVisMin;
-  const bg = ERA_BG[currentEra ? currentEra.key : 'xx'] || ERA_BG.xx;
   let h = '';
 
-  /* Fond coloré avec la couleur de la catégorie */
   h += `<defs>
     <linearGradient id="sf-bgv" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${cat.c}" stop-opacity=".07"/>
@@ -1176,10 +1112,8 @@ function renderSubFrise() {
   </defs>
   <rect x="0" y="0" width="${sfW}" height="${SF_H}" fill="url(#sf-bgv)"/>`;
 
-  /* Axe */
   h += `<line x1="0" y1="${SF_AY}" x2="${sfW}" y2="${SF_AY}" stroke="${cat.c}" stroke-width="2" opacity=".35"/>`;
 
-  /* Bornes du parent */
   const px1 = sfYearToX(parent.y);
   const px2 = parent.ye && parent.ye !== parent.y ? sfYearToX(parent.ye) : sfYearToX(parent.y);
   if (px1 >= 0 && px1 <= sfW) {
@@ -1192,7 +1126,6 @@ function renderSubFrise() {
     if (px1 >= 0 && px2 >= 0) h += `<rect x="${Math.max(0,px1)}" y="${SF_AY-2}" width="${Math.max(0,Math.min(sfW,px2)-Math.max(0,px1))}" height="4" fill="${cat.c}" opacity=".2"/>`;
   }
 
-  /* Ticks adaptatifs */
   const iv = pickSfIv(sfVisSpan);
   const st = Math.floor(sfVisMin / iv) * iv;
   for (let y = st; y <= sfVisMax; y += iv) {
@@ -1203,7 +1136,6 @@ function renderSubFrise() {
     h += `<text x="${x}" y="${SF_AY+20}" text-anchor="middle" font-size="9" fill="var(--ink3)" font-family="'DM Sans',sans-serif">${y < 0 ? Math.abs(y) + ' av.' : y}</text>`;
   }
 
-  /* Placement des sous-événements */
   const raw = [];
   const rowLast = {};
   subEvs.forEach((ev, i) => {
@@ -1219,7 +1151,6 @@ function renderSubFrise() {
     raw.push({ ...ev, row, px });
   });
 
-  /* Tige et carte pour chaque sous-événement */
   raw.forEach(ev => {
     const px = ev.px;
     if (px < -60 || px > sfW + 60) return;
@@ -1239,18 +1170,11 @@ function renderSubFrise() {
     const bw = Math.min(label.length * 6.8 + 28, 180);
     const bx = Math.max(4, Math.min(px - bw / 2, sfW - bw - 4));
 
-    // Halo si actif
     if (isActive) h += `<rect x="${bx-4}" y="${by-4}" width="${bw+8}" height="44" rx="12" fill="${evCat.c}" opacity=".15"/>`;
-
-    // Dot
     h += `<circle cx="${px}" cy="${SF_AY}" r="5" fill="${evCat.c}" opacity=".17" data-sfid="${ev.id}"/>`;
     h += `<circle cx="${px}" cy="${SF_AY}" r="3.5" fill="${evCat.c}" stroke="var(--paper2)" stroke-width="1.5" style="cursor:pointer" data-sfid="${ev.id}"/>`;
     if (isFav) h += `<text x="${px+5}" y="${SF_AY-4}" font-size="8" fill="#f59e0b" style="pointer-events:none">★</text>`;
-
-    // Tige
     h += `<line x1="${px}" y1="${SF_AY+(above?-3:3)}" x2="${px}" y2="${tipY}" stroke="${evCat.c}" stroke-width=".9" stroke-dasharray="2 2.5" opacity=".4"/>`;
-
-    // Carte
     h += `<rect x="${bx}" y="${by}" width="${bw}" height="36" rx="8" fill="var(--paper)" stroke="${evCat.c}" stroke-width="${isActive?1.75:.7}" style="cursor:pointer" data-sfid="${ev.id}"/>`;
     h += `<rect x="${bx}" y="${by}" width="${bw}" height="4" rx="4" fill="${evCat.c}" opacity=".8" style="pointer-events:none"/>`;
     if (isFav) h += `<text x="${bx+bw-8}" y="${by+29}" font-size="8" fill="#f59e0b" text-anchor="middle" style="pointer-events:none">★</text>`;
@@ -1258,7 +1182,6 @@ function renderSubFrise() {
     h += `<text x="${bx+8}" y="${by+28}" font-size="9" fill="${evCat.c}" opacity=".65" font-family="'DM Sans',sans-serif" data-sfid="${ev.id}" style="cursor:pointer">${fmtDate(ev)}</text>`;
   });
 
-  /* Message si vide */
   if (subEvs.length === 0) {
     h += `<text x="${sfW/2}" y="${SF_AY-15}" text-anchor="middle" font-size="13" fill="${cat.c}" opacity=".5" font-family="'DM Sans',sans-serif">Aucun sous-événement — cliquez ＋ pour en ajouter</text>`;
   }
@@ -1271,11 +1194,9 @@ function renderSubFrise() {
   clearSubClusters();
 }
 
-/* Ouvre la fiche d'un sous-événement */
 function sfOpenCard(id, e) {
   sfActiveId = id;
   renderSubFrise();
-  // Réutilise la popup principale
   openCard(id, e);
 }
 
@@ -1283,7 +1204,7 @@ function clearSubClusters() {
   document.querySelectorAll('.sf-cluster-ov').forEach(e => e.remove());
 }
 
-/* ── Drag et zoom de la sous-frise ── */
+/* ── Drag sous-frise ── */
 sfWrap.addEventListener('mousedown', e => {
   if (e.target.dataset.sfid) return;
   sfDragging = true; sfDsx = e.clientX; sfDsox = sfOffsetX; sfWrap.classList.add('dragging');
@@ -1307,16 +1228,16 @@ sfWrap.addEventListener('wheel', e => {
 
 sfWrap.addEventListener('touchstart', e => {
   if (e.touches.length === 2) {
-    sfLtd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    sfLtcx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - sfWrap.getBoundingClientRect().left;
+    sfLtd = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    sfLtcx = (e.touches[0].clientX+e.touches[1].clientX)/2 - sfWrap.getBoundingClientRect().left;
     sfLtx = null;
   } else { sfLtx = e.touches[0].clientX; sfLtd = null; }
 }, { passive: true });
 
 sfWrap.addEventListener('touchmove', e => {
   if (e.touches.length === 2 && sfLtd !== null) {
-    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - sfWrap.getBoundingClientRect().left;
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    const cx = (e.touches[0].clientX+e.touches[1].clientX)/2 - sfWrap.getBoundingClientRect().left;
     const yAC = sfXToYear(sfLtcx);
     sfScale *= d / sfLtd;
     const ds = sfDefScale(); if (sfScale < ds * 0.98) sfScale = ds;
@@ -1335,24 +1256,12 @@ window.addEventListener('resize', () => { if (sfParentId) renderSubFrise(); });
 function openAddSubEvent() {
   const parent = events.find(e => e.id === sfParentId);
   if (!parent) return;
-  const sfEl = document.getElementById('sf-inline');
   openAdd();
   const midYr = Math.round((parent.y + (parent.ye || parent.y)) / 2);
   document.getElementById('fy').value = midYr;
   document.getElementById('fc').value = parent.cat;
   buildCatPick(parent.cat);
   document.getElementById('mbg').dataset.parentId = parent.id;
-}
-function shareApp() {
-  const url = window.location.href;
-  if (navigator.share) {
-    navigator.share({ title: 'Ma Frise Chronologique', text: '500 événements historiques interactifs !', url });
-  } else {
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = document.querySelector('[onclick="shareApp()"]');
-      if (btn) { btn.textContent = '✓ Copié !'; setTimeout(() => btn.textContent = '🔗 Partager', 2000); }
-    });
-  }
 }
 
 function saveEvWithParent() {
