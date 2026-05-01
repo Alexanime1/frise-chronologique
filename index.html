@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover"/>
 <meta name="theme-color" content="#f6f0e6"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="description" content="Frise chronologique interactive : 500 événements historiques de la préhistoire à aujourd'hui. Zoomez, filtrez, explorez par époque ou pays."/>
-<meta property="og:title" content="Ma Frise Chronologique — 500 événements historiques"/>
-<meta property="og:description" content="Explorez 500 événements historiques sur une frise interactive. Sous-frises, favoris, filtres par époque et pays."/>
+<!-- CORRIGÉ: 500→1000 dans description/title/og -->
+<meta name="description" content="Frise chronologique interactive : 1000 événements historiques de la préhistoire à aujourd'hui. Zoomez, filtrez, explorez par époque ou pays."/>
+<meta property="og:title" content="Ma Frise Chronologique — 1000 événements historiques"/>
+<meta property="og:description" content="Explorez 1000 événements historiques sur une frise interactive. Sous-frises, favoris, filtres par époque et pays."/>
 <meta property="og:url" content="https://alexanime1.github.io/frise-chronologique/"/>
 <meta property="og:type" content="website"/>
 <meta name="robots" content="index, follow"/>
 <link rel="canonical" href="https://alexanime1.github.io/frise-chronologique/"/>
-<title>Ma Frise Chronologique — 500 événements historiques interactifs</title>
+<!-- CORRIGÉ: title mis à jour -->
+<title>Ma Frise Chronologique — 1000 événements historiques interactifs</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="style.css"/>
-
-<!-- Leaflet CSS pour la carte monde -->
+<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 
 <style>
@@ -27,111 +28,44 @@
 #lieu-wrap{margin-top:8px}
 
 /* ── Sélecteur de mode Frise / Carte ── */
-.mode-switcher {
-  display:flex;
-  align-items:center;
-  gap:0;
-  background:var(--paper2);
-  border-radius:100px;
-  padding:3px;
-  border:1px solid var(--paper3);
-}
-.mode-btn {
-  display:flex;align-items:center;gap:6px;
-  padding:7px 16px;
-  border-radius:100px;
-  border:none;cursor:pointer;
-  font-family:var(--fb);font-size:13px;font-weight:500;
-  background:transparent;color:var(--ink2);
-  transition:all .2s;
-}
-.mode-btn.active {
-  background:var(--paper);
-  color:var(--ink);
-  box-shadow:0 1px 6px rgba(0,0,0,.12);
-}
+.mode-switcher{display:flex;align-items:center;gap:0;background:var(--paper2);border-radius:100px;padding:3px;border:1px solid var(--paper3)}
+.mode-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:100px;border:none;cursor:pointer;font-family:var(--fb);font-size:13px;font-weight:500;background:transparent;color:var(--ink2);transition:all .2s}
+.mode-btn.active{background:var(--paper);color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,.12)}
 .mode-btn:hover:not(.active){color:var(--ink)}
 
 /* ── Carte monde ── */
-#map-view {
-  display:none;
-  flex-direction:column;
-  gap:12px;
-}
-#map-view.show { display:flex; }
-
-#map-container {
-  width:100%;
-  height:520px;
-  border-radius:var(--rxl);
-  overflow:hidden;
-  border:1px solid var(--paper3);
-  box-shadow:var(--shlg);
-  position:relative;
-}
+#map-view{display:none;flex-direction:column;gap:12px}
+#map-view.show{display:flex}
+#map-container{width:100%;height:520px;border-radius:var(--rxl);overflow:hidden;border:1px solid var(--paper3);box-shadow:var(--shlg);position:relative}
 @media(max-width:640px){#map-container{height:360px}}
 
-/* Override Leaflet pour le thème */
-.leaflet-popup-content-wrapper {
-  border-radius:14px !important;
-  box-shadow:0 8px 32px rgba(0,0,0,.18) !important;
-  padding:0 !important;
-  overflow:hidden;
-  font-family:'DM Sans',sans-serif;
-  min-width:220px;
-  max-width:280px;
-}
-.leaflet-popup-content { margin:0 !important; }
-.leaflet-popup-tip-container { display:none }
-.map-popup { padding:14px 16px; }
-.map-popup-stripe { height:4px; }
-.map-popup-cat { font-size:10px;font-weight:600;letter-spacing:.04em;opacity:.7;margin-bottom:4px }
-.map-popup-title { font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:3px;font-family:'Playfair Display',serif }
-.map-popup-date { font-size:11px;opacity:.6;margin-bottom:8px }
-.map-popup-lieu { font-size:11px;opacity:.55;margin-bottom:8px;font-style:italic }
-.map-popup-desc { font-size:12px;line-height:1.5;opacity:.75;margin-bottom:10px }
-.map-popup-acts { display:flex;gap:6px;flex-wrap:wrap }
-.map-popup-acts a, .map-popup-acts button {
-  font-size:11px;font-family:'DM Sans',sans-serif;
-  padding:5px 10px;border-radius:100px;cursor:pointer;
-  text-decoration:none;border:1px solid currentColor;
-  background:transparent;
-}
+/* Override Leaflet */
+.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 8px 32px rgba(0,0,0,.18)!important;padding:0!important;overflow:hidden;font-family:'DM Sans',sans-serif;min-width:220px;max-width:280px}
+.leaflet-popup-content{margin:0!important}
+.leaflet-popup-tip-container{display:none}
+.map-popup{padding:14px 16px}
+.map-popup-stripe{height:4px}
+.map-popup-cat{font-size:10px;font-weight:600;letter-spacing:.04em;opacity:.7;margin-bottom:4px}
+.map-popup-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:3px;font-family:'Playfair Display',serif}
+.map-popup-date{font-size:11px;opacity:.6;margin-bottom:8px}
+.map-popup-lieu{font-size:11px;opacity:.55;margin-bottom:8px;font-style:italic}
+.map-popup-desc{font-size:12px;line-height:1.5;opacity:.75;margin-bottom:10px}
+.map-popup-acts{display:flex;gap:6px;flex-wrap:wrap}
+.map-popup-acts a,.map-popup-acts button{font-size:11px;font-family:'DM Sans',sans-serif;padding:5px 10px;border-radius:100px;cursor:pointer;text-decoration:none;border:1px solid currentColor;background:transparent}
 
 /* Statistiques carte */
-.map-stats {
-  display:flex;gap:12px;flex-wrap:wrap;
-  padding:10px 16px;
-  background:var(--paper2);
-  border-radius:var(--r);
-  border:1px solid var(--paper3);
-  font-size:12px;color:var(--ink2);font-family:var(--fb);
-}
-.map-stat { display:flex;align-items:center;gap:5px }
-.map-stat-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0 }
+.map-stats{display:flex;gap:12px;flex-wrap:wrap;padding:10px 16px;background:var(--paper2);border-radius:var(--r);border:1px solid var(--paper3);font-size:12px;color:var(--ink2);font-family:var(--fb)}
+.map-stat{display:flex;align-items:center;gap:5px}
+.map-stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 /* Filtres carte */
-.map-filters {
-  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-}
-.map-filter-btn {
-  padding:5px 12px;border-radius:100px;border:1px solid var(--paper3);
-  background:var(--paper2);color:var(--ink2);font-family:var(--fb);font-size:12px;
-  cursor:pointer;transition:all .15s;
-}
-.map-filter-btn.active {
-  background:var(--cp);color:#fff;border-color:var(--cp);
-}
+.map-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.map-filter-btn{padding:5px 12px;border-radius:100px;border:1px solid var(--paper3);background:var(--paper2);color:var(--ink2);font-family:var(--fb);font-size:12px;cursor:pointer;transition:all .15s}
+.map-filter-btn.active{background:var(--cp);color:#fff;border-color:var(--cp)}
 
 /* Marqueur personnalisé */
-.custom-marker {
-  display:flex;align-items:center;justify-content:center;
-  border-radius:50%;border:2.5px solid #fff;
-  box-shadow:0 2px 8px rgba(0,0,0,.28);
-  font-size:10px;cursor:pointer;
-  transition:transform .15s;
-}
-.custom-marker:hover { transform:scale(1.2) }
+.custom-marker{display:flex;align-items:center;justify-content:center;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28);font-size:10px;cursor:pointer;transition:transform .15s}
+.custom-marker:hover{transform:scale(1.2)}
 </style>
 </head>
 <body>
@@ -145,17 +79,12 @@
 
   <!-- ── Barre d'outils principale ── -->
   <div class="toolbar">
-    <!-- Sélecteur Frise / Carte -->
     <div class="mode-switcher">
-      <button class="mode-btn active" id="mode-frise" onclick="setMode('frise')">
-        📅 Frise
-      </button>
-      <button class="mode-btn" id="mode-carte" onclick="setMode('carte')">
-        🌍 Carte
-      </button>
+      <button class="mode-btn active" id="mode-frise" onclick="setMode('frise')">📅 Frise</button>
+      <button class="mode-btn" id="mode-carte" onclick="setMode('carte')">🌍 Carte</button>
     </div>
     <div class="sep"></div>
-    <!-- Boutons frise seulement -->
+    <!-- CORRIGÉ: id pour ciblage JS propre -->
     <span id="frise-toolbar">
       <button class="btn" onclick="zoom(-1)">− Zoom</button>
       <span class="zoom-lbl" id="zlbl">100%</span>
@@ -192,7 +121,7 @@
 
   <!-- ── Filtres ── -->
   <div class="filter-bar">
-    <button class="btn" id="fav-filter-btn" onclick="toggleFavsFilter()" style="gap:4px">☆ Favoris</button>
+    <button class="btn" id="fav-filter-btn" onclick="toggleFavsFilter()">☆ Favoris</button>
     <div class="region-search-wrap">
       <div class="region-search-box">
         <span style="opacity:.5;font-size:13px">📍</span>
@@ -203,9 +132,7 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════
-       MODE FRISE
-  ═══════════════════════════════ -->
+  <!-- ═══ MODE FRISE ═══ -->
   <div id="frise-view">
     <div class="era-strip-wrap">
       <div class="era-strip-label">Choisissez une époque</div>
@@ -242,6 +169,7 @@
         <button class="nav-btn" onclick="panRight()">Suiv. →</button>
       </div>
 
+      <!-- Sous-frise inline -->
       <div id="sf-inline" style="display:none">
         <div class="sf-inline-header">
           <div class="sf-inline-title">
@@ -270,60 +198,34 @@
     </div>
   </div><!-- /frise-view -->
 
-  <!-- ═══════════════════════════════
-       MODE CARTE MONDE
-  ═══════════════════════════════ -->
+  <!-- ═══ MODE CARTE MONDE ═══ -->
   <div id="map-view">
-
-    <!-- Filtres rapides par catégorie -->
     <div class="map-filters" id="map-filters">
       <span style="font-size:12px;color:var(--ink3);font-family:var(--fb)">Filtrer :</span>
-      <button class="map-filter-btn active" data-cat="all" onclick="mapFilterCat('all',this)">Tous</button>
-      <button class="map-filter-btn" data-cat="politique" onclick="mapFilterCat('politique',this)">🏛 Politique</button>
-      <button class="map-filter-btn" data-cat="guerre"    onclick="mapFilterCat('guerre',this)">⚔️ Guerre</button>
-      <button class="map-filter-btn" data-cat="science"   onclick="mapFilterCat('science',this)">🔬 Science</button>
-      <button class="map-filter-btn" data-cat="art"       onclick="mapFilterCat('art',this)">🎨 Art</button>
-      <button class="map-filter-btn" data-cat="sport"     onclick="mapFilterCat('sport',this)">🏆 Sport</button>
-      <button class="map-filter-btn" data-cat="autre"     onclick="mapFilterCat('autre',this)">✦ Autre</button>
+      <button class="map-filter-btn active" data-cat="all"       onclick="mapFilterCat('all',this)">Tous</button>
+      <button class="map-filter-btn" data-cat="politique"        onclick="mapFilterCat('politique',this)">🏛 Politique</button>
+      <button class="map-filter-btn" data-cat="guerre"           onclick="mapFilterCat('guerre',this)">⚔️ Guerre</button>
+      <button class="map-filter-btn" data-cat="science"          onclick="mapFilterCat('science',this)">🔬 Science</button>
+      <button class="map-filter-btn" data-cat="art"              onclick="mapFilterCat('art',this)">🎨 Art</button>
+      <button class="map-filter-btn" data-cat="sport"            onclick="mapFilterCat('sport',this)">🏆 Sport</button>
+      <button class="map-filter-btn" data-cat="autre"            onclick="mapFilterCat('autre',this)">✦ Autre</button>
     </div>
 
-    <!-- Carte Leaflet -->
     <div id="map-container"></div>
 
-    <!-- Statistiques -->
     <div class="map-stats" id="map-stats">
-      <div class="map-stat">
-        <div class="map-stat-dot" style="background:#4f6ef7"></div>
-        <span id="ms-politique">— Politique</span>
-      </div>
-      <div class="map-stat">
-        <div class="map-stat-dot" style="background:#f03060"></div>
-        <span id="ms-guerre">— Guerre</span>
-      </div>
-      <div class="map-stat">
-        <div class="map-stat-dot" style="background:#16c47a"></div>
-        <span id="ms-science">— Science</span>
-      </div>
-      <div class="map-stat">
-        <div class="map-stat-dot" style="background:#f0742a"></div>
-        <span id="ms-art">— Art</span>
-      </div>
-      <div class="map-stat">
-        <div class="map-stat-dot" style="background:#f59e0b"></div>
-        <span id="ms-sport">— Sport</span>
-      </div>
-      <div class="map-stat">
-        <div class="map-stat-dot" style="background:#a855f7"></div>
-        <span id="ms-autre">— Autre</span>
-      </div>
-      <div class="map-stat" style="margin-left:auto;color:var(--ink3)">
-        📍 <span id="ms-total">0</span> événements géolocalisés
-      </div>
+      <div class="map-stat"><div class="map-stat-dot" style="background:#4f6ef7"></div><span id="ms-politique">— Politique</span></div>
+      <div class="map-stat"><div class="map-stat-dot" style="background:#f03060"></div><span id="ms-guerre">— Guerre</span></div>
+      <div class="map-stat"><div class="map-stat-dot" style="background:#16c47a"></div><span id="ms-science">— Science</span></div>
+      <div class="map-stat"><div class="map-stat-dot" style="background:#f0742a"></div><span id="ms-art">— Art</span></div>
+      <div class="map-stat"><div class="map-stat-dot" style="background:#f59e0b"></div><span id="ms-sport">— Sport</span></div>
+      <div class="map-stat"><div class="map-stat-dot" style="background:#a855f7"></div><span id="ms-autre">— Autre</span></div>
+      <div class="map-stat" style="margin-left:auto;color:var(--ink3)">📍 <span id="ms-total">0</span> événements géolocalisés</div>
     </div>
-
   </div><!-- /map-view -->
 
-  <footer>500 événements historiques · Frise &amp; Carte monde · <span id="ev-count"></span></footer>
+  <!-- CORRIGÉ: footer dynamique via JS, plus de chiffre codé en dur -->
+  <footer>Frise &amp; Carte monde · <span id="ev-count"></span></footer>
 </div><!-- /page -->
 
 <div id="tip"></div>
@@ -348,7 +250,7 @@
     <div class="cp-acts">
       <button id="cp-fav" onclick="">☆ Favori</button>
       <button class="cp-edit" id="cp-edit">✏️ Modifier</button>
-      <button id="cp-subfrise" onclick="" style="font-family:var(--fb);font-size:11.5px;padding:8px 10px;border-radius:100px;cursor:pointer;background:transparent;color:var(--cu);border:1px solid var(--cu)">🔍 Sous-frise</button>
+      <button id="cp-subfrise" style="font-family:var(--fb);font-size:11.5px;padding:8px 10px;border-radius:100px;cursor:pointer;background:transparent;color:var(--cu);border:1px solid var(--cu)">🔍 Sous-frise</button>
       <a class="cp-wiki" id="cp-wiki" href="#" target="_blank" rel="noopener">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20M2 12h20"/></svg>
         Wikipedia
@@ -468,7 +370,7 @@
   </div>
 </div>
 
-<!-- Leaflet JS -->
+<!-- Leaflet JS — chargé AVANT script.js pour que L soit disponible -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
 <!-- Firebase SDK -->
