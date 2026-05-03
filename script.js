@@ -610,9 +610,12 @@ function yearToX(y) { const { minY } = getRange(); return 80 + (y - minY) * scal
 function xToYear(x) { const { minY } = getRange(); return (x - 80 - offsetX) / scale + minY; }
 function defScale() { const { minY, maxY } = getRange(); return Math.max(0.0001, (svgW - 160) / Math.max(1, maxY - minY)); }
 
-/* CORRIGÉ: MAX_SCALE = 1 pixel par heure (~8766h/an × largeur SVG)
-   On bloque quand 1 jour visible = toute la largeur du SVG */
-function maxScale() { return (svgW - 160) * 365; }
+/* Limite de zoom : 1 jour au maximum sur toute la largeur utile.
+   On relit wrap.clientWidth à chaque appel pour avoir la valeur fraîche. */
+function maxScale() {
+  const w = (wrap && wrap.clientWidth > 0) ? wrap.clientWidth : svgW;
+  return (w - 160) * 365;
+}
 
 function resetView() {
   H = window.innerWidth < 640 ? 260 : 340;
@@ -742,14 +745,17 @@ function render() {
 
   const visible = eraEvents().sort((a, b) => a.y - b.y);
 
-  /* ══════════════════════════════════════════════════════════════
-     CORRIGÉ: placement des événements — on utilise la largeur
-     réelle d'une carte (bw≈190px) pour décider du chevauchement,
-     et on monte jusqu'à 16 rangs pour ne rien écraser.
-     Les events au même pixel pixel-exact ont des rangs différents
-     garantis grâce à l'ordre de tri initial.
-     ══════════════════════════════════════════════════════════════ */
-  const CARD_W = 192; /* largeur max d'une carte en px */
+  /* ═════════════════════════════════════════════════════════════════
+     Placement des événements sur la frise.
+     CARD_W = largeur max d'une carte SVG (190px) + 5px de marge.
+     rowLast[r] mémorise la position X du dernier event placé sur le
+     rang r. Un rang est "libre" seulement si le dernier event placé
+     dessus est à plus de CARD_W pixels du nouvel event.
+     On monte jusqu'à 16 rangs de profondeur pour ne rien perdre.
+     Résultat : des events à la même date reçoivent des rangs
+     différents et sont donc TOUJOURS visibles simultanément.
+     ═════════════════════════════════════════════════════════════════ */
+  const CARD_W = 195;
   const raw = [], rowLast = {};
   visible.forEach((ev, i) => {
     const px = yearToX(yearFrac(ev.y, ev.m, ev.d));
@@ -852,20 +858,30 @@ function buildCard(ev, stemLen) {
   return s;
 }
 
-/* CORRIGÉ: clusterEv — seuil porté à CARD_W (190px).
-   À zoom réduit, les events proches sont regroupés.
-   Au zoom fort (événements séparés), chacun est solo → tous visibles. */
+/* clusterEv — regroupement des events proches.
+   RÈGLE FONDAMENTALE : deux events sur des rangs (row) différents sont
+   déjà séparés verticalement sur la frise. Les regrouper masquerait des
+   events parfaitement visibles. On ne regroupe donc que les events qui :
+     1. ont le MÊME rang (même côté de l'axe, même profondeur)
+     2. sont à moins de CARD_W pixels l'un de l'autre sur l'axe X
+   Cela garantit que des events à la même date mais rangs différents
+   restent toujours visibles individuellement. */
 function clusterEv(placed) {
-  const CLUSTER_DIST = 190;
-  const sorted = [...placed].sort((a, b) => a.px - b.px);
+  const CARD_W = 192;
+  /* Trier par rang puis par position X */
+  const sorted = [...placed].sort((a, b) => a.row !== b.row ? a.row - b.row : a.px - b.px);
   const clusters = [], used = new Set();
+
   for (let i = 0; i < sorted.length; i++) {
     if (used.has(i)) continue;
     const grp = [sorted[i]]; used.add(i);
     for (let j = i + 1; j < sorted.length; j++) {
       if (used.has(j)) continue;
-      if (sorted[j].px - sorted[i].px < CLUSTER_DIST) { grp.push(sorted[j]); used.add(j); }
-      else break; /* trié : inutile de continuer */
+      /* Condition 1 : même rang exact */
+      if (sorted[j].row !== sorted[i].row) continue;
+      /* Condition 2 : distance X inférieure à la largeur d'une carte */
+      if (sorted[j].px - sorted[i].px >= CARD_W) break; /* trié par px, inutile de continuer */
+      grp.push(sorted[j]); used.add(j);
     }
     if (grp.length >= 3) clusters.push(grp);
     else grp.forEach(ev => clusters.push([ev]));
