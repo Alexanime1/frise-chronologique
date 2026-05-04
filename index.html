@@ -100,6 +100,8 @@
     <div class="sep"></div>
     <button class="btn" onclick="shareApp()" title="Partager le site">🔗 Partager</button>
     <div class="sep"></div>
+    <button class="btn" id="fs-btn" onclick="toggleFullscreen()" title="Plein écran">⛶</button>
+    <div class="sep"></div>
     <div class="theme-picker" title="Changer de thème">
       <button class="theme-btn active" data-t="light"     onclick="setTheme('light')"     title="Clair"></button>
       <button class="theme-btn"        data-t="dark"      onclick="setTheme('dark')"      title="Sombre"></button>
@@ -119,9 +121,17 @@
   <!-- ── Légende catégories ── -->
   <div class="legend" id="legend"></div>
 
+  <!-- ── Tags actifs ── -->
+  <div class="tag-bar" id="tag-bar" style="display:none">
+    <span class="tag-bar-label">🏷️ Tags :</span>
+    <div class="tag-chips" id="tag-chips"></div>
+    <button class="tag-clear-all" onclick="clearAllTags()">✕ Tous</button>
+  </div>
+
   <!-- ── Filtres ── -->
   <div class="filter-bar">
     <button class="btn" id="fav-filter-btn" onclick="toggleFavsFilter()">☆ Favoris</button>
+    <button class="btn" id="tag-filter-btn" onclick="openTagPanel()" title="Filtrer par tag">🏷️ Tags</button>
     <div class="region-search-wrap">
       <div class="region-search-box">
         <span style="opacity:.5;font-size:13px">📍</span>
@@ -260,6 +270,28 @@
   </div>
 </div>
 
+  <!-- Tags dans la popup fiche — inséré dynamiquement par openCard() -->
+  <div id="cp-tags-wrap" style="display:none;margin-bottom:.5rem;"></div>
+
+  <!-- ═══ PANNEAU TAGS ═══ -->
+  <div id="tag-panel-bg" style="display:none;position:fixed;inset:0;background:rgba(14,12,10,.45);backdrop-filter:blur(3px);z-index:280;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTagPanel()">
+    <div id="tag-panel" style="background:var(--paper);border-radius:var(--rxl) var(--rxl) 0 0;width:100%;max-width:600px;max-height:75vh;overflow-y:auto;box-shadow:var(--shlg);padding:1.2rem 1.25rem 2rem;animation:slideUp .22s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--paper3)">
+        <span style="font-family:var(--fh);font-size:16px;font-weight:500">🏷️ Filtrer par tag</span>
+        <button onclick="closeTagPanel()" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--ink3)">✕</button>
+      </div>
+      <div id="tag-panel-search-wrap" style="margin-bottom:.85rem">
+        <input id="tag-panel-search" type="text" placeholder="Chercher un tag…" oninput="renderTagPanel(this.value)"
+          style="width:100%;font-size:15px;font-family:var(--fb);border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--paper2);color:var(--ink);padding:9px 12px;outline:none"/>
+      </div>
+      <div id="tag-panel-list" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+      <div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--paper3);display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="clearAllTags()" style="background:transparent;color:var(--ink2);border:1px solid var(--paper3);border-radius:100px;padding:8px 14px;font-size:13px;font-family:var(--fb);cursor:pointer">Effacer tout</button>
+        <button onclick="closeTagPanel()" style="background:linear-gradient(135deg,var(--cp),var(--cu));color:#fff;border:none;border-radius:100px;padding:8px 18px;font-size:13px;font-family:var(--fb);cursor:pointer;font-weight:500">Appliquer</button>
+      </div>
+    </div>
+  </div>
+
 <div id="cluster-list">
   <div class="cl-header">
     <span class="cl-title" id="cl-title-span"></span>
@@ -337,6 +369,15 @@
         <label>Pays / Région (optionnel)</label>
         <input id="f-region" type="text" placeholder="Ex : France, Europe, Monde entier…"/>
         <div class="fr-hint">Permet de filtrer par lieu dans la barre de recherche</div>
+      </div>
+      <div class="fr s2">
+        <label>Tags libres (optionnel)</label>
+        <div class="tags-input-wrap" id="tags-input-wrap">
+          <div class="tags-chips-edit" id="tags-chips-edit"></div>
+          <input id="f-tags" type="text" placeholder="Ajouter un tag… (Entrée pour valider)" autocomplete="off"/>
+        </div>
+        <div class="fr-hint">Ex : Femmes · Religion · Découverte · Révolution · Océan</div>
+        <div class="tags-suggest" id="tags-suggest"></div>
       </div>
       <div class="fr s2">
         <label>Lieu précis — lien Google Maps + carte monde</label>
