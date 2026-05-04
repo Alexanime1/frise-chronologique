@@ -329,3 +329,52 @@ svg, svg * { transition: none !important; }
 /* CORRIGÉ: Leaflet — fond océan pour éviter le "vide gris" hors carte
    (worldCopyJump:false + maxBounds dans JS empêche le wrapping) */
 .leaflet-container{background:#a8d8ea!important}
+
+/* ══════════════════════════
+   PLEIN ÉCRAN
+   ══════════════════════════ */
+/* Quand le document est en fullscreen, on masque tout sauf la frise */
+:fullscreen .page > *:not(#frise-view):not(.toolbar):not(.searchbox):not(#sres):not(.legend):not(.tag-bar):not(.filter-bar) { display:none!important }
+:-webkit-full-screen .page > *:not(#frise-view):not(.toolbar):not(.searchbox):not(#sres):not(.legend):not(.tag-bar):not(.filter-bar) { display:none!important }
+/* Bouton qui change d'icône en fullscreen */
+:fullscreen #fs-btn::before { content:'⛶'; }
+#fs-btn { font-size:15px; min-width:34px; text-align:center; }
+
+/* ══════════════════════════
+   TAGS LIBRES
+   ══════════════════════════ */
+
+/* Barre de tags actifs sous la légende */
+.tag-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:.75rem;padding:.5rem .85rem;background:var(--paper2);border:1.5px solid var(--cp);border-radius:var(--rlg);animation:slideUp .2s ease}
+.tag-bar-label{font-size:11px;color:var(--cp);font-weight:600;font-family:var(--fb);white-space:nowrap}
+.tag-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.tag-chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:500;padding:4px 10px;border-radius:100px;background:var(--cpb);color:var(--cp);border:1px solid var(--cp);cursor:pointer;transition:all .15s;font-family:var(--fb)}
+.tag-chip:hover{background:var(--cp);color:#fff}
+.tag-chip .tc-x{font-size:12px;opacity:.7;margin-left:1px}
+.tag-clear-all{font-size:11px;color:var(--ink3);background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:var(--r);font-family:var(--fb);white-space:nowrap}
+.tag-clear-all:hover{color:var(--cg)}
+
+/* Bouton tags dans la toolbar */
+#tag-filter-btn.active{background:var(--cp);color:#fff;border-color:var(--cp)}
+
+/* Champ tags dans le formulaire modal */
+.tags-input-wrap{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:6px 10px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--paper2);transition:border-color .15s;cursor:text;min-height:42px}
+.tags-input-wrap:focus-within{border-color:var(--cp)}
+.tags-input-wrap #f-tags{flex:1;min-width:120px;background:none;border:none;outline:none;font-family:var(--fb);font-size:14px;color:var(--ink);padding:2px 4px}
+.tag-edit-chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;padding:3px 9px;border-radius:100px;background:var(--cpb);color:var(--cp);border:1px solid var(--cp);font-family:var(--fb);font-weight:500}
+.tag-edit-chip button{background:none;border:none;cursor:pointer;font-size:12px;color:var(--cp);padding:0 1px;line-height:1}
+.tags-suggest{display:none;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tags-suggest.open{display:flex}
+.tag-sug{font-size:11px;padding:3px 9px;border-radius:100px;background:var(--paper3);color:var(--ink2);cursor:pointer;border:none;font-family:var(--fb);transition:all .12s}
+.tag-sug:hover{background:var(--cp);color:#fff}
+
+/* Tags dans la fiche popup */
+.cp-tag-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.6rem}
+.cp-tag-pill{font-size:11px;padding:3px 9px;border-radius:100px;background:var(--cpb);color:var(--cp);border:1px solid rgba(79,110,247,.3);cursor:pointer;font-family:var(--fb);font-weight:500;transition:all .15s}
+.cp-tag-pill:hover{background:var(--cp);color:#fff}
+
+/* Tag panel (modale de sélection) */
+@media(min-width:641px){
+  #tag-panel-bg{align-items:center!important;padding:1rem}
+  #tag-panel{border-radius:var(--rxl)!important;max-height:80vh}
+}
