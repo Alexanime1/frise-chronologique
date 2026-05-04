@@ -697,9 +697,9 @@
     {
       "id": 65,
       "y": 1848,
-      "title": "Manifeste communiste",
+      "title": "Manifeste communiste — Marx & Engels",
       "wiki": "Manifeste du Parti communiste",
-      "desc": "Marx et Engels : « Prolétaires de tous les pays, unissez-vous ! »",
+      "desc": "Marx et Engels publient le Manifeste du Parti communiste en février 1848. « Un spectre hante l'Europe — le spectre du communisme. » Texte fondateur du socialisme mondial.",
       "cat": "politique",
       "img": ""
     },
@@ -1205,11 +1205,12 @@
       "y": 1967,
       "m": 12,
       "d": 3,
-      "title": "Première transplantation cardiaque",
+      "title": "Barnard — première transplantation cardiaque",
       "wiki": "Transplantation cardiaque",
-      "desc": "Christian Barnard réalise la première transplantation cardiaque le 3 décembre 1967.",
+      "desc": "Christiaan Barnard réalise la première transplantation cardiaque à Groote Schuur Hospital, Le Cap, le 3 décembre 1967. Le patient Louis Washkansky survit 18 jours. La médecine franchit une frontière éthique et scientifique majeure.",
       "cat": "science",
-      "img": ""
+      "img": "",
+      "region": "Afrique du Sud"
     },
     {
       "id": 112,
@@ -4850,17 +4851,6 @@
       "img": ""
     },
     {
-      "id": 447,
-      "y": 1967,
-      "m": 12,
-      "d": 3,
-      "title": "Barnard — première transplantation cardiaque réussie",
-      "wiki": "Transplantation cardiaque",
-      "desc": "Barnard réalise la première transplantation cardiaque à Cape Town.",
-      "cat": "science",
-      "img": ""
-    },
-    {
       "id": 448,
       "y": 1996,
       "m": 7,
@@ -5013,17 +5003,6 @@
       "wiki": "Recherches sur la nature et les causes de la richesse des nations",
       "desc": "Adam Smith publie La Richesse des nations. Fondement du capitalisme.",
       "cat": "art",
-      "img": ""
-    },
-    {
-      "id": 462,
-      "y": 1848,
-      "m": 2,
-      "d": 21,
-      "title": "Manifeste du Parti communiste",
-      "wiki": "Manifeste du Parti communiste",
-      "desc": "Marx et Engels publient le Manifeste. « Un spectre hante l'Europe. »",
-      "cat": "politique",
       "img": ""
     },
     {
@@ -5225,12 +5204,13 @@
       "id": 482,
       "y": 1955,
       "ye": 1975,
-      "title": "Guerre du Vietnam — vue d'ensemble",
+      "title": "Guerre du Vietnam",
       "wiki": "Guerre du Viêt Nam",
-      "desc": "La guerre du Vietnam dure 20 ans. Première grande défaite américaine.",
+      "desc": "La guerre du Vietnam oppose le Nord communiste au Sud soutenu par les USA. 1955-1975, 20 ans de conflit. 3 millions de morts vietnamiens, 58 000 soldats américains. Première grande défaite américaine. Réunification du Vietnam en 1975.",
       "cat": "guerre",
       "img": "",
-      "parentId": 196
+      "parentId": 196,
+      "region": "Vietnam"
     },
     {
       "id": 483,
@@ -5491,19 +5471,6 @@
       "cat": "politique",
       "img": "",
       "parentId": 58
-    },
-    {
-      "id": 506,
-      "y": 1955,
-      "m": 11,
-      "d": 1,
-      "ye": 1975,
-      "title": "Guerre du Vietnam",
-      "wiki": "Guerre du Viêt Nam",
-      "desc": "La guerre du Vietnam oppose le Nord communiste au Sud. 3 millions de morts.",
-      "cat": "guerre",
-      "img": "",
-      "parentId": 196
     },
     {
       "id": 507,
@@ -8108,60 +8075,6 @@
       "img": ""
     },
     {
-      "id": 729,
-      "y": -470,
-      "ye": -399,
-      "title": "Socrate — le philosophe des rues d'Athènes",
-      "wiki": "Socrate",
-      "desc": "Socrate enseigne en dialoguant dans les rues d'Athènes. Il ne laisse aucun écrit. Platon rapportera sa pensée. Sa méthode maïeutique — accoucher les esprits — fonde la philosophie occidentale.",
-      "cat": "art",
-      "region": "Grèce",
-      "img": ""
-    },
-    {
-      "id": 730,
-      "y": -384,
-      "ye": -322,
-      "title": "Aristote — encyclopédiste de l'Antiquité",
-      "wiki": "Aristote",
-      "desc": "Aristote, disciple de Platon, fonde le Lycée. Il couvre la biologie, la physique, la politique, la poétique. Précepteur d'Alexandre le Grand. Son influence durera 2 000 ans.",
-      "cat": "art",
-      "region": "Grèce",
-      "img": ""
-    },
-    {
-      "id": 731,
-      "y": -287,
-      "ye": -212,
-      "title": "Archimède — génie de Syracuse",
-      "wiki": "Archimède",
-      "desc": "Archimède invente la vis, calcule π, découvre le principe de la poussée. Il défend Syracuse avec des machines de guerre. Tué par un soldat romain malgré les ordres de ne pas le toucher.",
-      "cat": "science",
-      "region": "Sicile",
-      "img": ""
-    },
-    {
-      "id": 732,
-      "y": -276,
-      "ye": -194,
-      "title": "Ératosthène mesure la Terre",
-      "wiki": "Ératosthène",
-      "desc": "Ératosthène calcule la circonférence de la Terre avec une précision stupéfiante. Résultat : 39 375 km (vrai : 40 075 km). En mesurant les ombres à Alexandrie et Syène. Génie pur.",
-      "cat": "science",
-      "region": "Égypte",
-      "img": ""
-    },
-    {
-      "id": 733,
-      "y": -250,
-      "title": "Bibliothèque d'Alexandrie fondée",
-      "wiki": "Bibliothèque d'Alexandrie",
-      "desc": "La Grande Bibliothèque d'Alexandrie rassemble 700 000 rouleaux — tout le savoir du monde antique. Elle attire savants et philosophes. Sa destruction progressive est un des grands drames de l'histoire.",
-      "cat": "science",
-      "region": "Égypte",
-      "img": ""
-    },
-    {
       "id": 734,
       "y": -60,
       "ye": -50,
@@ -8172,53 +8085,6 @@
       "region": "France",
       "img": "",
       "parentId": 15
-    },
-    {
-      "id": 735,
-      "y": -52,
-      "m": 9,
-      "title": "Siège d'Alésia — chute de Vercingétorix",
-      "wiki": "Siège d'Alésia",
-      "desc": "César assiège Alésia avec une double ligne de fortifications. Vercingétorix se rend pour sauver ses hommes. La Gaule devient romaine. Vercingétorix sera exécuté à Rome 6 ans plus tard.",
-      "cat": "guerre",
-      "region": "France",
-      "img": "",
-      "parentId": 734
-    },
-    {
-      "id": 736,
-      "y": 64,
-      "m": 7,
-      "d": 18,
-      "title": "Grand incendie de Rome — Néron",
-      "wiki": "Grand incendie de Rome",
-      "desc": "Rome brûle pendant 6 jours en juillet 64. Néron accuse les chrétiens. Il reconstruit la ville plus grande avec sa Domus Aurea. La légende de Néron jouant de la lyre pendant l'incendie naît.",
-      "cat": "autre",
-      "region": "Rome",
-      "img": ""
-    },
-    {
-      "id": 737,
-      "y": 117,
-      "ye": 138,
-      "title": "Hadrien — l'empereur bâtisseur",
-      "wiki": "Hadrien",
-      "desc": "Hadrien construit son mur en Bretagne (Angleterre), le Panthéon à Rome, la Villa Adriana. Il voyage dans tout l'Empire. Modèle de l'administrateur éclairé. L'Empire romain à son apogée territorial.",
-      "cat": "politique",
-      "region": "Rome",
-      "img": ""
-    },
-    {
-      "id": 738,
-      "y": 380,
-      "m": 2,
-      "d": 27,
-      "title": "Édit de Thessalonique — christianisme religion d'État",
-      "wiki": "Édit de Thessalonique",
-      "desc": "L'édit du 27 février 380 fait du christianisme nicéen la religion officielle de l'Empire romain. Le paganisme est marginalisé. La puissance de l'Église catholique commence son essor.",
-      "cat": "politique",
-      "region": "Rome",
-      "img": ""
     },
     {
       "id": 739,
@@ -8291,45 +8157,12 @@
       "parentId": 37
     },
     {
-      "id": 745,
-      "y": 1304,
-      "ye": 1374,
-      "title": "Pétrarque — premier humaniste",
-      "wiki": "Pétrarque",
-      "desc": "Francesco Pétrarque, poète et érudit florentin, est considéré comme le premier humaniste. Il ressuscite les auteurs latins classiques et invente le sonnet. L'aurore de la Renaissance italienne.",
-      "cat": "art",
-      "region": "Italie",
-      "img": ""
-    },
-    {
-      "id": 746,
-      "y": 1452,
-      "ye": 1519,
-      "title": "Léonard de Vinci — l'homme universel",
-      "wiki": "Léonard de Vinci",
-      "desc": "Léonard de Vinci est peintre, sculpteur, architecte, ingénieur, anatomiste, musicien. La Joconde, La Cène, des milliers de carnets. Symbole absolu de la Renaissance et du génie humain.",
-      "cat": "art",
-      "region": "Italie",
-      "img": ""
-    },
-    {
       "id": 747,
       "y": 1475,
       "ye": 1564,
       "title": "Michel-Ange — génie absolu de la Renaissance",
       "wiki": "Michel-Ange",
       "desc": "Michel-Ange sculpte le David (1504), peint la Sixtine (1508-1512), conçoit la coupole de Saint-Pierre. Peintre, sculpteur, architecte, poète. Le génie le plus polyvalent de la Renaissance.",
-      "cat": "art",
-      "region": "Italie",
-      "img": ""
-    },
-    {
-      "id": 748,
-      "y": 1483,
-      "ye": 1520,
-      "title": "Raphaël — la beauté idéale",
-      "wiki": "Raphaël",
-      "desc": "Raphaël peint L'École d'Athènes (1511) et les Chambres du Vatican. Sa perfection formelle en fait le peintre le plus admiré de la Renaissance. Mort à 37 ans au sommet de son art.",
       "cat": "art",
       "region": "Italie",
       "img": ""
@@ -8342,16 +8175,6 @@
       "desc": "Miguel de Cervantes publie la première partie de Don Quichotte en 1605. Premier roman moderne de l'histoire. Le chevalier à la triste figure et Sancho Pança entrent dans la légende mondiale.",
       "cat": "art",
       "region": "Espagne",
-      "img": ""
-    },
-    {
-      "id": 750,
-      "y": 1726,
-      "title": "Voyages de Gulliver — Swift",
-      "wiki": "Les Voyages de Gulliver",
-      "desc": "Jonathan Swift publie Les Voyages de Gulliver en 1726. Satire politique géniale déguisée en conte. Lilliput, Brobdingnag, Laputa. La littérature anglaise à son sommet satirique.",
-      "cat": "art",
-      "region": "Royaume-Uni",
       "img": ""
     },
     {
@@ -8382,16 +8205,6 @@
       "desc": "Picasso peint Les Demoiselles d'Avignon en 1907. Rupture totale : visages décomposés, influence africaine. Naissance du cubisme. Le tableau le plus influent du XXe siècle.",
       "cat": "art",
       "region": "France",
-      "img": ""
-    },
-    {
-      "id": 754,
-      "y": 1922,
-      "title": "Ulysse de Joyce — révolution littéraire",
-      "wiki": "Ulysse (Joyce)",
-      "desc": "James Joyce publie Ulysse le 2 février 1922. Un seul jour à Dublin, 900 pages. Révolution du roman moderne : flux de conscience, polyphonie. Interdit pendant des années. Chef-d'œuvre absolu.",
-      "cat": "art",
-      "region": "Irlande",
       "img": ""
     },
     {
@@ -8427,29 +8240,6 @@
       "img": ""
     },
     {
-      "id": 758,
-      "y": 1810,
-      "ye": 1826,
-      "title": "Indépendances latino-américaines",
-      "wiki": "Indépendances de l'Amérique latine",
-      "desc": "Bolivar, San Martín, Hidalgo libèrent l'Amérique latine de l'Espagne. En 15 ans, 19 nations naissent. Le Mexique, la Colombie, l'Argentine, le Venezuela, le Chili deviennent indépendants.",
-      "cat": "politique",
-      "region": "Amériques",
-      "img": ""
-    },
-    {
-      "id": 759,
-      "y": 1815,
-      "m": 6,
-      "d": 9,
-      "title": "Congrès de Vienne — nouvel ordre européen",
-      "wiki": "Congrès de Vienne",
-      "desc": "Le Congrès de Vienne redessine l'Europe après Napoléon. Metternich installe un ordre conservateur. La Sainte-Alliance préserve la paix pendant 40 ans. Naissance du concert des nations.",
-      "cat": "politique",
-      "region": "Europe",
-      "img": ""
-    },
-    {
       "id": 760,
       "y": 1830,
       "title": "Révolution belge — naissance de la Belgique",
@@ -8457,49 +8247,6 @@
       "desc": "La Belgique se sépare des Pays-Bas en 1830 après une révolution inspirée par Paris. Nouveau royaume neutre reconnu par les grandes puissances. Bruxelles devient capitale d'un nouveau pays.",
       "cat": "politique",
       "region": "Belgique",
-      "img": ""
-    },
-    {
-      "id": 761,
-      "y": 1861,
-      "title": "Unification de l'Italie — Risorgimento",
-      "wiki": "Unification italienne",
-      "desc": "Cavour, Garibaldi et Victor-Emmanuel II unifient l'Italie en 1861. Les Mille de Garibaldi conquièrent le Sud. Rome rejoint en 1870. Fin de 1 500 ans de division de la péninsule.",
-      "cat": "politique",
-      "region": "Italie",
-      "img": ""
-    },
-    {
-      "id": 762,
-      "y": 1868,
-      "title": "Restauration Meiji — Japon modernisé",
-      "wiki": "Restauration Meiji",
-      "desc": "L'Empereur Meiji reprend le pouvoir en 1868. Le Japon s'industrialise à toute vitesse en copiant l'Occident. En 30 ans, il passe de la féodalité à la puissance industrielle mondiale.",
-      "cat": "politique",
-      "region": "Japon",
-      "img": ""
-    },
-    {
-      "id": 763,
-      "y": 1871,
-      "m": 1,
-      "d": 18,
-      "title": "Proclamation de l'Empire allemand à Versailles",
-      "wiki": "Proclamation de l'Empire allemand",
-      "desc": "Bismarck fait proclamer l'Empire allemand dans la galerie des Glaces de Versailles, humiliation suprême pour la France. Guillaume Ier, Kaiser. L'Allemagne unie devient la première puissance continentale.",
-      "cat": "politique",
-      "region": "France",
-      "img": "",
-      "parentId": 362
-    },
-    {
-      "id": 764,
-      "y": 1876,
-      "title": "Tchaikovski — Le Lac des Cygnes",
-      "wiki": "Le Lac des Cygnes",
-      "desc": "Tchaïkovski compose Le Lac des Cygnes (1876), La Belle au Bois Dormant (1890), Casse-Noisette (1892). Il fonde le ballet romantique russe. Sa musique reste parmi les plus populaires du répertoire classique.",
-      "cat": "art",
-      "region": "Russie",
       "img": ""
     },
     {
@@ -8539,19 +8286,6 @@
       "img": ""
     },
     {
-      "id": 768,
-      "y": 1917,
-      "m": 3,
-      "d": 15,
-      "title": "Révolution de Février — abdication du Tsar",
-      "wiki": "Révolution de Février",
-      "desc": "Des émeutes à Pétrograd forcent Nicolas II à abdiquer le 15 mars 1917. Fin des Romanov après 300 ans. Le gouvernement provisoire prend le pouvoir. Lénine rentre d'exil en avril.",
-      "cat": "politique",
-      "region": "Russie",
-      "img": "",
-      "parentId": 86
-    },
-    {
       "id": 769,
       "y": 1919,
       "m": 6,
@@ -8561,27 +8295,6 @@
       "desc": "Le Traité de Versailles impose 132 milliards de marks-or à l'Allemagne. Keynes prédit la catastrophe. L'humiliation allemande sera le terreau du nazisme. La der des ders prépare la suivante.",
       "cat": "politique",
       "region": "France",
-      "img": ""
-    },
-    {
-      "id": 770,
-      "y": 1921,
-      "title": "Parti communiste chinois fondé",
-      "wiki": "Parti communiste chinois",
-      "desc": "Le PCC est fondé à Shanghai en juillet 1921 avec 13 membres dont Mao Zedong. 28 ans plus tard, il proclamera la République populaire. Il gouverne encore 1,4 milliard de Chinois.",
-      "cat": "politique",
-      "region": "Chine",
-      "img": ""
-    },
-    {
-      "id": 771,
-      "y": 1929,
-      "ye": 1933,
-      "title": "Grande Famine soviétique — Holodomor",
-      "wiki": "Holodomor",
-      "desc": "La collectivisation forcée de Staline entraîne une famine en Ukraine (Holodomor, 1932-33) : 3 à 7 millions de morts. Le grain est exporté pendant que les paysans meurent. Crime contre l'humanité.",
-      "cat": "guerre",
-      "region": "Ukraine",
       "img": ""
     },
     {
@@ -8596,132 +8309,6 @@
       "region": "Allemagne",
       "img": "",
       "parentId": 89
-    },
-    {
-      "id": 773,
-      "y": 1936,
-      "m": 3,
-      "d": 7,
-      "title": "Remilitarisation de la Rhénanie",
-      "wiki": "Remilitarisation de la Rhénanie",
-      "desc": "Hitler envoie des troupes dans la Rhénanie démilitarisée le 7 mars 1936. Violation flagrante de Versailles. La France et le Royaume-Uni n'interviennent pas. Hitler sait qu'il peut agir impunément.",
-      "cat": "politique",
-      "region": "Europe",
-      "img": "",
-      "parentId": 89
-    },
-    {
-      "id": 774,
-      "y": 1937,
-      "m": 4,
-      "d": 26,
-      "title": "Bombardement de Guernica — Picasso peint l'horreur",
-      "wiki": "Bombardement de Guernica",
-      "desc": "La Légion Condor nazie bombarde Guernica le 26 avril 1937 lors de la guerre civile espagnole. 150 morts. Picasso peint Guernica en 5 semaines. Chef-d'œuvre anti-guerre universel.",
-      "cat": "guerre",
-      "region": "Espagne",
-      "img": "",
-      "parentId": 379
-    },
-    {
-      "id": 775,
-      "y": 1938,
-      "m": 9,
-      "d": 29,
-      "title": "Accords de Munich — l'appeasement",
-      "wiki": "Accords de Munich",
-      "desc": "Chamberlain et Daladier cèdent les Sudètes à Hitler à Munich le 29 septembre 1938. Chamberlain rentre en disant j'apporte la paix. Churchill répond : la honte nous a choisis, la guerre viendra quand même.",
-      "cat": "politique",
-      "region": "Allemagne",
-      "img": "",
-      "parentId": 89
-    },
-    {
-      "id": 776,
-      "y": 1941,
-      "ye": 1945,
-      "title": "La Shoah — génocide des Juifs d'Europe",
-      "wiki": "Shoah",
-      "desc": "La Solution finale décidée à Wannsee en janvier 1942 vise l'extermination de tous les Juifs d'Europe. Auschwitz, Treblinka, Sobibor. 6 millions de Juifs assassinés. Crime le plus documenté de l'histoire.",
-      "cat": "guerre",
-      "region": "Europe",
-      "img": "",
-      "parentId": 91
-    },
-    {
-      "id": 777,
-      "y": 1942,
-      "m": 1,
-      "d": 20,
-      "title": "Conférence de Wannsee — la Solution finale",
-      "wiki": "Conférence de Wannsee",
-      "desc": "15 hauts fonctionnaires nazis se réunissent à Wannsee le 20 janvier 1942 pour coordonner l'extermination industrielle des Juifs. Protocole de 90 minutes. Décision la plus criminelle de l'histoire.",
-      "cat": "guerre",
-      "region": "Allemagne",
-      "img": "",
-      "parentId": 776
-    },
-    {
-      "id": 778,
-      "y": 1943,
-      "m": 4,
-      "d": 19,
-      "title": "Soulèvement du Ghetto de Varsovie",
-      "wiki": "Soulèvement du ghetto de Varsovie",
-      "desc": "Les Juifs du ghetto de Varsovie se soulèvent contre les SS le 19 avril 1943 avec 700 combattants. Ils résistent 4 semaines contre 2 000 soldats. Symbole de la résistance contre l'extermination.",
-      "cat": "guerre",
-      "region": "Pologne",
-      "img": "",
-      "parentId": 776
-    },
-    {
-      "id": 779,
-      "y": 1945,
-      "m": 1,
-      "d": 27,
-      "title": "Libération d'Auschwitz",
-      "wiki": "Libération des camps de concentration",
-      "desc": "L'Armée Rouge libère Auschwitz-Birkenau le 27 janvier 1945. 7 500 survivants. 1,1 million de personnes y ont été assassinées. Le 27 janvier est la Journée internationale de commémoration de la Shoah.",
-      "cat": "guerre",
-      "region": "Pologne",
-      "img": "",
-      "parentId": 776
-    },
-    {
-      "id": 780,
-      "y": 1947,
-      "m": 3,
-      "d": 12,
-      "title": "Doctrine Truman — endiguement du communisme",
-      "wiki": "Doctrine Truman",
-      "desc": "Truman annonce le 12 mars 1947 que les États-Unis soutiendront tout peuple libre résistant à la soumission. L'endiguement du communisme devient la doctrine américaine pour 40 ans.",
-      "cat": "politique",
-      "region": "États-Unis",
-      "img": ""
-    },
-    {
-      "id": 781,
-      "y": 1949,
-      "m": 8,
-      "d": 29,
-      "title": "L'URSS teste sa première bombe atomique",
-      "wiki": "RDS-1",
-      "desc": "L'URSS fait exploser sa première bombe atomique le 29 août 1949, 4 ans après Hiroshima. Le monopole nucléaire américain est brisé. La course aux armements nucléaires commence vraiment.",
-      "cat": "science",
-      "region": "Russie",
-      "img": ""
-    },
-    {
-      "id": 782,
-      "y": 1953,
-      "m": 3,
-      "d": 5,
-      "title": "Mort de Staline — fin d'une terreur",
-      "wiki": "Mort de Joseph Staline",
-      "desc": "Staline meurt le 5 mars 1953. 20 à 60 millions de morts imputables à son règne. Des millions pleurent sincèrement. La déstalinisation de Khrouchtchev commence en 1956. Un empire vacille.",
-      "cat": "politique",
-      "region": "Russie",
-      "img": ""
     },
     {
       "id": 783,
@@ -8762,18 +8349,6 @@
       "parentId": 116
     },
     {
-      "id": 786,
-      "y": 1961,
-      "m": 4,
-      "d": 17,
-      "title": "Baie des Cochons — débarquement raté",
-      "wiki": "Invasion de la Baie des Cochons",
-      "desc": "1 500 exilés cubains entraînés par la CIA débarquent à Cuba le 17 avril 1961. Fiasco total. Kennedy refuse le soutien aérien. 1 200 prisonniers. Castro triomphe. Humiliation américaine.",
-      "cat": "guerre",
-      "region": "Amériques",
-      "img": ""
-    },
-    {
       "id": 787,
       "y": 1963,
       "m": 8,
@@ -8787,114 +8362,6 @@
       "parentId": 109
     },
     {
-      "id": 788,
-      "y": 1968,
-      "m": 5,
-      "title": "Printemps de Prague — chars soviétiques",
-      "wiki": "Printemps de Prague",
-      "desc": "Le réformateur Dubcek instaure un socialisme à visage humain au printemps 1968. Les chars soviétiques envahissent Prague le 21 août. Fin du socialisme réformé. Doctrine Brejnev.",
-      "cat": "politique",
-      "region": "Europe",
-      "img": ""
-    },
-    {
-      "id": 789,
-      "y": 1975,
-      "m": 4,
-      "d": 17,
-      "title": "Khmers rouges prennent Phnom Penh",
-      "wiki": "Génocide cambodgien",
-      "desc": "Les Khmers rouges de Pol Pot prennent Phnom Penh le 17 avril 1975. Génocide : 1,7 à 2,2 millions de morts sur 8 millions de Cambodgiens. Année Zéro. Villes vidées, intellectuels exterminés.",
-      "cat": "guerre",
-      "region": "Cambodge",
-      "img": ""
-    },
-    {
-      "id": 790,
-      "y": 1978,
-      "m": 9,
-      "d": 17,
-      "title": "Accords de Camp David — paix israélo-égyptienne",
-      "wiki": "Accords de Camp David",
-      "desc": "Carter, Begin et Sadate signent les accords de Camp David le 17 septembre 1978. Premier accord de paix entre Israël et un pays arabe. Sadate sera assassiné en 1981. Begin et Sadate Nobel de la Paix.",
-      "cat": "politique",
-      "region": "Moyen-Orient",
-      "img": ""
-    },
-    {
-      "id": 791,
-      "y": 1980,
-      "m": 8,
-      "d": 14,
-      "title": "Solidarnosc — Lech Walesa à Gdansk",
-      "wiki": "Solidarité (syndicat polonais)",
-      "desc": "Lech Walesa mène la grève du chantier naval de Gdansk en août 1980. Naissance de Solidarnosc, premier syndicat libre du bloc soviétique. L'URSS envisage d'intervenir. Début de la fin du communisme.",
-      "cat": "politique",
-      "region": "Europe",
-      "img": ""
-    },
-    {
-      "id": 792,
-      "y": 1985,
-      "m": 11,
-      "d": 19,
-      "title": "Sommet de Genève — Reagan rencontre Gorbatchev",
-      "wiki": "Sommet de Genève (1985)",
-      "desc": "Ronald Reagan et Mikhaïl Gorbatchev se rencontrent pour la première fois à Genève le 19 novembre 1985. Aucun accord mais le dialogue reprend. Premier signe de dégel après les tensions de 1983.",
-      "cat": "politique",
-      "region": "Europe",
-      "img": ""
-    },
-    {
-      "id": 793,
-      "y": 1987,
-      "m": 12,
-      "d": 8,
-      "title": "Traité FNI — premier désarmement nucléaire",
-      "wiki": "Traité sur les forces nucléaires à portée intermédiaire",
-      "desc": "Reagan et Gorbatchev signent le traité FNI le 8 décembre 1987. Première suppression d'une catégorie d'armes nucléaires. 2 692 missiles détruits. Tournant majeur dans la course aux armements.",
-      "cat": "politique",
-      "region": "États-Unis",
-      "img": ""
-    },
-    {
-      "id": 794,
-      "y": 1990,
-      "m": 8,
-      "d": 2,
-      "title": "Saddam Hussein envahit le Koweït",
-      "wiki": "Invasion du Koweït",
-      "desc": "L'armée irakienne envahit le Koweït le 2 août 1990. L'ONU impose des sanctions. Bush monte une coalition de 34 pays. L'opération Tempête du Désert libère le Koweït en 100 heures.",
-      "cat": "guerre",
-      "region": "Moyen-Orient",
-      "img": "",
-      "parentId": 408
-    },
-    {
-      "id": 795,
-      "y": 1991,
-      "m": 12,
-      "d": 26,
-      "title": "Fin de l'URSS — dislocation d'un empire",
-      "wiki": "Dissolution de l'Union soviétique",
-      "desc": "Le drapeau soviétique descend du Kremlin le 25 décembre 1991. 15 républiques indépendantes. 69 ans de communisme soviétique s'effacent. La Russie garde les armes nucléaires. Fin de la Guerre froide.",
-      "cat": "politique",
-      "region": "Russie",
-      "img": "",
-      "parentId": 126
-    },
-    {
-      "id": 796,
-      "y": 1992,
-      "ye": 1995,
-      "title": "Guerres de Yougoslavie — Sarajevo assiégée",
-      "wiki": "Guerres de Yougoslavie",
-      "desc": "L'éclatement de la Yougoslavie provoque les guerres les plus meurtrières en Europe depuis 1945. Sarajevo assiégée 1 425 jours. Srebrenica (1995). L'OTAN intervient finalement. 140 000 morts.",
-      "cat": "guerre",
-      "region": "Europe",
-      "img": ""
-    },
-    {
       "id": 797,
       "y": 1994,
       "m": 4,
@@ -8906,82 +8373,6 @@
       "region": "Afrique",
       "img": "",
       "parentId": 129
-    },
-    {
-      "id": 798,
-      "y": 1997,
-      "m": 8,
-      "d": 31,
-      "title": "Mort de Lady Diana — deuil planétaire",
-      "wiki": "Mort de Diana Spencer",
-      "desc": "Diana meurt dans un accident de voiture à Paris le 31 août 1997. 2,5 milliards de téléspectateurs pour ses funérailles. Bouleversement émotionnel mondial. Elton John chante Candle in the Wind.",
-      "cat": "autre",
-      "region": "France",
-      "img": ""
-    },
-    {
-      "id": 799,
-      "y": 1999,
-      "m": 3,
-      "d": 24,
-      "title": "Guerre du Kosovo — OTAN bombarde la Serbie",
-      "wiki": "Guerre du Kosovo",
-      "desc": "L'OTAN bombarde la Serbie pendant 78 jours sans mandat de l'ONU pour stopper les massacres au Kosovo. Milosevic cède. Précédent controversé du droit d'ingérence humanitaire.",
-      "cat": "guerre",
-      "region": "Europe",
-      "img": ""
-    },
-    {
-      "id": 800,
-      "y": 2003,
-      "m": 12,
-      "d": 13,
-      "title": "Capture de Saddam Hussein",
-      "wiki": "Capture de Saddam Hussein",
-      "desc": "Saddam Hussein est trouvé dans un trou à Tikrit le 13 décembre 2003. Jugé et pendu en 2006. Sa capture ne met pas fin à l'insurrection irakienne qui s'intensifie après sa mort.",
-      "cat": "politique",
-      "region": "Irak",
-      "img": "",
-      "parentId": 157
-    },
-    {
-      "id": 801,
-      "y": 2010,
-      "m": 12,
-      "d": 17,
-      "title": "Printemps arabe — l'étincelle tunisienne",
-      "wiki": "Révolution tunisienne",
-      "desc": "L'immolation de Bouazizi déclenche des manifestations qui forcent Ben Ali à fuir la Tunisie le 14 janvier 2011. Première révolution réussie du Printemps arabe. Seul pays à réussir sa transition.",
-      "cat": "politique",
-      "region": "Afrique",
-      "img": "",
-      "parentId": 141
-    },
-    {
-      "id": 802,
-      "y": 2014,
-      "m": 6,
-      "d": 29,
-      "title": "Daech proclame le califat islamique",
-      "wiki": "État islamique",
-      "desc": "Abou Bakr al-Baghdadi se proclame calife le 29 juin 2014. En son apogée, Daech contrôle 8 millions de personnes. Terreur mondiale. Sa défaite militaire en 2019 ne détruit pas l'idéologie.",
-      "cat": "guerre",
-      "region": "Moyen-Orient",
-      "img": "",
-      "parentId": 421
-    },
-    {
-      "id": 803,
-      "y": 2019,
-      "m": 10,
-      "d": 26,
-      "title": "Mort d'al-Baghdadi — fin du calife",
-      "wiki": "Mort d'Abou Bakr al-Baghdadi",
-      "desc": "Le chef de Daech Abou Bakr al-Baghdadi se fait exploser dans un tunnel syrien lors du raid américain le 26 octobre 2019. Trump annonce sa mort en direct. Le califat physique est terminé.",
-      "cat": "guerre",
-      "region": "Moyen-Orient",
-      "img": "",
-      "parentId": 421
     },
     {
       "id": 804,
@@ -9008,19 +8399,6 @@
       "region": "Afghanistan",
       "img": "",
       "parentId": 237
-    },
-    {
-      "id": 806,
-      "y": 2014,
-      "m": 3,
-      "d": 18,
-      "title": "Annexion de la Crimée par la Russie",
-      "wiki": "Annexion de la Crimée par la Russie",
-      "desc": "La Russie annexe la Crimée ukrainienne le 18 mars 2014 après un référendum contesté. Premières sanctions occidentales contre Moscou. Prélude direct à l'invasion totale de 2022.",
-      "cat": "politique",
-      "region": "Ukraine",
-      "img": "",
-      "parentId": 289
     },
     {
       "id": 807,
@@ -9253,19 +8631,6 @@
       "parentId": 81
     },
     {
-      "id": 826,
-      "y": 1923,
-      "m": 11,
-      "d": 8,
-      "title": "Putsch de Munich — Hitler emprisonné",
-      "wiki": "Putsch de la Brasserie",
-      "desc": "Hitler tente un coup d'État à Munich le 8 novembre 1923. Il échoue, est arrêté et emprisonné. En prison, il dicte Mein Kampf. Condamnation légère. Sort en 9 mois. La suite est connue.",
-      "cat": "politique",
-      "region": "Allemagne",
-      "img": "",
-      "parentId": 89
-    },
-    {
       "id": 827,
       "y": 1947,
       "m": 8,
@@ -9277,19 +8642,6 @@
       "region": "Inde",
       "img": "",
       "parentId": 250
-    },
-    {
-      "id": 828,
-      "y": 1965,
-      "m": 3,
-      "d": 7,
-      "title": "Marche de Selma — Dimanche Sanglant",
-      "wiki": "Marche de Selma à Montgomery",
-      "desc": "600 marcheurs pour le droit de vote noir sont brutalement battus à Selma le 7 mars 1965. Images choquantes. Johnson signe le Voting Rights Act 5 mois plus tard. Tournant des droits civiques.",
-      "cat": "politique",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 603
     },
     {
       "id": 829,
@@ -9344,30 +8696,6 @@
       "parentId": 86
     },
     {
-      "id": 833,
-      "y": 1918,
-      "m": 11,
-      "d": 9,
-      "title": "Révolution allemande — abdication du Kaiser",
-      "wiki": "Révolution allemande de 1918-1919",
-      "desc": "Le Kaiser Guillaume II abdique le 9 novembre 1918, deux jours avant l'armistice. La République de Weimar est proclamée. L'Allemagne humiliée par Versailles prépare le terreau du nazisme.",
-      "cat": "politique",
-      "region": "Allemagne",
-      "img": "",
-      "parentId": 87
-    },
-    {
-      "id": 834,
-      "y": 1932,
-      "title": "Roosevelt élu — New Deal",
-      "wiki": "New Deal",
-      "desc": "Franklin Roosevelt lance le New Deal en 1933. WPA crée 8 millions d'emplois publics. Sécurité sociale, réglementation bancaire, droits syndicaux. L'État américain se transforme durablement.",
-      "cat": "politique",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 377
-    },
-    {
       "id": 835,
       "y": 1945,
       "m": 5,
@@ -9409,30 +8737,6 @@
       "img": ""
     },
     {
-      "id": 838,
-      "y": 1952,
-      "m": 11,
-      "d": 1,
-      "title": "Bombe H américaine — puissance thermonucléaire",
-      "wiki": "Ivy Mike",
-      "desc": "Les États-Unis font exploser la première bombe à hydrogène le 1er novembre 1952. 800 fois plus puissante qu'Hiroshima. L'atoll Elugelab est vaporisé. L'URSS répondra avec sa bombe H en 1953.",
-      "cat": "science",
-      "region": "États-Unis",
-      "img": ""
-    },
-    {
-      "id": 839,
-      "y": 1955,
-      "m": 5,
-      "d": 14,
-      "title": "Pacte de Varsovie fondé",
-      "wiki": "Pacte de Varsovie",
-      "desc": "Le Pacte de Varsovie est signé le 14 mai 1955 par l'URSS et ses satellites. Alliance militaire miroir de l'OTAN. Il encadre les armées des démocraties populaires jusqu'à sa dissolution en 1991.",
-      "cat": "politique",
-      "region": "Europe",
-      "img": ""
-    },
-    {
       "id": 840,
       "y": 1957,
       "m": 10,
@@ -9444,34 +8748,6 @@
       "region": "Russie",
       "img": "",
       "parentId": 106
-    },
-    {
-      "id": 841,
-      "y": 1960,
-      "m": 5,
-      "d": 1,
-      "title": "Incident de l'U-2 — espionnage américain abattu",
-      "wiki": "Incident de l'avion espion U-2",
-      "desc": "Un avion espion américain U-2 est abattu au-dessus de l'URSS le 1er mai 1960. Le pilote Gary Powers est capturé. Eisenhower avoue. Humiliation américaine. Le sommet de Paris est annulé.",
-      "cat": "politique",
-      "region": "Russie",
-      "img": ""
-    },
-    {
-      "id": 842,
-      "y": 1962,
-      "m": 10,
-      "d": 22,
-      "ye": 1962,
-      "me": 10,
-      "de": 28,
-      "title": "Crise de Cuba — 13 jours au bord du gouffre",
-      "wiki": "Crise des missiles de Cuba",
-      "desc": "Kennedy découvre des missiles soviétiques à Cuba. 13 jours de tension extrême. Le monde au bord de la guerre nucléaire. Khrouchtchev recule. La plus grave crise de la Guerre froide.",
-      "cat": "guerre",
-      "region": "Amériques",
-      "img": "",
-      "parentId": 108
     },
     {
       "id": 843,
@@ -9491,9 +8767,9 @@
       "y": 1975,
       "m": 4,
       "d": 30,
-      "title": "Chute de Saïgon — fin de la guerre du Vietnam",
+      "title": "Évacuation de Saïgon — Opération Fréquent Vent",
       "wiki": "Chute de Saïgon",
-      "desc": "Les chars nord-vietnamiens entrent dans Saïgon le 30 avril 1975. Réunification du Vietnam sous régime communiste. Première grande défaite militaire américaine. Traumatisme national durable.",
+      "desc": "Le 29 avril 1975, les hélicoptères américains évacuent en urgence les derniers ressortissants des États-Unis et leurs alliés vietnamiens du toit de l'ambassade. Images emblématiques de la défaite américaine.",
       "cat": "guerre",
       "region": "Vietnam",
       "img": "",
@@ -9513,18 +8789,6 @@
       "parentId": 401
     },
     {
-      "id": 846,
-      "y": 1979,
-      "m": 5,
-      "d": 4,
-      "title": "Margaret Thatcher — première femme Premier ministre britannique",
-      "wiki": "Margaret Thatcher",
-      "desc": "Margaret Thatcher devient la première femme Premier ministre du Royaume-Uni le 4 mai 1979. Elle réforme l'économie, privatise, affronte les syndicats. La Dame de fer transforme la Grande-Bretagne.",
-      "cat": "politique",
-      "region": "Royaume-Uni",
-      "img": ""
-    },
-    {
       "id": 847,
       "y": 1981,
       "m": 6,
@@ -9536,32 +8800,6 @@
       "region": "États-Unis",
       "img": "",
       "parentId": 159
-    },
-    {
-      "id": 848,
-      "y": 1989,
-      "m": 2,
-      "d": 14,
-      "title": "Fatwa contre Salman Rushdie",
-      "wiki": "Controverse des Versets sataniques",
-      "desc": "L'ayatollah Khomeini lance une fatwa contre Salman Rushdie le 14 février 1989 pour son roman Les Versets sataniques. Prix de 3 millions de dollars pour sa tête. Rushdie vit caché des années.",
-      "cat": "politique",
-      "region": "Monde entier",
-      "img": "",
-      "parentId": 284
-    },
-    {
-      "id": 849,
-      "y": 1989,
-      "m": 10,
-      "d": 9,
-      "title": "Manifestations de Leipzig — lundi de paix",
-      "wiki": "Manifestations de Leipzig",
-      "desc": "100 000 Allemands de l'Est défilent pacifiquement à Leipzig le 9 octobre. La police ne tire pas. Début de la fin pour le régime est-allemand. La révolution de velours est en marche.",
-      "cat": "politique",
-      "region": "Allemagne",
-      "img": "",
-      "parentId": 108
     },
     {
       "id": 850,
@@ -9705,19 +8943,6 @@
       "parentId": 237
     },
     {
-      "id": 861,
-      "y": 2003,
-      "m": 2,
-      "d": 1,
-      "title": "Navette Columbia — désintégration au retour",
-      "wiki": "Désintégration de la navette Columbia",
-      "desc": "La navette Columbia se désintègre lors de sa rentrée atmosphérique le 1er février 2003. 7 astronautes morts. Seconde catastrophe de navette après Challenger (1986). Programme suspendu.",
-      "cat": "science",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 106
-    },
-    {
       "id": 862,
       "y": 2004,
       "m": 12,
@@ -9731,19 +8956,6 @@
       "parentId": 197
     },
     {
-      "id": 863,
-      "y": 2005,
-      "m": 8,
-      "d": 29,
-      "title": "Ouragan Katrina — Nouvelle-Orléans dévastée",
-      "wiki": "Ouragan Katrina",
-      "desc": "Katrina inonde 80% de la Nouvelle-Orléans. 1 800 morts. Des milliers abandonnés dans le Superdome. Réponse catastrophique du gouvernement Bush. Traumatisme américain profond et durable.",
-      "cat": "autre",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 414
-    },
-    {
       "id": 864,
       "y": 2006,
       "title": "IA dans les jeux vidéo — Deep Blue inspire la culture",
@@ -9752,19 +8964,6 @@
       "cat": "science",
       "region": "Monde entier",
       "img": ""
-    },
-    {
-      "id": 865,
-      "y": 2008,
-      "m": 10,
-      "d": 31,
-      "title": "Bitcoin — invention de la blockchain",
-      "wiki": "Bitcoin",
-      "desc": "Satoshi Nakamoto publie le livre blanc du Bitcoin le 31 octobre 2008. Première cryptomonnaie décentralisée. La blockchain révolutionnera la finance et la confiance numérique mondiale.",
-      "cat": "science",
-      "region": "Monde entier",
-      "img": "",
-      "parentId": 468
     },
     {
       "id": 866,
@@ -9882,19 +9081,6 @@
       "parentId": 145
     },
     {
-      "id": 875,
-      "y": 2016,
-      "m": 2,
-      "d": 11,
-      "title": "Ondes gravitationnelles détectées — Einstein confirmé",
-      "wiki": "Ondes gravitationnelles",
-      "desc": "L'observatoire LIGO annonce la première détection d'ondes gravitationnelles le 11 février 2016. Produites par la fusion de deux trous noirs. Einstein avait prédit leur existence en 1915.",
-      "cat": "science",
-      "region": "Monde entier",
-      "img": "",
-      "parentId": 450
-    },
-    {
       "id": 876,
       "y": 2016,
       "m": 11,
@@ -9969,19 +9155,6 @@
       "region": "Monde entier",
       "img": "",
       "parentId": 151
-    },
-    {
-      "id": 882,
-      "y": 2021,
-      "m": 4,
-      "d": 20,
-      "title": "Condamnation de Derek Chauvin — justice pour Floyd",
-      "wiki": "Procès de Derek Chauvin",
-      "desc": "Derek Chauvin est condamné à 22 ans de prison le 20 avril 2021 pour le meurtre de George Floyd. Première condamnation d'un policier blanc pour la mort d'un Noir aux États-Unis.",
-      "cat": "politique",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 293
     },
     {
       "id": 883,
@@ -10062,19 +9235,6 @@
       "parentId": 299
     },
     {
-      "id": 889,
-      "y": 2024,
-      "m": 3,
-      "d": 22,
-      "title": "Attentat de Moscou — Crocus City Hall",
-      "wiki": "Attentat du Crocus City Hall",
-      "desc": "Des terroristes de l'État islamique attaquent la salle de concert Crocus City Hall à Moscou le 22 mars 2024. 145 morts. Le plus grand attentat en Russie depuis Beslan en 2004.",
-      "cat": "guerre",
-      "region": "Russie",
-      "img": "",
-      "parentId": 429
-    },
-    {
       "id": 890,
       "y": 2024,
       "m": 7,
@@ -10112,19 +9272,6 @@
       "region": "Moyen-Orient",
       "img": "",
       "parentId": 297
-    },
-    {
-      "id": 893,
-      "y": 2025,
-      "m": 3,
-      "d": 3,
-      "title": "DeepSeek — l'IA chinoise défie les USA",
-      "wiki": "DeepSeek",
-      "desc": "DeepSeek R1, modèle d'IA chinois, rivalise avec GPT-4 à une fraction du coût. Choc dans la Silicon Valley. Les actions Nvidia chutent de 17%. La guerre technologique sino-américaine s'accélère.",
-      "cat": "science",
-      "region": "Chine",
-      "img": "",
-      "parentId": 470
     },
     {
       "id": 894,
@@ -10234,17 +9381,6 @@
       "parentId": 60
     },
     {
-      "id": 902,
-      "y": 1803,
-      "title": "Vente de la Louisiane — doublement des USA",
-      "wiki": "Vente de la Louisiane",
-      "desc": "Napoléon vend la Louisiane aux États-Unis pour 15 millions de dollars en 1803. Le territoire américain double d'un coup. Jefferson réalise l'achat du siècle. Napoléon finance ses guerres.",
-      "cat": "politique",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 60
-    },
-    {
       "id": 903,
       "y": 1940,
       "m": 5,
@@ -10257,19 +9393,6 @@
       "desc": "338 000 soldats alliés sont évacués des plages de Dunkerque grâce à une flottille de civils du 26 mai au 4 juin 1940. Churchill : Nous n'abandonnerons jamais. Miracle contre toute attente.",
       "cat": "guerre",
       "region": "France",
-      "img": "",
-      "parentId": 91
-    },
-    {
-      "id": 904,
-      "y": 1941,
-      "m": 6,
-      "d": 22,
-      "title": "Opération Barbarossa — invasion de l'URSS",
-      "wiki": "Opération Barbarossa",
-      "desc": "Hitler lance 3,8 millions de soldats contre l'URSS le 22 juin 1941. Plus grande invasion terrestre de l'histoire. L'URSS résiste contre toute attente. Tournant décisif de la Seconde Guerre mondiale.",
-      "cat": "guerre",
-      "region": "Russie",
       "img": "",
       "parentId": 91
     },
@@ -10329,30 +9452,6 @@
       "parentId": 91
     },
     {
-      "id": 909,
-      "y": 1947,
-      "title": "Plan Marshall — reconstruction de l'Europe",
-      "wiki": "Plan Marshall",
-      "desc": "Les États-Unis proposent 13 milliards de dollars pour reconstruire l'Europe dévastée en 1947. Succès économique extraordinaire. L'URSS refuse et impose le Comecon. L'Europe occidentale se relève.",
-      "cat": "politique",
-      "region": "Europe",
-      "img": "",
-      "parentId": 383
-    },
-    {
-      "id": 910,
-      "y": 1949,
-      "m": 4,
-      "d": 4,
-      "title": "Création de l'OTAN",
-      "wiki": "Organisation du traité de l'Atlantique nord",
-      "desc": "L'OTAN est fondée le 4 avril 1949 par 12 pays. Alliance militaire défensive contre la menace soviétique. Toujours active en 2025 avec 32 membres. Pilier de la sécurité occidentale.",
-      "cat": "politique",
-      "region": "Monde entier",
-      "img": "",
-      "parentId": 385
-    },
-    {
       "id": 911,
       "y": 1953,
       "m": 7,
@@ -10364,19 +9463,6 @@
       "region": "Corée",
       "img": "",
       "parentId": 101
-    },
-    {
-      "id": 912,
-      "y": 1958,
-      "m": 10,
-      "d": 4,
-      "title": "Naissance de la Ve République française",
-      "wiki": "Ve République",
-      "desc": "De Gaulle rédige une nouvelle Constitution adoptée par référendum le 28 septembre 1958. La Ve République donne de grands pouvoirs au président. Elle est toujours en vigueur en 2025.",
-      "cat": "politique",
-      "region": "France",
-      "img": "",
-      "parentId": 389
     },
     {
       "id": 913,
@@ -10457,32 +9543,6 @@
       "parentId": 284
     },
     {
-      "id": 919,
-      "y": 1979,
-      "m": 12,
-      "d": 25,
-      "title": "Invasion soviétique de l'Afghanistan",
-      "wiki": "Invasion de l'Afghanistan par l'URSS",
-      "desc": "L'URSS envahit l'Afghanistan le 25 décembre 1979. Début d'une guerre de 10 ans qui épuise l'Union soviétique. Les moudjahidines financés par les USA résistent. L'URSS se retire en 1989.",
-      "cat": "guerre",
-      "region": "Afghanistan",
-      "img": "",
-      "parentId": 285
-    },
-    {
-      "id": 920,
-      "y": 1985,
-      "m": 3,
-      "d": 11,
-      "title": "Gorbatchev arrive au pouvoir — glasnost et perestroïka",
-      "wiki": "Mikhaïl Gorbatchev",
-      "desc": "Gorbatchev devient Secrétaire général du PCUS le 11 mars 1985. Il lance glasnost et perestroïka. Ses réformes mèneront involontairement à la chute de l'URSS. Le réformateur qui voulait sauver le système.",
-      "cat": "politique",
-      "region": "Russie",
-      "img": "",
-      "parentId": 406
-    },
-    {
       "id": 921,
       "y": 1990,
       "m": 2,
@@ -10490,19 +9550,6 @@
       "title": "Libération de Mandela — 27 ans de prison",
       "wiki": "Nelson Mandela",
       "desc": "Nelson Mandela est libéré le 11 février 1990 après 27 ans de prison. Il marche libre devant 250 millions de téléspectateurs. Quatre ans plus tard, il sera président d'Afrique du Sud.",
-      "cat": "politique",
-      "region": "Afrique du Sud",
-      "img": "",
-      "parentId": 116
-    },
-    {
-      "id": 922,
-      "y": 1994,
-      "m": 4,
-      "d": 27,
-      "title": "Premières élections multiraciales en Afrique du Sud",
-      "wiki": "Élections générales sud-africaines de 1994",
-      "desc": "Les premières élections multiraciales en Afrique du Sud le 27 avril 1994 voient Mandela élu président. Des millions de Noirs votent pour la première fois. Fin de l'apartheid. Miracle sud-africain.",
       "cat": "politique",
       "region": "Afrique du Sud",
       "img": "",
@@ -10532,19 +9579,6 @@
       "region": "Moyen-Orient",
       "img": "",
       "parentId": 284
-    },
-    {
-      "id": 925,
-      "y": 2011,
-      "m": 1,
-      "d": 25,
-      "title": "Révolution égyptienne — place Tahrir",
-      "wiki": "Révolution égyptienne de 2011",
-      "desc": "Des millions d'Égyptiens occupent la place Tahrir le 25 janvier 2011. Moubarak démissionne le 11 février après 30 ans. Espoir brisé par la prise du pouvoir militaire. Sissi au pouvoir depuis 2013.",
-      "cat": "politique",
-      "region": "Égypte",
-      "img": "",
-      "parentId": 141
     },
     {
       "id": 926,
@@ -10581,19 +9615,6 @@
       "wiki": "Mohamed Bouazizi",
       "desc": "Mohamed Bouazizi, vendeur de légumes tunisien, s'immole par le feu le 17 décembre 2010. Son geste déclenche la révolution tunisienne. Point de départ du Printemps arabe mondial.",
       "cat": "politique",
-      "region": "Afrique",
-      "img": "",
-      "parentId": 141
-    },
-    {
-      "id": 929,
-      "y": 2011,
-      "m": 2,
-      "d": 17,
-      "title": "Guerre civile libyenne — chute de Kadhafi",
-      "wiki": "Première guerre civile libyenne",
-      "desc": "La rébellion contre Kadhafi éclate le 17 février 2011. L'OTAN intervient. Kadhafi est capturé et lynché le 20 octobre 2011. La Libye plonge dans un chaos qui dure encore en 2025.",
-      "cat": "guerre",
       "region": "Afrique",
       "img": "",
       "parentId": 141
@@ -10762,32 +9783,6 @@
       "desc": "Jeff Bezos et l'équipage de Blue Origin atteignent l'espace le 20 juillet 2021. Début du tourisme spatial commercial. Musk avec SpaceX rivalise. L'espace se privatise.",
       "cat": "science",
       "region": "États-Unis",
-      "img": "",
-      "parentId": 106
-    },
-    {
-      "id": 943,
-      "y": 1959,
-      "m": 9,
-      "d": 14,
-      "title": "Luna 2 — premier objet sur la Lune",
-      "wiki": "Luna 2",
-      "desc": "La sonde soviétique Luna 2 s'écrase sur la Lune le 14 septembre 1959. Premier objet fabriqué par l'homme à atteindre un autre corps céleste. La conquête de l'espace franchit un cap décisif.",
-      "cat": "science",
-      "region": "Russie",
-      "img": "",
-      "parentId": 106
-    },
-    {
-      "id": 944,
-      "y": 1963,
-      "m": 6,
-      "d": 16,
-      "title": "Valentina Terechkova — première femme dans l'espace",
-      "wiki": "Valentina Terechkova",
-      "desc": "La soviétique Valentina Terechkova orbite autour de la Terre le 16 juin 1963. Première femme dans l'espace. Elle effectue 48 orbites en 3 jours. Symbole de l'égalité soviétique.",
-      "cat": "science",
-      "region": "Russie",
       "img": "",
       "parentId": 106
     },
@@ -10975,9 +9970,9 @@
       "y": 1944,
       "m": 4,
       "d": 21,
-      "title": "Droit de vote des femmes en France",
+      "title": "Premières élections avec les femmes — France 1945",
       "wiki": "Droit de vote des femmes en France",
-      "desc": "L'ordonnance du 21 avril 1944 accorde le droit de vote aux femmes françaises. La France rejoint tardivement les démocraties. Les femmes votent pour la première fois aux municipales d'avril 1945.",
+      "desc": "Pour la première fois en France, les femmes participent aux élections municipales du 29 avril 1945. Résultat direct de l'ordonnance du 21 avril 1944. Tournant historique de la démocratie française.",
       "cat": "politique",
       "region": "France",
       "img": "",
@@ -11021,19 +10016,6 @@
       "region": "Corée",
       "img": "",
       "parentId": 101
-    },
-    {
-      "id": 962,
-      "y": 1961,
-      "m": 8,
-      "d": 13,
-      "title": "Construction du Mur de Berlin — nuit du 12",
-      "wiki": "Construction du mur de Berlin",
-      "desc": "Dans la nuit du 12 au 13 août 1961, des soldats est-allemands posent des barbelés. Les Berlinois se réveillent divisés. En quelques jours, le mur de béton s'élève. Symbole de la Guerre froide.",
-      "cat": "politique",
-      "region": "Allemagne",
-      "img": "",
-      "parentId": 392
     },
     {
       "id": 963,
@@ -11175,18 +10157,6 @@
       "img": ""
     },
     {
-      "id": 974,
-      "y": 2018,
-      "m": 8,
-      "d": 25,
-      "title": "Rohingyas — génocide en Birmanie",
-      "wiki": "Génocide des Rohingyas",
-      "desc": "L'ONU qualifie les opérations militaires birmanes contre les Rohingyas de génocide. 700 000 fuient au Bangladesh depuis 2017. Aung San Suu Kyi, Prix Nobel de la Paix, ne condamne pas.",
-      "cat": "guerre",
-      "region": "Asie",
-      "img": ""
-    },
-    {
       "id": 975,
       "y": 2019,
       "m": 3,
@@ -11300,18 +10270,6 @@
       "img": ""
     },
     {
-      "id": 984,
-      "y": 2024,
-      "m": 11,
-      "d": 21,
-      "title": "Poutine visé par un mandat d'arrêt de la CPI",
-      "wiki": "Mandat d'arrêt contre Vladimir Poutine",
-      "desc": "La Cour pénale internationale émet un mandat d'arrêt contre Vladimir Poutine pour la déportation d'enfants ukrainiens. 124 pays membres de la CPI doivent l'arrêter s'il entre sur leur territoire.",
-      "cat": "politique",
-      "region": "Monde entier",
-      "img": ""
-    },
-    {
       "id": 985,
       "y": 2025,
       "m": 2,
@@ -11334,17 +10292,6 @@
       "cat": "autre",
       "region": "Monde entier",
       "img": ""
-    },
-    {
-      "id": 987,
-      "y": 1913,
-      "title": "Ford — chaîne de montage et production de masse",
-      "wiki": "Ford T",
-      "desc": "Henry Ford lance la chaîne de montage en 1913 à Highland Park. La Ford T passe de 12h à 93 minutes de production. Naissance de la production de masse et de la société de consommation.",
-      "cat": "science",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 463
     },
     {
       "id": 988,
@@ -11404,20 +10351,7 @@
       "cat": "science",
       "region": "États-Unis",
       "img": "",
-      "parentId": 731
-    },
-    {
-      "id": 993,
-      "y": 2004,
-      "m": 6,
-      "d": 21,
-      "title": "SpaceShipOne — premier vol spatial privé",
-      "wiki": "SpaceShipOne",
-      "desc": "SpaceShipOne franchit la ligne Kármán (100 km) le 21 juin 2004. Premier vol spatial habité financé par le privé. Début de l'ère commerciale spatiale. Burt Rutan et Paul Allen récompensés.",
-      "cat": "science",
-      "region": "États-Unis",
-      "img": "",
-      "parentId": 106
+      "parentId": 510
     },
     {
       "id": 994,
