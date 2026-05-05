@@ -474,6 +474,19 @@ let dragging = false, dsx = 0, dsox = 0;
 let hiddenCats = new Set();
 let activeRegion = null;
 let showOnlyFavs = false;
+/* ── Tags libres ── */
+let activeTags = new Set(); /* tags actuellement filtrés */
+/* Liste globale de tous les tags connus — mise à jour à chaque render */
+let allKnownTags = [];
+/* Suggestion de tags prédéfinis pour aider l'utilisateur */
+const TAG_SUGGESTIONS = [
+  'Femmes','Religion','Découverte','Révolution','Colonisation','Esclavage',
+  'Environnement','Technologie','Économie','Littérature','Musique','Cinéma',
+  'Architecture','Médecine','Exploration','Traité','Assassinat','Épidémie',
+  'Droits civiques','Nucléaire','Aviation','Spatial','Internet','IA',
+  'Antiquité classique','Moyen-Orient','Asie','Afrique','Amériques',
+  'Océan','Montagne','Empire','République','Monarchie','Démocratie',
+];
 
 const svgEl  = document.getElementById('tl-svg');
 const wrap   = document.getElementById('tl-wrap');
@@ -549,14 +562,30 @@ function eventMatchesRegion(ev) {
   return false;
 }
 
+/* Vérifie si un event possède TOUS les tags actifs */
+function eventMatchesTags(ev) {
+  if (activeTags.size === 0) return true;
+  const evTags = new Set((ev.tags || []).map(t => t.toLowerCase()));
+  for (const t of activeTags) {
+    if (!evTags.has(t.toLowerCase())) return false;
+  }
+  return true;
+}
+
 /* ── Era strip ── */
 function buildEraStrip() {
+  /* Reconstruire la liste globale des tags connus */
+  const tagSet = new Set();
+  events.forEach(ev => (ev.tags || []).forEach(t => { if (t) tagSet.add(t); }));
+  allKnownTags = [...tagSet].sort((a, b) => a.localeCompare(b, 'fr'));
+
   document.getElementById('era-strip').innerHTML = ERAS.map(era => {
     const eT = (era.key === 'xxi' || era.key === 'all') ? TODAY_Y + 1 : era.to;
     const count = events.filter(e =>
       midY(e) >= era.from && midY(e) < eT &&
       !hiddenCats.has(e.cat) && eventMatchesRegion(e) &&
-      (!showOnlyFavs || favorites.has(e.id))
+      (!showOnlyFavs || favorites.has(e.id)) &&
+      eventMatchesTags(e)
     ).length;
     const active = currentEra && currentEra.key === era.key;
     const fromS = era.from < 0 ? Math.abs(era.from) + ' av. J.-C.' : era.from;
@@ -597,7 +626,8 @@ function eraEvents() {
   return events.filter(e =>
     midY(e) >= currentEra.from && midY(e) < to &&
     !hiddenCats.has(e.cat) && eventMatchesRegion(e) &&
-    (!showOnlyFavs || favorites.has(e.id))
+    (!showOnlyFavs || favorites.has(e.id)) &&
+    eventMatchesTags(e)
   );
 }
 function getRange() {
@@ -1000,6 +1030,20 @@ function openCard(id, e) {
     document.getElementById('cp-period-fill').style.cssText = `width:${pct}%;background:${cat.c}`;
   } else pbw.style.display = 'none';
   document.getElementById('cp-desc').textContent = ev.desc || 'Aucune description.';
+
+  /* ── Tags dans la fiche ── */
+  const cpTagsWrap = document.getElementById('cp-tags-wrap');
+  if (cpTagsWrap) {
+    const tags = ev.tags && ev.tags.length ? ev.tags : [];
+    if (tags.length) {
+      cpTagsWrap.style.display = 'block';
+      cpTagsWrap.innerHTML = `<div class="cp-tag-list">${
+        tags.map(t => `<span class="cp-tag-pill" onclick="filterByTag('${t.replace(/'/,"\\'")}')">🏷️ ${t}</span>`).join('')
+      }</div>`;
+    } else {
+      cpTagsWrap.style.display = 'none';
+    }
+  }
   const fbtn = document.getElementById('cp-fav');
   fbtn.textContent = isFav ? '★ Favori' : '☆ Favori';
   fbtn.style.cssText = `background:${isFav ? '#f59e0b' : 'transparent'};color:${isFav ? '#fff' : '#f59e0b'};border:1.5px solid #f59e0b;border-radius:100px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:var(--fb)`;
@@ -1182,6 +1226,9 @@ function resetForm() {
   const cbL = document.getElementById('cb-lieu'); if (cbL) cbL.checked = false;
   const lw = document.getElementById('lieu-wrap'); if (lw) lw.style.display = 'none';
   removeImg();
+  /* Réinitialiser le champ tags */
+  _editTags = [];
+  renderTagsEditChips();
 }
 function openAdd() {
   editId = null; resetForm();
