@@ -333,12 +333,46 @@ svg, svg * { transition: none !important; }
 /* ══════════════════════════
    PLEIN ÉCRAN
    ══════════════════════════ */
-/* Quand le document est en fullscreen, on masque tout sauf la frise */
-:fullscreen .page > *:not(#frise-view):not(.toolbar):not(.searchbox):not(#sres):not(.legend):not(.tag-bar):not(.filter-bar) { display:none!important }
-:-webkit-full-screen .page > *:not(#frise-view):not(.toolbar):not(.searchbox):not(#sres):not(.legend):not(.tag-bar):not(.filter-bar) { display:none!important }
-/* Bouton qui change d'icône en fullscreen */
-:fullscreen #fs-btn::before { content:'⛶'; }
-#fs-btn { font-size:15px; min-width:34px; text-align:center; }
+/* Quand .page est en fullscreen, il prend toute la fenêtre */
+.page:fullscreen,
+.page:-webkit-full-screen {
+  max-width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 0 .875rem 1rem;
+  background: var(--paper);
+}
+/* Masquer tout sauf la frise et ses contrôles */
+.page:fullscreen > *,
+.page:-webkit-full-screen > * {
+  display: none !important;
+}
+.page:fullscreen .toolbar,
+.page:fullscreen .searchbox,
+.page:fullscreen #sres,
+.page:fullscreen .legend,
+.page:fullscreen .tag-bar,
+.page:fullscreen .filter-bar,
+.page:fullscreen #frise-view,
+.page:-webkit-full-screen .toolbar,
+.page:-webkit-full-screen .searchbox,
+.page:-webkit-full-screen #sres,
+.page:-webkit-full-screen .legend,
+.page:-webkit-full-screen .tag-bar,
+.page:-webkit-full-screen .filter-bar,
+.page:-webkit-full-screen #frise-view {
+  display: block !important;
+}
+.page:fullscreen .legend,
+.page:-webkit-full-screen .legend { display: flex !important; }
+.page:fullscreen .filter-bar,
+.page:-webkit-full-screen .filter-bar { display: flex !important; }
+.page:fullscreen .tl-mobile-nav,
+.page:-webkit-full-screen .tl-mobile-nav { display: flex !important; }
+/* La frise prend toute la hauteur disponible en plein écran */
+.page:fullscreen #tl-wrap,
+.page:-webkit-full-screen #tl-wrap { border-radius: 0; }
+#fs-btn { font-size: 15px; min-width: 34px; text-align: center; }
 
 /* ══════════════════════════
    TAGS LIBRES
