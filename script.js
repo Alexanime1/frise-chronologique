@@ -888,34 +888,49 @@ function buildCard(ev, stemLen) {
   return s;
 }
 
-/* clusterEv — regroupement des events proches.
-   RÈGLE FONDAMENTALE : deux events sur des rangs (row) différents sont
-   déjà séparés verticalement sur la frise. Les regrouper masquerait des
-   events parfaitement visibles. On ne regroupe donc que les events qui :
-     1. ont le MÊME rang (même côté de l'axe, même profondeur)
-     2. sont à moins de CARD_W pixels l'un de l'autre sur l'axe X
-   Cela garantit que des events à la même date mais rangs différents
-   restent toujours visibles individuellement. */
+/* clusterEv — regroupe les events visuellement trop proches.
+   RÈGLES :
+   1. Deux events de RANGS DIFFÉRENTS ne sont jamais groupés ensemble
+      (ils sont déjà séparés verticalement, pas de chevauchement possible).
+   2. Deux events du MÊME rang sont groupés seulement si leur distance
+      en pixels est inférieure à la largeur d'une carte (≈192px).
+   3. Un groupe n'est affiché comme cluster que s'il contient ≥3 events
+      ET que la distance visuelle est vraiment serrée (< 68px).
+      Entre 68 et 192px : chaque event reste individuel.
+   Cette logique garantit qu'au fur et à mesure du zoom, les events
+   à même date finissent TOUJOURS par apparaître individuellement. */
 function clusterEv(placed) {
-  const CARD_W = 192;
-  /* Trier par rang puis par position X */
-  const sorted = [...placed].sort((a, b) => a.row !== b.row ? a.row - b.row : a.px - b.px);
-  const clusters = [], used = new Set();
+  /* Seuil de cluster strict : en-dessous, on groupe (cercle numéroté).
+     Au-dessus, chaque event est affiché individuellement même si les
+     cartes se chevauchent un peu — le rang les sépare verticalement. */
+  const CLUSTER_THRESHOLD = 68;
 
-  for (let i = 0; i < sorted.length; i++) {
-    if (used.has(i)) continue;
-    const grp = [sorted[i]]; used.add(i);
-    for (let j = i + 1; j < sorted.length; j++) {
-      if (used.has(j)) continue;
-      /* Condition 1 : même rang exact */
-      if (sorted[j].row !== sorted[i].row) continue;
-      /* Condition 2 : distance X inférieure à la largeur d'une carte */
-      if (sorted[j].px - sorted[i].px >= CARD_W) break; /* trié par px, inutile de continuer */
-      grp.push(sorted[j]); used.add(j);
+  /* Grouper par rang d'abord */
+  const byRow = {};
+  placed.forEach(ev => {
+    if (!byRow[ev.row]) byRow[ev.row] = [];
+    byRow[ev.row].push(ev);
+  });
+
+  const clusters = [];
+  Object.values(byRow).forEach(rowEvs => {
+    /* Trier par position X dans ce rang */
+    const sorted = [...rowEvs].sort((a, b) => a.px - b.px);
+    const used = new Set();
+    for (let i = 0; i < sorted.length; i++) {
+      if (used.has(i)) continue;
+      const grp = [sorted[i]]; used.add(i);
+      for (let j = i + 1; j < sorted.length; j++) {
+        if (used.has(j)) continue;
+        /* Dès qu'on dépasse le seuil strict, on arrête ce groupe */
+        if (sorted[j].px - sorted[i].px >= CLUSTER_THRESHOLD) break;
+        grp.push(sorted[j]); used.add(j);
+      }
+      /* Cluster seulement si ≥ 3 events très proches */
+      if (grp.length >= 3) clusters.push(grp);
+      else grp.forEach(ev => clusters.push([ev]));
     }
-    if (grp.length >= 3) clusters.push(grp);
-    else grp.forEach(ev => clusters.push([ev]));
-  }
+  });
   return clusters;
 }
 
@@ -1322,6 +1337,48 @@ function deleteEv() {
   if (currentMapMode) refreshMap();
 }
 document.getElementById('mbg').addEventListener('click', e => { if (e.target === e.currentTarget) closeMod(); });
+
+/* ── Plein écran ── */
+function toggleFullscreen() {
+  const btn = document.getElementById('fs-btn');
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    /* Entrer en plein écran sur l'élément .page pour garder le contexte */
+    const target = document.querySelector('.page') || document.documentElement;
+    const req = target.requestFullscreen || target.webkitRequestFullscreen || target.mozRequestFullScreen;
+    if (req) req.call(target).then(() => {
+      btn.textContent = '✕'; btn.title = 'Quitter le plein écran';
+      /* Recalculer la frise avec la nouvelle largeur */
+      setTimeout(resetView, 120);
+    }).catch(() => {});
+  } else {
+    const ex = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+    if (ex) ex.call(document).then(() => {
+      btn.textContent = '⛶'; btn.title = 'Plein écran';
+      setTimeout(resetView, 120);
+    }).catch(() => {});
+  }
+}
+/* Synchroniser l'icône si l'utilisateur quitte avec Échap */
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.getElementById('fs-btn');
+  if (!btn) return;
+  if (document.fullscreenElement) {
+    btn.textContent = '✕'; btn.title = 'Quitter le plein écran';
+  } else {
+    btn.textContent = '⛶'; btn.title = 'Plein écran';
+    setTimeout(resetView, 120);
+  }
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  const btn = document.getElementById('fs-btn');
+  if (!btn) return;
+  if (document.webkitFullscreenElement) {
+    btn.textContent = '✕'; btn.title = 'Quitter le plein écran';
+  } else {
+    btn.textContent = '⛶'; btn.title = 'Plein écran';
+    setTimeout(resetView, 120);
+  }
+});
 
 function shareApp() {
   const url = window.location.href;
